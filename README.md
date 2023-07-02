@@ -1,16 +1,6 @@
-# Rust project template
+# mini_exercism
 
-This is a simple template repository for Rust projects that includes some default workflows.
+[![CI](https://github.com/clechasseur/mini_exercism/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/clechasseur/mini_exercism/actions/workflows/ci.yml) _TODO codecov_ [![Security audit](https://github.com/clechasseur/mini_exercism/actions/workflows/audit-check.yml/badge.svg?branch=main)](https://github.com/clechasseur/mini_exercism/actions/workflows/audit-check.yml)<br/>
+[![crates.io](https://img.shields.io/crates/v/mini_exercism.svg)](https://crates.io/crates/mini_exercism) [![downloads](https://img.shields.io/crates/d/mini_exercism.svg)](https://crates.io/crates/mini_exercism) [![docs.rs](https://img.shields.io/badge/docs-latest-blue.svg)](https://docs.rs/mini_exercism)
 
-## Usage
-
-1. Create a new repository using this template
-2. Clone your new repository
-3. Run `cargo new` to create a Rust project at the repository root<br/>
-   OR<br/>
-   Run `cargo new` from the repository root to create a new Rust project, then create a root `Cargo.toml` to setup a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html)
-4. Adjust workflows if required
-   * In particular, in order to have code coverage work, setup your project on [codecov.io](https://about.codecov.io/) and create a `CODECOV_TOKEN` secret for your repository's actions
-5. Add status badges to your readme if you feel like it
-6. ???
-7. Profit!
+Minimalistic Rust library to interact with the [Exercism.org](https://exercism.org/) APIs. (_in progress_)
