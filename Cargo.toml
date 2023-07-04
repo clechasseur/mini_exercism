@@ -1,0 +1,23 @@
+[package]
+name = "mini_exercism"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+derive_builder = "0.12.0"
+futures = "0.3.28"
+mockall_double = "0.3.0"
+reqwest = { version = "0.11.18", features = ["json"] }
+serde = { version = "1.0.164", features = ["derive"] }
+serde_json = "1.0.97"
+strum = "0.25.0"
+strum_macros = "0.25.0"
+thiserror = "1.0.40"
+
+[dev-dependencies]
+assert_matches = "1.5.0"
+mockall = "0.11.4"
+serial_test = "2.0.0"
+tokio = { version = "1.28.2", features = ["rt", "macros", "test-util"] }
+wiremock = "0.5.19"
+wiremock_logical_matchers = "0.1.1"

@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [ 1.60.0, 1.68.2, stable, beta, nightly ] # TODO: change 1.60.0 and 1.68.2 for your minimum supported Rust versions
+        toolchain: [ 1.68.2, stable, beta, nightly ]
         os: [ ubuntu, macos, windows ]
         ignore-lock: [ false, true ]
         include:
@@ -43,9 +43,6 @@ jobs:
             experimental: true
           - toolchain: nightly
             experimental: true
-        exclude:
-          - toolchain: 1.60.0
-            ignore-lock: true
     runs-on: ${{ matrix.os }}-latest
     continue-on-error: true
     steps:
@@ -77,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [ 1.68.2, stable, beta, nightly ] # TODO: change 1.68.2 for your minimum supported Rust version
+        toolchain: [ 1.68.2, stable, beta, nightly ]
         os: [ ubuntu, macos, windows ]
         ignore-lock: [ false, true ]
         include:
