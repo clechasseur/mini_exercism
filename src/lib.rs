@@ -1,6 +1,6 @@
 //! # mini_exercism
 //!
-//! A lightweight crate to interact with Exercism's website API.
+//! A lightweight crate to interact with [Exercism](https://exercism.org)'s website API.
 
 pub mod core;
 pub mod cli;

@@ -1,10 +1,10 @@
-//! Core types used across the mini_exercism library.
+//! Core types used across the [mini_exercism](crate) library.
 
 use std::io;
 use derive_builder::UninitializedFieldError;
 use thiserror::Error;
 
-/// Struct storing the credentials used to access the Exercism API.
+/// Struct storing the credentials used to access the [Exercism](https://exercism.org) API.
 ///
 /// # Examples
 ///
@@ -22,12 +22,12 @@ pub struct Credentials {
 }
 
 impl Credentials {
-    /// Creates a new Exercism credentials wrapper from the given API token.
+    /// Creates a new [Exercism](https://exercism.org) credentials wrapper from the given API token.
     pub fn from_api_token<T: Into<String>>(api_token: T) -> Self {
         Self { api_token: api_token.into() }
     }
 
-    /// Accesses the Exercism API token.
+    /// Accesses the [Exercism](https://exercism.org) API token.
     pub fn api_token(&self) -> &str {
         self.api_token.as_str()
     }
@@ -56,10 +56,11 @@ pub enum Error {
     #[error("Exercism CLI config file did not contain an API token")]
     ApiTokenNotFoundInConfig,
 
+    // TODO remove this, we shouldn't expose this as it's not supposed to happen outside the crate
     #[error("A field was missing while trying to create a new Exercism API client: {0}")]
     ApiClientUninitializedField(String),
 
-    /// Error encountered while performing a request to an Exercism API
+    /// Error encountered while performing a request to an [Exercism](https://exercism.org) API
     #[error("Error while performing API request: {0:?}")]
     ApiError(#[from] reqwest::Error),
 }

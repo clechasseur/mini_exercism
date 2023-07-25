@@ -1,4 +1,4 @@
-//! Utilities to interact with the Exercism CLI application.
+//! Utilities to interact with the [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
 
 mod detail;
 
