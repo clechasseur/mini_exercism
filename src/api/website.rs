@@ -1,123 +1,126 @@
-//! Types and functions to interact with the Exercism website API.
-
-mod detail;
+//! Types and functions to interact with the [Exercism website](https://exercism.org) API.
 
 use derive_builder::Builder;
 use serde::Deserialize;
-use strum_macros::{AsRefStr, Display};
-use crate::api;
-use crate::api::website::detail::DEFAULT_WEBSITE_API_BASE_URL;
+use strum_macros::Display;
 use crate::core::Result;
 
-/// Client for the Exercism website API. This API is undocumented and
-/// is mostly used by the website itself to fetch information.
-pub struct Client {
-    api_client: api::Client,
-    api_base_url: String,
+/// Default base URL for the [Exercism website](https://exercism.org) API.
+pub const DEFAULT_WEBSITE_API_BASE_URL: &str = "https://exercism.org/api/v2";
+
+define_api_client! {
+    /// Client for the [Exercism website](https://exercism.org) API. This API is undocumented and
+    /// is mostly used by the website itself to fetch information.
+    pub struct Client(DEFAULT_WEBSITE_API_BASE_URL)
 }
 
 impl Client {
-    /// Creates a new client for the Exercism website API.
+    /// Returns a list of [Exercism tracks](https://exercism.org/tracks).
     ///
-    /// # Arguments
+    /// - If the request is performed anonymously, will return a list of all tracks
+    ///   supported on the website.
+    /// - If the request is performed with [`credentials`](ClientBuilder::credentials),
+    ///   tracks that the user has joined will be identified by the
+    ///   [`is_joined`](Track::is_joined) field.
     ///
-    /// - `api_client` - The [Exercism API client](api::Client) used to perform requests.
-    pub fn new(api_client: api::Client) -> Self {
-        Self::with_custom_api_base_url(api_client, DEFAULT_WEBSITE_API_BASE_URL)
-    }
-
-    /// Creates a new client for the Exercism website API using the provided API base URL.
-    /// This is meant to be used for testing purposes.
-    ///
-    /// # Arguments
-    ///
-    /// - `api_client` - The [Exercism API client](api::Client) used to perform requests.
-    /// - `api_base_url` - Base URL of the Exercism website API. Must not end with `/`.
-    pub fn with_custom_api_base_url<T: Into<String>>(api_client: api::Client, api_base_url: T) -> Self {
-        Self {
-            api_client,
-            api_base_url: api_base_url.into(),
-        }
-    }
-
-    /// Returns a list of Exercism tracks.
-    /// - If the request is performed anonymously (see [api::Client::credentials]),
-    ///   will return a list of all tracks supported on the website.
-    /// - If the request is performed with credentials, tracks that the user has joined will be
-    ///   identified by the `is_joined` field.
-    ///
-    /// # Arguments
-    ///
-    /// TODO
+    /// The list of tracks can optionally be filtered using [`TrackFilters`].
     ///
     /// # Errors
     ///
     /// - [`ApiError`]: Error while fetching track information from API
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
-    pub async fn get_tracks(&self, status_filter: TrackStatusFilter) -> Result<Tracks> {
-        Ok(self.api_client.get(self.api_url("tracks"))
-            .query(&[("status", status_filter.as_ref())])
-            .send()
-            .await?
-            .json::<Tracks>()
-            .await?)
-    }
+    pub async fn get_tracks(&self, filters: Option<TrackFilters>) -> Result<Tracks> {
+        let mut request = self.api_client.get("/tracks");
+        if let Some(filters) = filters {
+            let query: Vec<_> = filters.into();
+            request = request.query(&query);
+        }
 
-    fn api_url(&self, url: &str) -> String {
-        format!("{}/{}", self.api_base_url, url)
+        Ok(request.send()
+            .await?
+            .json()
+            .await?)
     }
 }
 
-/// Filters that can be applied when fetching language tracks from the Exercism website API.
+/// Filters that can be applied when fetching language tracks from the [Exercism website](https://exercism.org) API
+/// (see [`Client::get_tracks`]).
 #[derive(Debug, Default, Builder)]
-#[builder(derive(Debug), default, build_fn(name = "fallible_build", error = "crate::core::Error"))]
+#[builder(derive(Debug), default, setter(strip_option), build_fn(private, name = "fallible_build"))]
 pub struct TrackFilters {
     /// Criteria used to filter language tracks.
-    /// Applied to both track `name`s (e.g. slugs) and `title`s.
-    #[builder(setter(into, strip_option))]
+    /// Applied to both track [`name`](Track::name)s (e.g. slugs) and [`title`](Track::title)s.
+    #[builder(setter(into))]
     pub criteria: Option<String>,
 
-    /// List of `tags` that must be attached to the language track.
+    /// List of [`tags`](Track::tags) that must be attached to the language track.
     #[builder(setter(each(name = "tag", into)))]
     pub tags: Vec<String>,
 
     /// Language track's status filter.
-    #[builder(setter(strip_option))]
     pub status: Option<TrackStatusFilter>,
 }
 
-impl TrackFiltersBuilder {
-    pub fn build(&self) -> TrackFilters {
-        self.fallible_build().unwrap()
+impl TrackFilters {
+    /// Returns a builder for the [`TrackFilters`] type.
+    pub fn builder() -> TrackFiltersBuilder {
+        TrackFiltersBuilder::default()
     }
 }
 
-/// Possible status filter of Exercism language tracks.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Display, AsRefStr)]
+impl From<TrackFilters> for Vec<(String, String)> {
+    /// Converts [`TrackFilters`] into a sequence of key/value pair
+    /// that can be used as [query string parameters](reqwest::RequestBuilder::query).
+    fn from(filters: TrackFilters) -> Self {
+        let mut query = Vec::new();
+
+        if let Some(criteria) = filters.criteria {
+            query.push(("criteria".to_string(), criteria));
+        }
+
+        filters.tags.into_iter().for_each(|tag| {
+            query.push(("tags[]".to_string(), tag));
+        });
+
+        if let Some(status) = filters.status {
+            query.push(("status".to_string(), status.to_string()));
+        }
+
+        query
+    }
+}
+
+impl TrackFiltersBuilder {
+    /// Builds a new [TrackFilters].
+    pub fn build(&self) -> TrackFilters {
+        self.fallible_build().expect("All fields should have had default values")
+    }
+}
+
+/// Possible status filter of [Exercism](https://exercism.org) language tracks.
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum TrackStatusFilter {
     /// Return all language tracks.
     #[default]
-    #[strum(serialize = "all")]
     All,
 
     /// Return only language tracks joined by the user.
-    #[strum(serialize = "joined")]
     Joined,
 
     /// Return only language tracks *not* joined by the user.
-    #[strum(serialize = "unjoined")]
     Unjoined,
 }
 
-/// Struct used to return Exercism language tracks from the website API.
+/// Struct used to return [Exercism](https://exercism.org) language tracks from the website API.
 #[derive(Debug, Deserialize)]
 pub struct Tracks {
-    /// List of Exercism language tracks. Usually sorted alphabetically by track name.
+    /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by track name.
     pub tracks: Vec<Track>,
 }
 
-/// Struct representing a single language track returned by the Exercism website API.
+/// Struct representing a single language track returned by the [Exercism website](https://exercism.org) API.
 #[derive(Debug, Deserialize)]
 pub struct Track {
     /// Name of the language track.
@@ -135,10 +138,10 @@ pub struct Track {
     /// Total number of exercises available in the track.
     pub num_exercises: usize,
 
-    /// URL of this language track on the Exercism website.
+    /// URL of this language track on the [Exercism website](https://exercism.org).
     pub web_url: String,
 
-    /// URL of the icon representing this language track on the Exercism website.
+    /// URL of the icon representing this language track on the [Exercism website](https://exercism.org).
     pub icon_url: String,
 
     /// List of tags attached to this language track.
@@ -164,12 +167,13 @@ pub struct Track {
     pub num_completed_exercises: usize,
 }
 
-/// Struct containing links pertaining to an Exercism language track returned by the website API.
+/// Struct containing links pertaining to an [Exercism](https://exercism.org) language track
+/// returned by the website API.
 #[derive(Debug, Deserialize)]
 pub struct TrackLinks {
-    /// URL of the language track's exercises on the Exercism website.
+    /// URL of the language track's exercises on the [Exercism website](https://exercism.org).
     pub exercises: String,
 
-    /// URL of the language track's concepts on the Exercism website.
+    /// URL of the language track's concepts on the [Exercism website](https://exercism.org).
     pub concepts: String,
 }

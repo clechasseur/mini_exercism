@@ -40,23 +40,23 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// CLI config file could not be found (see [get_cli_credentials](crate::cli::get_cli_credentials))
+    /// CLI config file could not be found (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[error("Exercism CLI config file not found - perhaps CLI application is not installed or configured?")]
     ConfigNotFound,
 
-    /// I/O error reading CLI config file (see [get_cli_credentials](crate::cli::get_cli_credentials))
+    /// I/O error reading CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[error("Could not read Exercism CLI config file: {0:?}")]
     ConfigReadError(#[from] io::Error),
 
-    /// JSON error parsing CLI config file (see [get_cli_credentials](crate::cli::get_cli_credentials))
+    /// JSON error parsing CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[error("Failed to parse Exercism CLI config file: {0:?}")]
     ConfigParseError(#[from] serde_json::Error),
 
-    /// CLI config file did not contain an API token (see [get_cli_credentials](crate::cli::get_cli_credentials))
+    /// CLI config file did not contain an API token (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[error("Exercism CLI config file did not contain an API token")]
     ApiTokenNotFoundInConfig,
 
-    // TODO remove this, we shouldn't expose this as it's not supposed to happen outside the crate
+    // TODO remove this, we shouldn't expose this as it's not supposed to happen outside the crate (?)
     #[error("A field was missing while trying to create a new Exercism API client: {0}")]
     ApiClientUninitializedField(String),
 
@@ -68,6 +68,7 @@ pub enum Error {
 impl From<UninitializedFieldError> for Error {
     /// Creates a new [Error] for an uninitialized field while trying to
     /// create a new Exercism API client.
+    /// TODO update this description
     ///
     /// [Error]: crate::Core::Error#variant.ApiClientUninitializedField
     fn from(ufe: UninitializedFieldError) -> Self {
