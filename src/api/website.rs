@@ -1,8 +1,11 @@
 //! Types and functions to interact with the [Exercism website](https://exercism.org) API.
 
+mod detail;
+
 use derive_builder::Builder;
 use serde::Deserialize;
 use strum_macros::Display;
+use crate::api::website::detail::TrackFiltersBuilderError;
 use crate::core::Result;
 
 /// Default base URL for the [Exercism website](https://exercism.org) API.
@@ -47,7 +50,12 @@ impl Client {
 /// Filters that can be applied when fetching language tracks from the [Exercism website](https://exercism.org) API
 /// (see [`Client::get_tracks`]).
 #[derive(Debug, Default, Builder)]
-#[builder(derive(Debug), default, setter(strip_option), build_fn(private, name = "fallible_build"))]
+#[builder(
+    derive(Debug),
+    default,
+    setter(strip_option),
+    build_fn(private, name = "fallible_build", error = "TrackFiltersBuilderError")
+)]
 pub struct TrackFilters {
     /// Criteria used to filter language tracks.
     /// Applied to both track [`name`](Track::name)s (e.g. slugs) and [`title`](Track::title)s.
@@ -55,6 +63,11 @@ pub struct TrackFilters {
     pub criteria: Option<String>,
 
     /// List of [`tags`](Track::tags) that must be attached to the language track.
+    ///
+    /// # Note
+    ///
+    /// This filter does not currently seem to work; whether this is the result of
+    /// a bug in the Exercism website API or in this library remains to be determined.
     #[builder(setter(each(name = "tag", into)))]
     pub tags: Vec<String>,
 
@@ -73,7 +86,7 @@ impl From<TrackFilters> for Vec<(String, String)> {
     /// Converts [`TrackFilters`] into a sequence of key/value pair
     /// that can be used as [query string parameters](reqwest::RequestBuilder::query).
     fn from(filters: TrackFilters) -> Self {
-        let mut query = Vec::new();
+        let mut query = Self::new();
 
         if let Some(criteria) = filters.criteria {
             query.push(("criteria".to_string(), criteria));
@@ -169,7 +182,7 @@ pub struct Track {
 
 /// Struct containing links pertaining to an [Exercism](https://exercism.org) language track
 /// returned by the website API.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct TrackLinks {
     /// URL of the language track's exercises on the [Exercism website](https://exercism.org).
     pub exercises: String,

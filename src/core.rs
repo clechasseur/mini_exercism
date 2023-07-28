@@ -68,9 +68,10 @@ pub enum Error {
 impl From<UninitializedFieldError> for Error {
     /// Creates a new [Error] for an uninitialized field while trying to
     /// create a new Exercism API client.
+    ///
     /// TODO update this description
     ///
-    /// [Error]: crate::Core::Error#variant.ApiClientUninitializedField
+    /// [Error]: enum@crate::core::Error#variant.ApiClientUninitializedField
     fn from(ufe: UninitializedFieldError) -> Self {
         Error::ApiClientUninitializedField(ufe.field_name().to_string())
     }
