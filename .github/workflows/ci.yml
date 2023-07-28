@@ -44,7 +44,7 @@ jobs:
           - toolchain: nightly
             experimental: true
     runs-on: ${{ matrix.os }}-latest
-    continue-on-error: true
+    continue-on-error: ${{ matrix.experimental }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
