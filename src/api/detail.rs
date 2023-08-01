@@ -19,6 +19,10 @@ impl ApiClient {
         ApiClientBuilder::default()
     }
 
+    pub fn api_base_url(&self) -> &str {
+        self.api_base_url.as_str()
+    }
+
     pub fn request(&self, method: Method, url: &str) -> RequestBuilder {
         let builder = self.http_client.request(method, self.api_url(url));
         match &self.credentials {
@@ -133,174 +137,215 @@ macro_rules! define_api_client {
 
 #[cfg(test)]
 mod tests {
-    use reqwest::header::{HeaderMap, HeaderValue};
-    use reqwest::StatusCode;
-    use wiremock::{Mock, MockServer, ResponseTemplate};
-    use wiremock::matchers::{bearer_token, header_exists, method, path};
-    use wiremock_logical_matchers::not;
     use super::*;
 
-    const API_TOKEN: &str = "some_api_token";
-    const TEST_HEADER: &str = "x-mini_exercism-test";
+    mod api_client {
+        use reqwest::header::{HeaderMap, HeaderValue};
+        use reqwest::StatusCode;
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::{bearer_token, header_exists, method, path};
+        use wiremock_logical_matchers::not;
+        use super::*;
 
-    const ANONYMOUS_API_PATH: &str = "/anonymous";
-    const AUTHENTICATED_API_PATH: &str = "/authenticated";
-    const TEST_API_PATH: &str = "/test";
+        const API_TOKEN: &str = "some_api_token";
+        const TEST_HEADER: &str = "x-mini_exercism-test";
 
-    async fn setup_route<T: Into<String>>(mock_server: &MockServer, route: T, anonymous: bool, test: bool) {
-        let mut mock = Mock::given(method("GET"))
-            .and(path(route));
+        const ANONYMOUS_API_PATH: &str = "/anonymous";
+        const AUTHENTICATED_API_PATH: &str = "/authenticated";
+        const TEST_API_PATH: &str = "/test";
 
-        if anonymous {
-            mock = mock.and(not(header_exists("authorization")));
-        } else {
-            mock = mock.and(bearer_token(API_TOKEN));
+        async fn setup_route<T: Into<String>>(mock_server: &MockServer, route: T, anonymous: bool, test: bool) {
+            let mut mock = Mock::given(method("GET"))
+                .and(path(route));
+
+            if anonymous {
+                mock = mock.and(not(header_exists("authorization")));
+            } else {
+                mock = mock.and(bearer_token(API_TOKEN));
+            }
+
+            if test {
+                mock = mock.and(header_exists(TEST_HEADER));
+            } else {
+                mock = mock.and(not(header_exists(TEST_HEADER)));
+            }
+
+            mock.respond_with(ResponseTemplate::new(StatusCode::OK))
+                .mount(mock_server)
+                .await;
         }
 
-        if test {
-            mock = mock.and(header_exists(TEST_HEADER));
-        } else {
-            mock = mock.and(not(header_exists(TEST_HEADER)));
+        async fn setup_mock_server() -> MockServer {
+            let mock_server = MockServer::start().await;
+
+            setup_route(&mock_server, ANONYMOUS_API_PATH, true, false).await;
+            setup_route(&mock_server, format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH), true, true).await;
+            setup_route(&mock_server, AUTHENTICATED_API_PATH, false, false).await;
+            setup_route(&mock_server, format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH), false, true).await;
+
+            mock_server
         }
 
-        mock.respond_with(ResponseTemplate::new(StatusCode::OK))
-            .mount(mock_server)
-            .await;
-    }
-
-    async fn setup_mock_server() -> MockServer {
-        let mock_server = MockServer::start().await;
-
-        setup_route(&mock_server, ANONYMOUS_API_PATH, true, false).await;
-        setup_route(&mock_server, format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH), true, true).await;
-        setup_route(&mock_server, AUTHENTICATED_API_PATH, false, false).await;
-        setup_route(&mock_server, format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH), false, true).await;
-
-        mock_server
-    }
-
-    fn expected_status_code(working_uri: &str, actual_uri: &str) -> StatusCode {
-        if working_uri == actual_uri {
-            StatusCode::OK
-        } else {
-            StatusCode::NOT_FOUND
+        fn expected_status_code(working_uri: &str, actual_uri: &str) -> StatusCode {
+            if working_uri == actual_uri {
+                StatusCode::OK
+            } else {
+                StatusCode::NOT_FOUND
+            }
         }
-    }
 
-    fn get_uri_to_test(anonymous: bool, test: bool) -> String {
-        match (anonymous, test) {
-            (true, false) => ANONYMOUS_API_PATH.to_string(),
-            (true, true) => format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH),
-            (false, false) => AUTHENTICATED_API_PATH.to_string(),
-            (false, true) => format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH),
+        fn get_uri_to_test(anonymous: bool, test: bool) -> String {
+            match (anonymous, test) {
+                (true, false) => ANONYMOUS_API_PATH.to_string(),
+                (true, true) => format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH),
+                (false, false) => AUTHENTICATED_API_PATH.to_string(),
+                (false, true) => format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH),
+            }
         }
-    }
 
-    async fn test_routes(client: &ApiClient, anonymous: bool, test: bool) {
-        let working_uri = get_uri_to_test(anonymous, test);
+        async fn test_routes(client: &ApiClient, anonymous: bool, test: bool) {
+            let working_uri = get_uri_to_test(anonymous, test);
 
-        let uris = vec![
-            get_uri_to_test(true, false),
-            get_uri_to_test(true, true),
-            get_uri_to_test(false, false),
-            get_uri_to_test(false, true),
-        ];
+            let uris = vec![
+                get_uri_to_test(true, false),
+                get_uri_to_test(true, true),
+                get_uri_to_test(false, false),
+                get_uri_to_test(false, true),
+            ];
 
-        for uri in &uris {
-            let request_status = client.request(Method::GET, uri)
-                .send()
-                .await
+            for uri in &uris {
+                let request_status = client.request(Method::GET, uri)
+                    .send()
+                    .await
+                    .unwrap()
+                    .status();
+                let get_status = client.get(uri)
+                    .send()
+                    .await
+                    .unwrap()
+                    .status();
+
+                let expected_status = expected_status_code(&working_uri, uri);
+                assert_eq!(request_status, expected_status,
+                           "Tried to request {}, expected {}, got {}", uri, expected_status, request_status);
+                assert_eq!(get_status, expected_status,
+                           "Tried to get {}, expected {}, got {}", uri, expected_status, get_status);
+            }
+        }
+
+        fn create_test_http_client() -> Client {
+            let mut default_headers = HeaderMap::new();
+            default_headers.insert(TEST_HEADER, HeaderValue::from_static("any_value_will_do"));
+
+            Client::builder()
+                .default_headers(default_headers)
+                .build()
                 .unwrap()
-                .status();
-            let get_status = client.get(uri)
-                .send()
-                .await
-                .unwrap()
-                .status();
+        }
 
-            let expected_status = expected_status_code(&working_uri, uri);
-            assert_eq!(request_status, expected_status,
-                "Tried to request {}, expected {}, got {}", uri, expected_status, request_status);
-            assert_eq!(get_status, expected_status,
-                "Tried to get {}, expected {}, got {}", uri, expected_status, get_status);
+        fn create_authenticated_credentials() -> Credentials {
+            Credentials::from_api_token(API_TOKEN)
+        }
+
+        fn create_anonymous_api_client(mock_server: &MockServer) -> ApiClient {
+            ApiClient::builder()
+                .api_base_url(&mock_server.uri())
+                .build()
+                .unwrap()
+        }
+
+        fn create_anonymous_test_api_client(mock_server: &MockServer) -> ApiClient {
+            ApiClient::builder()
+                .http_client(create_test_http_client())
+                .api_base_url(&mock_server.uri())
+                .build()
+                .unwrap()
+        }
+
+        fn create_authenticated_api_client(mock_server: &MockServer) -> ApiClient {
+            ApiClient::builder()
+                .api_base_url(&mock_server.uri())
+                .credentials(create_authenticated_credentials())
+                .build()
+                .unwrap()
+        }
+
+        fn create_authenticated_test_api_client(mock_server: &MockServer) -> ApiClient {
+            ApiClient::builder()
+                .http_client(create_test_http_client())
+                .api_base_url(&mock_server.uri())
+                .credentials(create_authenticated_credentials())
+                .build()
+                .unwrap()
+        }
+
+        #[tokio::test]
+        async fn with_default_client_and_no_credentials() {
+            let mock_server = setup_mock_server().await;
+            let client = create_anonymous_api_client(&mock_server);
+
+            test_routes(&client, true, false).await;
+        }
+
+        #[tokio::test]
+        async fn with_default_client_and_credentials() {
+            let mock_server = setup_mock_server().await;
+            let client = create_authenticated_api_client(&mock_server);
+
+            test_routes(&client, false, false).await;
+        }
+
+        #[tokio::test]
+        async fn with_test_client_and_no_credentials() {
+            let mock_server = setup_mock_server().await;
+            let client = create_anonymous_test_api_client(&mock_server);
+
+            test_routes(&client, true, true).await;
+        }
+
+        #[tokio::test]
+        async fn with_test_client_and_credentials() {
+            let mock_server = setup_mock_server().await;
+            let client = create_authenticated_test_api_client(&mock_server);
+
+            test_routes(&client, false, true).await;
         }
     }
 
-    fn create_test_http_client() -> Client {
-        let mut default_headers = HeaderMap::new();
-        default_headers.insert(TEST_HEADER, HeaderValue::from_static("any_value_will_do"));
+    mod define_api_client {
+        use super::*;
 
-        Client::builder()
-            .default_headers(default_headers)
-            .build()
-            .unwrap()
-    }
+        const TEST_API_TOKEN: &str = "some_token";
+        const TEST_API_CLIENT_BASE_URL: &str = "https://test.api.client/api";
 
-    fn create_authenticated_credentials() -> Credentials {
-        Credentials::from_api_token(API_TOKEN)
-    }
+        define_api_client! {
+            pub struct TestApiClient(TEST_API_CLIENT_BASE_URL)
+        }
 
-    fn create_anonymous_api_client(mock_server: &MockServer) -> ApiClient {
-        ApiClient::builder()
-            .api_base_url(&mock_server.uri())
-            .build()
-            .unwrap()
-    }
+        impl TestApiClient {
+            pub fn api_base_url(&self) -> &str {
+                self.api_client.api_base_url()
+            }
+        }
 
-    fn create_anonymous_test_api_client(mock_server: &MockServer) -> ApiClient {
-        ApiClient::builder()
-            .http_client(create_test_http_client())
-            .api_base_url(&mock_server.uri())
-            .build()
-            .unwrap()
-    }
+        #[test]
+        fn test_builder_with_default_base_url() {
+            let test_api_client = TestApiClient::builder()
+                .http_client(Client::default())
+                .credentials(Credentials::from_api_token(TEST_API_TOKEN))
+                .build();
 
-    fn create_authenticated_api_client(mock_server: &MockServer) -> ApiClient {
-        ApiClient::builder()
-            .api_base_url(&mock_server.uri())
-            .credentials(create_authenticated_credentials())
-            .build()
-            .unwrap()
-    }
+            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+        }
 
-    fn create_authenticated_test_api_client(mock_server: &MockServer) -> ApiClient {
-        ApiClient::builder()
-            .http_client(create_test_http_client())
-            .api_base_url(&mock_server.uri())
-            .credentials(create_authenticated_credentials())
-            .build()
-            .unwrap()
-    }
+        #[test]
+        fn test_builder_with_custom_base_url() {
+            let custom_api_base_url = "https://custom.api.client/api";
+            let test_api_client = TestApiClient::builder()
+                .api_base_url(custom_api_base_url)
+                .build();
 
-    #[tokio::test]
-    async fn with_default_client_and_no_credentials() {
-        let mock_server = setup_mock_server().await;
-        let client = create_anonymous_api_client(&mock_server);
-
-        test_routes(&client, true, false).await;
-    }
-
-    #[tokio::test]
-    async fn with_default_client_and_credentials() {
-        let mock_server = setup_mock_server().await;
-        let client = create_authenticated_api_client(&mock_server);
-
-        test_routes(&client, false, false).await;
-    }
-
-    #[tokio::test]
-    async fn with_test_client_and_no_credentials() {
-        let mock_server = setup_mock_server().await;
-        let client = create_anonymous_test_api_client(&mock_server);
-
-        test_routes(&client, true, true).await;
-    }
-
-    #[tokio::test]
-    async fn with_test_client_and_credentials() {
-        let mock_server = setup_mock_server().await;
-        let client = create_authenticated_test_api_client(&mock_server);
-
-        test_routes(&client, false, true).await;
+            assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
+        }
     }
 }

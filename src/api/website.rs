@@ -127,14 +127,14 @@ pub enum TrackStatusFilter {
 }
 
 /// Struct used to return [Exercism](https://exercism.org) language tracks from the website API.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Tracks {
     /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by track name.
     pub tracks: Vec<Track>,
 }
 
 /// Struct representing a single language track returned by the [Exercism website](https://exercism.org) API.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Track {
     /// Name of the language track.
     /// This is an internal name, like `common-lisp`. Also called `slug`.
