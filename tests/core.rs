@@ -3,7 +3,6 @@ mod error {
     use std::io;
 
     use assert_matches::assert_matches;
-    use derive_builder::Builder;
     use mini_exercism::core::Error;
 
     #[test]
@@ -37,19 +36,5 @@ mod error {
         let error: Error = reqwest_error.into();
 
         assert_matches!(error, Error::ApiError(_));
-    }
-
-    #[test]
-    fn test_uninitialized_field_error_from() {
-        #[derive(Debug, Builder)]
-        #[builder(build_fn(error = "mini_exercism::core::Error"))]
-        struct WithMandatoryField {
-            #[allow(dead_code)]
-            mandatory_field: String,
-        }
-
-        let error: Error = WithMandatoryFieldBuilder::default().build().unwrap_err();
-
-        assert_matches!(error, Error::ApiClientUninitializedField(field_name) if field_name == "mandatory_field");
     }
 }
