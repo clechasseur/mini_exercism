@@ -26,29 +26,28 @@ jobs:
         with:
           args: --all-targets --all-features -- -D warnings
 
-  # TODO enable this once rustfmt has been configured for this project
-#  format:
-#    name: Rustfmt check
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Install Rust nightly with rustfmt
-#        uses: dtolnay/rust-toolchain@nightly
-#        with:
-#          components: rustfmt
-#
-#      - name: Output Rust toolchain info
-#        run: |
-#          cargo +nightly --version --verbose
-#          rustc +nightly --version
-#          cargo +nightly fmt --version
-#
-#      - name: Run Rustfmt
-#        uses: clechasseur/rs-fmt-check@v1
-#        with:
-#          args: --all
+  format:
+    name: Rustfmt check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust nightly with rustfmt
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: Output Rust toolchain info
+        run: |
+          cargo +nightly --version --verbose
+          rustc +nightly --version
+          cargo +nightly fmt --version
+
+      - name: Run Rustfmt
+        uses: clechasseur/rs-fmt-check@v1
+        with:
+          args: --all
 
   build:
     name: Release build for Rust ${{ matrix.toolchain }}${{ matrix.experimental && ' (experimental)' || '' }} on ${{ matrix.os }}${{ matrix.ignore-lock && ' without Cargo.lock' || '' }}

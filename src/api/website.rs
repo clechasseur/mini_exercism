@@ -5,6 +5,7 @@ mod detail;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use strum_macros::Display;
+
 use crate::api::website::detail::TrackFiltersBuilderError;
 use crate::core::Result;
 
@@ -40,10 +41,7 @@ impl Client {
             request = request.query(&query);
         }
 
-        Ok(request.send()
-            .await?
-            .json()
-            .await?)
+        Ok(request.send().await?.json().await?)
     }
 }
 
@@ -107,7 +105,8 @@ impl From<TrackFilters> for Vec<(String, String)> {
 impl TrackFiltersBuilder {
     /// Builds a new [TrackFilters].
     pub fn build(&self) -> TrackFilters {
-        self.fallible_build().expect("All fields should have had default values")
+        self.fallible_build()
+            .expect("All fields should have had default values")
     }
 }
 

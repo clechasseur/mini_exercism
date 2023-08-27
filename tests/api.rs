@@ -82,7 +82,8 @@ mod website {
                             num_concepts: 0,
                             num_exercises: 22,
                             web_url: "https://exercism.org/tracks/8th".to_string(),
-                            icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/8th.svg".to_string(),
+                            icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/8th.svg"
+                                .to_string(),
                             tags: vec![
                                 "Functional".to_string(),
                                 "Imperative".to_string(),
@@ -119,7 +120,8 @@ mod website {
                             num_concepts: 0,
                             num_exercises: 40,
                             web_url: "https://exercism.org/tracks/abap".to_string(),
-                            icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/abap.svg".to_string(),
+                            icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/abap.svg"
+                                .to_string(),
                             tags: vec![
                                 "Object-oriented".to_string(),
                                 "Procedural".to_string(),

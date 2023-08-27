@@ -1,14 +1,15 @@
 mod os;
 
-use crate::core::{Error, Result};
-
 #[cfg(test)]
 use mockall::automock;
 
+use crate::core::{Error, Result};
+
 #[cfg_attr(test, automock)]
 pub mod helpers {
-    use std::{env, fs, io};
     use std::path::Path;
+    use std::{env, fs, io};
+
     use crate::cli::detail::os;
 
     // Note: the methods in this module are indeed used (see cli.rs),
@@ -37,12 +38,12 @@ pub struct CliConfig {
 
 impl CliConfig {
     pub fn from_string(config: &str) -> Result<Self> {
-        let config: serde_json::Value = serde_json::from_str(config)?;
+        let config = serde_json::from_str::<serde_json::Value>(config)?;
 
         let token = config["token"].as_str().unwrap_or("").trim();
         match token.is_empty() {
             true => Err(Error::ApiTokenNotFoundInConfig),
-            false => Ok(Self { api_token : token.to_string() }),
+            false => Ok(Self { api_token: token.to_string() }),
         }
     }
 }
@@ -53,6 +54,7 @@ mod tests {
 
     mod cli_config {
         use assert_matches::assert_matches;
+
         use super::*;
 
         #[test]

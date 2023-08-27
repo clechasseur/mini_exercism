@@ -5,7 +5,9 @@ pub fn get_cli_config_dir() -> Option<String> {
     // Based on:
     // https://github.com/exercism/cli/blob/9e1285b62502f3f5a4a896a44e540ee1bee5c1bf/config/config.go#L57-L60
 
-    let path: PathBuf = [env::var_os("APPDATA")?, "exercism".into()].iter().collect();
+    let path: PathBuf = [env::var_os("APPDATA")?, "exercism".into()]
+        .iter()
+        .collect();
 
     Some(path.to_str()?.to_string())
 }
@@ -17,7 +19,9 @@ mod tests {
     mod get_cli_config_dir {
         use std::env;
         use std::path::MAIN_SEPARATOR;
+
         use serial_test::serial;
+
         use super::*;
 
         #[test]

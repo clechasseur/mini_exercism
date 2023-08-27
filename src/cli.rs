@@ -2,14 +2,15 @@
 
 mod detail;
 
-use std::{env, io};
 use std::path::PathBuf;
+use std::{env, io};
+
 use mockall_double::double;
-use crate::cli::detail::CliConfig;
-use crate::core::{Credentials, Error, Result};
 
 #[double]
 use crate::cli::detail::helpers;
+use crate::cli::detail::CliConfig;
+use crate::core::{Credentials, Error, Result};
 
 /// Reads API credentials from the CLI config file and returns them.
 ///
@@ -48,6 +49,7 @@ mod tests {
         use assert_matches::assert_matches;
         use mockall::predicate::*;
         use serial_test::serial;
+
         use super::*;
 
         #[test]
@@ -55,13 +57,15 @@ mod tests {
         fn test_valid() {
             let expected_config_dir = "/some/config/dir".to_string();
             let gccd_ctx = helpers::get_cli_config_dir_context();
-            gccd_ctx.expect()
+            gccd_ctx
+                .expect()
                 .return_once(move || Some(expected_config_dir));
 
             let expected_config_path: PathBuf = ["/some/config/dir", "user.json"].iter().collect();
             let expected_json_file = "{\"token\": \"some_token\"}".to_string();
             let rts_ctx = helpers::read_to_string_context();
-            rts_ctx.expect()
+            rts_ctx
+                .expect()
                 .with(eq(expected_config_path))
                 .return_once(move |_| Ok(expected_json_file));
 
@@ -73,14 +77,15 @@ mod tests {
         #[serial]
         fn test_no_config_dir() {
             let gccd_ctx = helpers::get_cli_config_dir_context();
-            gccd_ctx.expect()
-                .return_once(|| None);
+            gccd_ctx.expect().return_once(|| None);
 
             let current_dir = env::current_dir().unwrap().to_string_lossy().to_string();
-            let expected_config_path: PathBuf = [current_dir, "user.json".to_string()].iter().collect();
+            let expected_config_path: PathBuf =
+                [current_dir, "user.json".to_string()].iter().collect();
             let expected_json_file = "{\"token\": \"some_token\"}".to_string();
             let rts_ctx = helpers::read_to_string_context();
-            rts_ctx.expect()
+            rts_ctx
+                .expect()
                 .with(eq(expected_config_path))
                 .return_once(move |_| Ok(expected_json_file));
 
@@ -93,13 +98,15 @@ mod tests {
         fn test_invalid_config() {
             let expected_config_dir = "/some/config/dir".to_string();
             let gccd_ctx = helpers::get_cli_config_dir_context();
-            gccd_ctx.expect()
+            gccd_ctx
+                .expect()
                 .return_once(move || Some(expected_config_dir));
 
             let expected_config_path: PathBuf = ["/some/config/dir", "user.json"].iter().collect();
             let expected_json_file = "{invalid: json}".to_string();
             let rts_ctx = helpers::read_to_string_context();
-            rts_ctx.expect()
+            rts_ctx
+                .expect()
                 .with(eq(expected_config_path))
                 .return_once(move |_| Ok(expected_json_file));
 
@@ -111,12 +118,14 @@ mod tests {
         fn test_config_file_not_found() {
             let expected_config_dir = "/some/config/dir".to_string();
             let gccd_ctx = helpers::get_cli_config_dir_context();
-            gccd_ctx.expect()
+            gccd_ctx
+                .expect()
                 .return_once(move || Some(expected_config_dir));
 
             let expected_config_path: PathBuf = ["/some/config/dir", "user.json"].iter().collect();
             let rts_ctx = helpers::read_to_string_context();
-            rts_ctx.expect()
+            rts_ctx
+                .expect()
                 .with(eq(expected_config_path))
                 .return_once(|_| Err(io::Error::from(io::ErrorKind::NotFound)));
 
@@ -128,12 +137,14 @@ mod tests {
         fn test_config_file_inaccessible() {
             let expected_config_dir = "/some/config/dir".to_string();
             let gccd_ctx = helpers::get_cli_config_dir_context();
-            gccd_ctx.expect()
+            gccd_ctx
+                .expect()
                 .return_once(move || Some(expected_config_dir));
 
             let expected_config_path: PathBuf = ["/some/config/dir", "user.json"].iter().collect();
             let rts_ctx = helpers::read_to_string_context();
-            rts_ctx.expect()
+            rts_ctx
+                .expect()
                 .with(eq(expected_config_path))
                 .return_once(|_| Err(io::Error::from(io::ErrorKind::PermissionDenied)));
 

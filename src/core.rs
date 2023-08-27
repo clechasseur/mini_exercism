@@ -1,6 +1,7 @@
 //! Core types used across the [mini_exercism](crate) library.
 
 use std::io;
+
 use thiserror::Error;
 
 /// Struct storing the credentials used to access the [Exercism](https://exercism.org) API.

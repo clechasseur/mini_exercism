@@ -1,5 +1,6 @@
 use derive_builder::Builder;
 use reqwest::{Client, Method, RequestBuilder};
+
 use crate::core::Credentials;
 
 #[derive(Builder)]
@@ -144,9 +145,10 @@ mod tests {
     mod api_client {
         use reqwest::header::{HeaderMap, HeaderValue};
         use reqwest::StatusCode;
-        use wiremock::{Mock, MockServer, ResponseTemplate};
         use wiremock::matchers::{bearer_token, header_exists, method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
         use wiremock_logical_matchers::not;
+
         use super::*;
 
         const API_TOKEN: &str = "some_api_token";
@@ -156,9 +158,13 @@ mod tests {
         const AUTHENTICATED_API_PATH: &str = "/authenticated";
         const TEST_API_PATH: &str = "/test";
 
-        async fn setup_route<T: Into<String>>(mock_server: &MockServer, route: T, anonymous: bool, test: bool) {
-            let mut mock = Mock::given(method("GET"))
-                .and(path(route));
+        async fn setup_route<T: Into<String>>(
+            mock_server: &MockServer,
+            route: T,
+            anonymous: bool,
+            test: bool,
+        ) {
+            let mut mock = Mock::given(method("GET")).and(path(route));
 
             if anonymous {
                 mock = mock.and(not(header_exists("authorization")));
@@ -181,9 +187,21 @@ mod tests {
             let mock_server = MockServer::start().await;
 
             setup_route(&mock_server, ANONYMOUS_API_PATH, true, false).await;
-            setup_route(&mock_server, format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH), true, true).await;
+            setup_route(
+                &mock_server,
+                format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH),
+                true,
+                true,
+            )
+            .await;
             setup_route(&mock_server, AUTHENTICATED_API_PATH, false, false).await;
-            setup_route(&mock_server, format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH), false, true).await;
+            setup_route(
+                &mock_server,
+                format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH),
+                false,
+                true,
+            )
+            .await;
 
             mock_server
         }
@@ -216,22 +234,25 @@ mod tests {
             ];
 
             for uri in &uris {
-                let request_status = client.request(Method::GET, uri)
+                let request_status = client
+                    .request(Method::GET, uri)
                     .send()
                     .await
                     .unwrap()
                     .status();
-                let get_status = client.get(uri)
-                    .send()
-                    .await
-                    .unwrap()
-                    .status();
+                let get_status = client.get(uri).send().await.unwrap().status();
 
                 let expected_status = expected_status_code(&working_uri, uri);
-                assert_eq!(request_status, expected_status,
-                           "Tried to request {}, expected {}, got {}", uri, expected_status, request_status);
-                assert_eq!(get_status, expected_status,
-                           "Tried to get {}, expected {}, got {}", uri, expected_status, get_status);
+                assert_eq!(
+                    request_status, expected_status,
+                    "Tried to request {}, expected {}, got {}",
+                    uri, expected_status, request_status
+                );
+                assert_eq!(
+                    get_status, expected_status,
+                    "Tried to get {}, expected {}, got {}",
+                    uri, expected_status, get_status
+                );
             }
         }
 

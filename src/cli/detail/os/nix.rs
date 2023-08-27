@@ -28,7 +28,9 @@ mod tests {
 
     mod get_cli_config_dir {
         use std::path::MAIN_SEPARATOR;
+
         use serial_test::serial;
+
         use super::*;
 
         #[test]
@@ -49,7 +51,10 @@ mod tests {
             env::set_var("XDG_CONFIG_HOME", xdg_config_home);
             let config_dir = get_cli_config_dir();
 
-            assert_eq!(config_dir, Some(format!("{}{}{}", xdg_config_home, MAIN_SEPARATOR, "exercism")));
+            assert_eq!(
+                config_dir,
+                Some(format!("{}{}{}", xdg_config_home, MAIN_SEPARATOR, "exercism"))
+            );
         }
 
         #[test]
@@ -61,7 +66,13 @@ mod tests {
             env::set_var("HOME", home);
             let config_dir = get_cli_config_dir();
 
-            assert_eq!(config_dir, Some(format!("{}{}{}{}{}", home, MAIN_SEPARATOR, ".config", MAIN_SEPARATOR, "exercism")));
+            assert_eq!(
+                config_dir,
+                Some(format!(
+                    "{}{}{}{}{}",
+                    home, MAIN_SEPARATOR, ".config", MAIN_SEPARATOR, "exercism"
+                ))
+            );
         }
 
         #[test]
