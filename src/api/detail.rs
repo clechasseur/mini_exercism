@@ -19,6 +19,8 @@ impl ApiClient {
         ApiClientBuilder::default()
     }
 
+    // Note: this method is indeed used in the tests below; not sure why rustc thinks otherwise...
+    #[allow(dead_code)]
     pub fn api_base_url(&self) -> &str {
         self.api_base_url.as_str()
     }
@@ -50,7 +52,7 @@ impl ApiClientBuilder {
 macro_rules! define_api_client {
     (
         $(#[$attr:meta])*
-        pub struct $api_name:ident($base_url:expr)
+        pub struct $api_name:ident($base_url:expr);
     ) => {
         paste::paste! {
             $(#[$attr])*
@@ -319,7 +321,7 @@ mod tests {
         const TEST_API_CLIENT_BASE_URL: &str = "https://test.api.client/api";
 
         define_api_client! {
-            pub struct TestApiClient(TEST_API_CLIENT_BASE_URL)
+            pub struct TestApiClient(TEST_API_CLIENT_BASE_URL);
         }
 
         impl TestApiClient {

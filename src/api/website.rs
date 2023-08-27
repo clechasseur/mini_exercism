@@ -3,7 +3,7 @@
 mod detail;
 
 use derive_builder::Builder;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 use crate::api::website::detail::TrackFiltersBuilderError;
 use crate::core::Result;
@@ -14,7 +14,7 @@ pub const DEFAULT_WEBSITE_API_BASE_URL: &str = "https://exercism.org/api/v2";
 define_api_client! {
     /// Client for the [Exercism website](https://exercism.org) API. This API is undocumented and
     /// is mostly used by the website itself to fetch information.
-    pub struct Client(DEFAULT_WEBSITE_API_BASE_URL)
+    pub struct Client(DEFAULT_WEBSITE_API_BASE_URL);
 }
 
 impl Client {
@@ -127,14 +127,14 @@ pub enum TrackStatusFilter {
 }
 
 /// Struct used to return [Exercism](https://exercism.org) language tracks from the website API.
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tracks {
     /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by track name.
     pub tracks: Vec<Track>,
 }
 
 /// Struct representing a single language track returned by the [Exercism website](https://exercism.org) API.
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Track {
     /// Name of the language track.
     /// This is an internal name, like `common-lisp`. Also called `slug`.
@@ -182,7 +182,7 @@ pub struct Track {
 
 /// Struct containing links pertaining to an [Exercism](https://exercism.org) language track
 /// returned by the website API.
-#[derive(Debug, PartialEq, Eq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrackLinks {
     /// URL of the language track's exercises on the [Exercism website](https://exercism.org).
     pub exercises: String,
