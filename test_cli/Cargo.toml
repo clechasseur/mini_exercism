@@ -1,9 +1,0 @@
-[package]
-name = "test_cli"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-mini_exercism = { path = ".." }
-serde_json = "*"
-tokio = { version = "*", features = ["full"] }

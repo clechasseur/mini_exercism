@@ -1,6 +1,3 @@
-[workspace]
-members = [ "test_cli" ]
-
 [package]
 name = "mini_exercism"
 version = "0.1.0"
