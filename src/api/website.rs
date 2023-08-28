@@ -34,7 +34,7 @@ impl Client {
     /// - [`ApiError`]: Error while fetching track information from API
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
-    pub async fn get_tracks(&self, filters: Option<TrackFilters>) -> Result<Tracks> {
+    pub async fn get_tracks(&self, filters: Option<TrackFilters>) -> Result<TracksResponse> {
         let mut request = self.api_client.get("/tracks");
         if let Some(filters) = filters {
             let query: Vec<_> = filters.into();
@@ -130,9 +130,10 @@ pub enum TrackStatusFilter {
     Unjoined,
 }
 
-/// Struct used to return [Exercism](https://exercism.org) language tracks from the website API.
+/// Struct representing a response to a query for language tracks on the
+/// [Exercism website](https://exercism.org) API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Tracks {
+pub struct TracksResponse {
     /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by track name.
     pub tracks: Vec<Track>,
 }

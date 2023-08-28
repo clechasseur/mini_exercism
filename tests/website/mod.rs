@@ -2,7 +2,7 @@ mod client {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::website::TrackStatusFilter::Joined;
-    use mini_exercism::api::website::{Track, TrackFilters, TrackLinks, Tracks};
+    use mini_exercism::api::website::{Track, TrackFilters, TrackLinks, TracksResponse};
     use mini_exercism::core::Credentials;
     use reqwest::StatusCode;
     use wiremock::http::Method::Get;
@@ -15,7 +15,7 @@ mod client {
     async fn test_get_tracks() {
         let mock_server = MockServer::start().await;
 
-        let tracks = Tracks {
+        let tracks = TracksResponse {
             tracks: vec![Track {
                 name: "cpp".to_string(),
                 title: "C++".to_string(),
@@ -130,7 +130,7 @@ mod track_filters {
 
 mod tracks {
     mod deserialize {
-        use mini_exercism::api::website::{Track, TrackLinks, Tracks};
+        use mini_exercism::api::website::{Track, TrackLinks, TracksResponse};
 
         #[test]
         fn test_all() {
@@ -203,7 +203,7 @@ mod tracks {
                 ]
             }"#;
 
-            let expected = Tracks {
+            let expected = TracksResponse {
                 tracks: vec![
                     Track {
                         name: "8th".to_string(),
@@ -272,7 +272,7 @@ mod tracks {
                     },
                 ],
             };
-            let actual: Tracks = serde_json::from_str(json).unwrap();
+            let actual: TracksResponse = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
         }
     }
