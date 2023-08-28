@@ -70,6 +70,11 @@ pub struct TrackFilters {
     pub tags: Vec<String>,
 
     /// Language track's status filter.
+    ///
+    /// # Note
+    ///
+    /// Using this filter requires an authenticated query to the [Exercism website](https://exercism.org) API,
+    /// otherwise you will get a `500 Internal Server Error`.
     pub status: Option<TrackStatusFilter>,
 }
 
