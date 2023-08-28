@@ -188,6 +188,11 @@ pub struct Track {
 /// returned by the website API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrackLinks {
+    /// URL of the language track on the [Exercism website](https://exercism.org).
+    /// Corresponds to the track's [`web_url`](Track::web_url).
+    #[serde(rename = "self")]
+    pub self_url: String,
+
     /// URL of the language track's exercises on the [Exercism website](https://exercism.org).
     pub exercises: String,
 

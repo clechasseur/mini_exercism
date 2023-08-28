@@ -45,6 +45,7 @@ mod client {
                     "Scientific calculations".to_string(),
                 ],
                 links: TrackLinks {
+                    self_url: "https://exercism.org/tracks/cpp".to_string(),
                     exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
                     concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
                 },
@@ -234,6 +235,7 @@ mod tracks {
                             "Web development".to_string(),
                         ],
                         links: TrackLinks {
+                            self_url: "https://exercism.org/tracks/8th".to_string(),
                             exercises: "https://exercism.org/tracks/8th/exercises".to_string(),
                             concepts: "https://exercism.org/tracks/8th/concepts".to_string(),
                         },
@@ -260,6 +262,7 @@ mod tracks {
                             "Financial systems".to_string(),
                         ],
                         links: TrackLinks {
+                            self_url: "https://exercism.org/tracks/abap".to_string(),
                             exercises: "https://exercism.org/tracks/abap/exercises".to_string(),
                             concepts: "https://exercism.org/tracks/abap/concepts".to_string(),
                         },
@@ -346,6 +349,7 @@ mod track {
                     "Web development".to_string(),
                 ],
                 links: TrackLinks {
+                    self_url: "https://exercism.org/tracks/clojure".to_string(),
                     exercises: "https://exercism.org/tracks/clojure/exercises".to_string(),
                     concepts: "https://exercism.org/tracks/clojure/concepts".to_string(),
                 },
@@ -431,6 +435,7 @@ mod track {
                     "Scientific calculations".to_string(),
                 ],
                 links: TrackLinks {
+                    self_url: "https://exercism.org/tracks/cpp".to_string(),
                     exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
                     concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
                 },
@@ -457,6 +462,7 @@ mod track_links {
             }"#;
 
             let expected = TrackLinks {
+                self_url: "https://exercism.org/tracks/cpp".to_string(),
                 exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
                 concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
             };
