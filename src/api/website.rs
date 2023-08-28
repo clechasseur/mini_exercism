@@ -199,3 +199,92 @@ pub struct TrackLinks {
     /// URL of the language track's concepts on the [Exercism website](https://exercism.org).
     pub concepts: String,
 }
+
+/// Struct representing a single exercise returned by the [Exercism website](https://exercism.org) API.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Exercise {
+    /// Name of the exercise. This is an internal name, like `forth`. Also called `slug`.
+    #[serde(rename = "slug")]
+    pub name: String,
+
+    /// Type of exercise.
+    #[serde(rename = "type")]
+    pub exercise_type: ExerciseType,
+
+    /// Exercise title. This is a textual representation of the title, like `Forth`.
+    pub title: String,
+
+    /// URL of the icon representing this exercise on the [Exercism website](https://exercism.org).
+    pub icon_url: String,
+
+    /// Exercise difficulty rating.
+    pub difficulty: ExerciseDifficulty,
+
+    /// Short description of the exercise.
+    pub blurb: String,
+
+    /// Whether this is an "exernal" exercise. This is used to indicate exercises that are not
+    /// tied to a user. When returned by the website API, this indicates that the request was
+    /// performed anonymously.
+    pub is_external: bool,
+
+    /// Whether this exercise has been unlocked by the user. Will always be `false` when exercises
+    /// are queried anonymously.
+    pub is_unlocked: bool,
+
+    /// Whether this is the next recommended exercise for the user in the language track. Will always
+    /// be `false` when exercises are queried anonymously.
+    pub is_recommended: bool,
+
+    /// Struct containing some links pertaining to the exercise.
+    pub links: ExerciseLinks,
+}
+
+/// Possible type of exercise on the [Exercism website](https://exercism.org).
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ExerciseType {
+    /// Tutorial exercise. Currently only known to apply to `hello-world`.
+    Tutorial,
+
+    /// Concept exercise, e.g. an exercise tied to a concept on the language track's syllabus.
+    Concept,
+
+    /// Practice exercise. Most exercise are in this category.
+    Practice,
+
+    /// Unknown exercise type. Included so that if new exercise types are introduced in
+    /// the website API later, this crate will not break (hopefully).
+    #[serde(other)]
+    Unknown,
+}
+
+/// Possible difficulty rating of an exercise on the [Exercism website](https://exercism.org).
+/// Internally, exercises have a difficulty rating between 1 and 10 (inclusive); however, on the
+/// website, this is only represented by specific, named difficulty ratings.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ExerciseDifficulty {
+    /// Easy exercise. Internally, an exercise with a difficulty rating between 1 and 3 (inclusive).
+    Easy,
+
+    /// Medium exercise. Internally, an exercise with a difficulty rating between 4 and 7 (inclusive).
+    Medium,
+
+    /// Hard exercise. Internally, an exercise with a difficulty rating above 7.
+    Hard,
+
+    /// Unknown difficulty. Included so that if new exercise difficulty ratings are introduced
+    /// in the website API later, this crate will not break (hopefully).
+    #[serde(other)]
+    Unknown,
+}
+
+/// Struct containing links pertaining to an [Exercism](https://exercism.org) exercise
+/// returned by the website API.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ExerciseLinks {
+    /// Path of the exercise on the [Exercism](https://exercism.org), without the domain name.
+    #[serde(rename = "self")]
+    pub self_path: String,
+}
