@@ -117,7 +117,7 @@ impl TrackFiltersBuilder {
 
 /// Possible status filter of [Exercism](https://exercism.org) language tracks.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Display)]
-#[strum(serialize_all = "lowercase")]
+#[strum(serialize_all = "snake_case")]
 pub enum TrackStatusFilter {
     /// Return all language tracks.
     #[default]
@@ -201,6 +201,17 @@ pub struct TrackLinks {
     pub concepts: String,
 }
 
+/// Struct representing a response to a query for exercises on the
+/// [Exercism website](https://exercism.org) API.
+pub struct ExercisesResponse {
+    /// List of exercises for the requested track. The ordering depends on
+    /// the type of query performed and matches that seen on the website.
+    pub exercises: Vec<Exercise>,
+
+    /// List of solutions submitted for exercises in this track.
+    pub solutions: Vec<Solution>,
+}
+
 /// Struct representing a single exercise returned by the [Exercism website](https://exercism.org) API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Exercise {
@@ -243,7 +254,7 @@ pub struct Exercise {
 
 /// Possible type of exercise on the [Exercism website](https://exercism.org).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ExerciseType {
     /// Tutorial exercise. Currently only known to apply to `hello-world`.
     Tutorial,
@@ -264,7 +275,7 @@ pub enum ExerciseType {
 /// Internally, exercises have a difficulty rating between 1 and 10 (inclusive); however, on the
 /// website, this is only represented by specific, named difficulty ratings.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum ExerciseDifficulty {
     /// Easy exercise. Internally, an exercise with a difficulty rating between 1 and 3 (inclusive).
     Easy,
@@ -288,4 +299,199 @@ pub struct ExerciseLinks {
     /// Path of the exercise on the [Exercism](https://exercism.org), without the domain name.
     #[serde(rename = "self")]
     pub self_path: String,
+}
+
+/// Struct representing a solution to an exercise submitted to
+/// the [Exercism website](https://exercism.org).
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Solution {
+    /// Solution unique ID. This UUID can be used to fetch information about
+    /// the solution from other API calls.
+    pub uuid: String,
+
+    /// Private solution URL. This usually points to the exercise on the
+    /// [Exercism website](https://exercism.org).
+    pub private_url: String,
+
+    /// Public solution URL. This points to the user's solution on the
+    /// [Exercism website](https://exercism.org).
+    ///
+    /// # Note
+    ///
+    /// If the solution has not been [`Published`](SolutionStatus#variant.Published),
+    /// this URL is only valid for the authenticated user.
+    pub public_url: String,
+
+    /// Solution status. Also indicates whether the solution has been
+    /// [`Published`](SolutionStatus#variant.Published).
+    pub status: SolutionStatus,
+
+    /// Solution mentoring status. If no mentoring has been requested, will
+    /// contain the value [`None`](SolutionMentoringStatus#variant.None).
+    pub mentoring_status: SolutionMentoringStatus,
+
+    /// Status of tests for the solution's published iteration.
+    pub published_iteration_head_tests_status: SolutionTestsStatus,
+
+    /// Whether user has unread notifications about this solution (from
+    /// a mentoring session, for example).
+    pub has_notifications: bool,
+
+    /// Number of views of the solution on the Community Solutions page
+    /// for the exercise.
+    pub num_views: i32,
+
+    /// Number of stars given to the solution on the Community Solutions
+    /// page for the exercise.
+    pub num_stars: i32,
+
+    /// Number of comments left on the solution on the Community Solutions
+    /// page for the exercise.
+    pub num_comments: i32,
+
+    /// Number of iterations submitted for the solution.
+    pub num_iterations: i32,
+
+    /// Number of lines of code in the solution.
+    #[serde(default)]
+    pub num_loc: Option<i32>,
+
+    /// Whether this solution is out of date compared to the exercise.
+    pub is_out_of_date: bool,
+
+    /// Date/time when the solution was [`Published`](SolutionStatus#variant.Published),
+    /// in ISO-8601 format. Will be `None` if the solution hasn't been published.
+    #[serde(default)]
+    pub published_at: Option<String>,
+
+    /// Date/time when the solution was marked as [`Completed`](SolutionStatus#variant.Completed),
+    /// in ISO-8601 format. Will be `None` if the solution hasn't been marked as complete yet.
+    #[serde(default)]
+    pub completed_at: Option<String>,
+
+    /// Date/time of the solution's last update, in ISO-8601 format.
+    pub updated_at: String,
+
+    /// Date/time when the solution's last iteration was sumitted, in ISO-8601 format.
+    /// Will be `None` if the solution hasn't yet been [`Iterated`](SolutionStatus#variant.Iterated).
+    #[serde(default)]
+    pub last_iterated_at: Option<String>,
+
+    /// Information about the exercise for which this solution was submitted.
+    pub exercise: SolutionExercise,
+
+    /// Information about the language track containing the exercise for which
+    /// this solution was submitted.
+    pub track: SolutionTrack,
+}
+
+/// Possible status of a solution to an exercise on the [Exercism website](https://exercism.org).
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SolutionStatus {
+    /// Exercise has been started, but no iteration has been submitted yet.
+    Started,
+
+    /// At least one iteration has been submitted for the exercise, but
+    /// the exercise has not been completed yet.
+    Iterated,
+
+    /// Exercise has been marked as complete.
+    Completed,
+
+    /// Exercise has been marked as complete and the solution has been published.
+    Published,
+
+    /// Unknown status. Included so that if new solution statuses are introduced in
+    /// the website API later, this crate won't break (hopefully).
+    #[serde(other)]
+    Unknown,
+}
+
+/// Possible mentoring status of a solution on the [Exercism website](https://exercism.org).
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SolutionMentoringStatus {
+    /// No mentoring has been required for this exercise.
+    None,
+
+    /// Mentoring has been requested for this exercise, but the
+    /// request hasn't been processed yet.
+    Requested,
+
+    /// Mentoring is currently in progress for this exercise.
+    InProgress,
+
+    /// Mentoring has completed for this exercise.
+    Finished,
+
+    /// Unknown mentoring status. Included so that if new mentoring statuses
+    /// are introduced in the website API later, this crate won't break (hopefully).
+    #[serde(other)]
+    Unknown,
+}
+
+/// Possible status of tests for a solution on the [Exercism website](https://exercism.org).
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SolutionTestsStatus {
+    /// Tests have not been queued yet for this exerise.
+    NotQueued,
+
+    /// Tests have been queued for execution, but have not completed yet.
+    Queued,
+
+    /// Test run has completed and all tests passed.
+    Passed,
+
+    /// Test run has completed and one or more test(s) failed.
+    Failed,
+
+    /// Test run has not been executed because an error occurred
+    /// (like a compiler error).
+    Errored,
+
+    /// Test run has not been executed because an exception occurred
+    /// (possibly a bug in the test runner setup).
+    Exceptioned,
+
+    /// Test run has been cancelled.
+    Cancelled,
+
+    /// Unknown tests status. Included so that if new tests statuses are
+    /// introduced in the website API later, this crate won't break (hopefully).
+    #[serde(other)]
+    Unknown,
+}
+
+/// Struct containing information about the exercise for which a solution was submitted
+/// on the [Exercism website](https://exercism.org).
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SolutionExercise {
+    /// Name of the exercise. This is an internal name, like `forth`. Also called `slug`.
+    #[serde(rename = "slug")]
+    pub name: String,
+
+    /// Exercise title. This is a textual representation of the title, like `Forth`.
+    pub title: String,
+
+    /// URL of the icon representing this exercise on the [Exercism website](https://exercism.org).
+    pub icon_url: String,
+}
+
+/// Struct containing information about the language track of a solution submitted
+/// on the [Exercism website](https://exercism.org).
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SolutionTrack {
+    /// Name of the language track.
+    /// This is an internal name, like `common-lisp`. Also called `slug`.
+    #[serde(rename = "slug")]
+    pub name: String,
+
+    /// Language track title.
+    /// This is a textual representation of the track name, like `Common Lisp`.
+    pub title: String,
+
+    /// URL of the icon representing this language track on the [Exercism website](https://exercism.org).
+    pub icon_url: String,
 }
