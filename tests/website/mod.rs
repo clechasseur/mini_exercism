@@ -128,7 +128,7 @@ mod track_filters {
     }
 }
 
-mod tracks {
+mod tracks_response {
     mod deserialize {
         use mini_exercism::api::website::{Track, TrackLinks, TracksResponse};
 
@@ -468,6 +468,85 @@ mod track_links {
             };
             let actual: TrackLinks = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
+        }
+    }
+}
+
+mod exercise_filters {
+    mod builder {
+        use assert_matches::assert_matches;
+        use mini_exercism::api::website::ExerciseFilters;
+
+        #[test]
+        fn test_build() {
+            let filters = ExerciseFilters::builder()
+                .criteria("csharp")
+                .include_solutions(true)
+                .build();
+
+            assert_matches!(filters.criteria, Some(criteria) if criteria == "csharp");
+            assert!(filters.include_solutions);
+        }
+    }
+
+    mod from {
+        use mini_exercism::api::website::ExerciseFilters;
+
+        #[test]
+        fn test_into_query_params() {
+            let filters = ExerciseFilters::builder()
+                .criteria("clojure")
+                .include_solutions(true)
+                .build();
+
+            let expected = vec![
+                ("criteria".to_string(), "clojure".to_string()),
+                ("sideload".to_string(), "solutions".to_string()),
+            ];
+            let actual: Vec<(_, _)> = filters.into();
+            assert_eq!(expected, actual);
+        }
+    }
+}
+
+mod exercises_response {
+    mod deserialize {
+        mod anonymous {
+            #[test]
+            fn test_all() {
+                let json = r#"{
+                    "exercises": [
+                        {
+                            "slug": "hello-world",
+                            "type": "tutorial",
+                            "title": "Hello World",
+                            "icon_url": "https://assets.exercism.org/exercises/hello-world.svg",
+                            "difficulty": "easy",
+                            "blurb": "The classical introductory exercise. Just say \"Hello, World!\".",
+                            "is_external": true,
+                            "is_unlocked": true,
+                            "is_recommended": false,
+                            "links": {
+                                "self": "/tracks/rust/exercises/hello-world"
+                            }
+                        },
+                        {
+                            "slug": "forth",
+                            "type": "practice",
+                            "title": "Forth",
+                            "icon_url": "https://assets.exercism.org/exercises/forth.svg",
+                            "difficulty": "hard",
+                            "blurb": "Implement an evaluator for a very simple subset of Forth.",
+                            "is_external": false,
+                            "is_unlocked": true,
+                            "is_recommended": true,
+                            "links": {
+                                "self": "/tracks/rust/exercises/forth"
+                            }
+                        },
+                    ]
+                }"#;
+            }
         }
     }
 }

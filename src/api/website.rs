@@ -43,6 +43,37 @@ impl Client {
 
         Ok(request.send().await?.json().await?)
     }
+
+    /// Returns a list of exercises for an [Exercism](https://exercism.org) [track],
+    /// optionally loading the user's solutions.
+    ///
+    /// - If the request is performed anonymously, returns a list of all exercises in
+    ///   the track. Each exercise's [`is_external`](Exercise::is_external) field will
+    ///   be set to `true`.
+    /// - If the request is performed with [`credentials`](ClientBuilder::credentials),
+    ///   returns a list of all exercises in the track, with information about whether
+    ///   each exercise has been [unlocked](Exercise::is_unlocked) by the user. Each
+    ///   exercise's [`is_external`](Exercise::is_external) field will be set to `false`.
+    ///   Additionally, if the [`filters`] parameter's [`include_solutions`](ExerciseFilters::include_solutions)
+    ///   is set to `true`, the response will contain a list of solutions the user has
+    ///   submitted for the track's exercises.
+    ///
+    /// The list of exercises can optionally be filtered using [`ExerciseFilters`].
+    ///
+    /// # Errors
+    ///
+    /// - [`ApiError`]: Error while fetching exercise information from API
+    ///
+    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    pub async fn get_exercises(&self, track: &str, filters: Option<ExerciseFilters>) -> Result<ExercisesResponse> {
+        let mut request = self.api_client.get(format!("/tracks/{}/exercises", track).as_str());
+        if let Some(filters) = filters {
+            let query: Vec<_> = filters.into();
+            request = request.query(&query);
+        }
+
+        Ok(request.send().await?.json().await?)
+    }
 }
 
 /// Filters that can be applied when fetching language tracks from the [Exercism website](https://exercism.org) API
@@ -256,12 +287,21 @@ impl ExerciseFiltersBuilder {
 
 /// Struct representing a response to a query for exercises on the
 /// [Exercism website](https://exercism.org) API.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExercisesResponse {
     /// List of exercises for the requested track. The ordering depends on
     /// the type of query performed and matches that seen on the website.
     pub exercises: Vec<Exercise>,
 
-    /// List of solutions submitted for exercises in this track.
+    /// List of solutions submitted for exercises in this track. Will only be filled
+    /// if the [`include_solutions`](ExerciseFilters::include_solutions) field of
+    /// the query's [`ExerciseFilters`] is set to `true`.
+    ///
+    /// # Note
+    ///
+    /// Even if [`include_solutions`](ExerciseFilters::include_solutions) is set to
+    /// `true`, solutions will not be fetched if the API is queried anonymously.
+    #[serde(default)]
     pub solutions: Vec<Solution>,
 }
 
