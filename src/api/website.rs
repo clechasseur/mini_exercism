@@ -6,7 +6,7 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 
-use crate::api::website::detail::TrackFiltersBuilderError;
+use crate::api::website::detail::{ExerciseFiltersBuilderError, TrackFiltersBuilderError};
 use crate::core::Result;
 
 /// Default base URL for the [Exercism website](https://exercism.org) API.
@@ -199,6 +199,59 @@ pub struct TrackLinks {
 
     /// URL of the language track's concepts on the [Exercism website](https://exercism.org).
     pub concepts: String,
+}
+
+/// Filters that can be applied when fetching exercises from the
+/// [Exercism website](https://exercism.org) API (see [`Client::get_exercises`]).
+#[derive(Debug, Default, Builder)]
+#[builder(
+    derive(Debug),
+    default,
+    setter(strip_option),
+    build_fn(private, name = "fallible_build", error = "ExerciseFiltersBuilderError")
+)]
+pub struct ExerciseFilters {
+    /// Criteria used to filter exercises.
+    /// Applied to both exercise [`name`](Exercise::name)s (e.g. slugs) and [`title`](Exercise::title)s.
+    #[builder(setter(into))]
+    pub criteria: Option<String>,
+
+    /// Whether to include solutions in the response.
+    /// Only has an effect if the query is specified for an authenticated user.
+    pub include_solutions: bool,
+}
+
+impl ExerciseFilters {
+    /// Returns a builder for the [`ExerciseFilters`] type.
+    pub fn builder() -> ExerciseFiltersBuilder {
+        ExerciseFiltersBuilder::default()
+    }
+}
+
+impl From<ExerciseFilters> for Vec<(String, String)> {
+    /// Converts [`ExerciseFilters`] into a sequence of key/value pair
+    /// that can be used as [query string parameters](reqwest::RequestBuilder::query).
+    fn from(filters: ExerciseFilters) -> Self {
+        let mut query = Self::new();
+
+        if let Some(criteria) = filters.criteria {
+            query.push(("criteria".to_string(), criteria));
+        }
+
+        if filters.include_solutions {
+            query.push(("sideload".to_string(), "solutions".to_string()));
+        }
+
+        query
+    }
+}
+
+impl ExerciseFiltersBuilder {
+    /// Builds a new [ExerciseFilters].
+    pub fn build(&self) -> ExerciseFilters {
+        self.fallible_build()
+            .expect("All fields should have had default values")
+    }
 }
 
 /// Struct representing a response to a query for exercises on the
