@@ -59,7 +59,9 @@ mod get_exercises {
         assert!(!exercises_response.exercises.is_empty());
         assert!(exercises_response.solutions.is_empty());
 
-        let poker_exercise = exercises_response.exercises.iter()
+        let poker_exercise = exercises_response
+            .exercises
+            .iter()
             .find(|&exercise| exercise.name == "poker");
         assert_matches!(poker_exercise, Some(exercise) if exercise.title == "Poker");
     }
@@ -81,9 +83,7 @@ mod get_exercises {
     #[tokio::test]
     async fn test_solutions_sideloading() {
         let client = api::website::Client::builder().build();
-        let filters = ExerciseFilters::builder()
-            .include_solutions(true)
-            .build();
+        let filters = ExerciseFilters::builder().include_solutions(true).build();
         let exercises_response = client.get_exercises("rust", Some(filters)).await;
         assert_matches!(exercises_response, Ok(_));
 

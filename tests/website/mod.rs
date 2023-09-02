@@ -1,18 +1,21 @@
 mod client {
     use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::website::TrackStatusFilter::Joined;
-    use mini_exercism::api::website::{Exercise, ExerciseFilters, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise, SolutionTrack, Track, TrackFilters, TrackLinks, TracksResponse};
-    use mini_exercism::core::Credentials;
-    use reqwest::StatusCode;
-    use wiremock::http::Method::Get;
-    use wiremock::matchers::{bearer_token, method, path, query_param};
-    use wiremock::{Mock, MockServer, ResponseTemplate};
     use mini_exercism::api::website::ExerciseDifficulty::Hard;
     use mini_exercism::api::website::ExerciseType::Practice;
     use mini_exercism::api::website::SolutionMentoringStatus::Finished;
     use mini_exercism::api::website::SolutionStatus::Published;
     use mini_exercism::api::website::SolutionTestsStatus::Passed;
+    use mini_exercism::api::website::TrackStatusFilter::Joined;
+    use mini_exercism::api::website::{
+        Exercise, ExerciseFilters, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise,
+        SolutionTrack, Track, TrackFilters, TrackLinks, TracksResponse,
+    };
+    use mini_exercism::core::Credentials;
+    use reqwest::StatusCode;
+    use wiremock::http::Method::Get;
+    use wiremock::matchers::{bearer_token, method, path, query_param};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     const API_TOKEN: &str = "some_api_token";
 
@@ -91,53 +94,49 @@ mod client {
         let mock_server = MockServer::start().await;
 
         let exercises_response = ExercisesResponse {
-            exercises: vec![
-                Exercise {
+            exercises: vec![Exercise {
+                name: "poker".to_string(),
+                exercise_type: Practice,
+                title: "Poker".to_string(),
+                icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                difficulty: Hard,
+                blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
+                is_external: false,
+                is_unlocked: true,
+                is_recommended: false,
+                links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".to_string() },
+            }],
+            solutions: vec![Solution {
+                uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
+                private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                public_url:
+                    "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
+                        .to_string(),
+                status: Published,
+                mentoring_status: Finished,
+                published_iteration_head_tests_status: Passed,
+                has_notifications: false,
+                num_views: 0,
+                num_stars: 0,
+                num_comments: 0,
+                num_iterations: 13,
+                num_loc: Some(252),
+                is_out_of_date: false,
+                published_at: Some("2023-05-08T00:02:21Z".to_string()),
+                completed_at: Some("2023-05-08T00:02:21Z".to_string()),
+                updated_at: "2023-08-27T07:06:01Z".to_string(),
+                last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                exercise: SolutionExercise {
                     name: "poker".to_string(),
-                    exercise_type: Practice,
                     title: "Poker".to_string(),
                     icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
-                    difficulty: Hard,
-                    blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
-                    is_external: false,
-                    is_unlocked: true,
-                    is_recommended: false,
-                    links: ExerciseLinks {
-                        self_path: "/tracks/rust/exercises/poker".to_string(),
-                    },
-                }
-            ],
-            solutions: vec![
-                Solution {
-                    uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                    private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                    public_url: "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur".to_string(),
-                    status: Published,
-                    mentoring_status: Finished,
-                    published_iteration_head_tests_status: Passed,
-                    has_notifications: false,
-                    num_views: 0,
-                    num_stars: 0,
-                    num_comments: 0,
-                    num_iterations: 13,
-                    num_loc: Some(252),
-                    is_out_of_date: false,
-                    published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                    completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                    updated_at: "2023-08-27T07:06:01Z".to_string(),
-                    last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
-                    exercise: SolutionExercise {
-                        name: "poker".to_string(),
-                        title: "Poker".to_string(),
-                        icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
-                    },
-                    track: SolutionTrack {
-                        name: "rust".to_string(),
-                        title: "Rust".to_string(),
-                        icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
-                    },
                 },
-            ],
+                track: SolutionTrack {
+                    name: "rust".to_string(),
+                    title: "Rust".to_string(),
+                    icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                },
+            }],
         };
         Mock::given(method(Get))
             .and(path("/tracks/rust/exercises"))
@@ -598,12 +597,14 @@ mod exercise_filters {
 
 mod exercises_response {
     mod deserialize {
-        use mini_exercism::api::website::{Exercise, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise, SolutionTrack};
         use mini_exercism::api::website::ExerciseDifficulty::{Easy, Hard};
         use mini_exercism::api::website::ExerciseType::{Practice, Tutorial};
         use mini_exercism::api::website::SolutionMentoringStatus::Finished;
         use mini_exercism::api::website::SolutionStatus::Published;
         use mini_exercism::api::website::SolutionTestsStatus::Passed;
+        use mini_exercism::api::website::{
+            Exercise, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise, SolutionTrack,
+        };
 
         #[test]
         fn test_anonymous() {
@@ -646,9 +647,11 @@ mod exercises_response {
                         name: "hello-world".to_string(),
                         exercise_type: Tutorial,
                         title: "Hello World".to_string(),
-                        icon_url: "https://assets.exercism.org/exercises/hello-world.svg".to_string(),
+                        icon_url: "https://assets.exercism.org/exercises/hello-world.svg"
+                            .to_string(),
                         difficulty: Easy,
-                        blurb: "The classical introductory exercise. Just say \"Hello, World!\".".to_string(),
+                        blurb: "The classical introductory exercise. Just say \"Hello, World!\"."
+                            .to_string(),
                         is_external: true,
                         is_unlocked: true,
                         is_recommended: false,
@@ -662,7 +665,8 @@ mod exercises_response {
                         title: "Forth".to_string(),
                         icon_url: "https://assets.exercism.org/exercises/forth.svg".to_string(),
                         difficulty: Hard,
-                        blurb: "Implement an evaluator for a very simple subset of Forth.".to_string(),
+                        blurb: "Implement an evaluator for a very simple subset of Forth."
+                            .to_string(),
                         is_external: true,
                         is_unlocked: true,
                         is_recommended: false,
@@ -730,53 +734,49 @@ mod exercises_response {
             }"#;
 
             let expected = ExercisesResponse {
-                exercises: vec![
-                    Exercise {
+                exercises: vec![Exercise {
+                    name: "poker".to_string(),
+                    exercise_type: Practice,
+                    title: "Poker".to_string(),
+                    icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                    difficulty: Hard,
+                    blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
+                    is_external: false,
+                    is_unlocked: true,
+                    is_recommended: false,
+                    links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".to_string() },
+                }],
+                solutions: vec![Solution {
+                    uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
+                    private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                    public_url:
+                        "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
+                            .to_string(),
+                    status: Published,
+                    mentoring_status: Finished,
+                    published_iteration_head_tests_status: Passed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 13,
+                    num_loc: Some(252),
+                    is_out_of_date: false,
+                    published_at: Some("2023-05-08T00:02:21Z".to_string()),
+                    completed_at: Some("2023-05-08T00:02:21Z".to_string()),
+                    updated_at: "2023-08-27T07:06:01Z".to_string(),
+                    last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                    exercise: SolutionExercise {
                         name: "poker".to_string(),
-                        exercise_type: Practice,
                         title: "Poker".to_string(),
                         icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
-                        difficulty: Hard,
-                        blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
-                        is_external: false,
-                        is_unlocked: true,
-                        is_recommended: false,
-                        links: ExerciseLinks {
-                            self_path: "/tracks/rust/exercises/poker".to_string(),
-                        },
                     },
-                ],
-                solutions: vec![
-                    Solution {
-                        uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                        private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                        public_url: "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur".to_string(),
-                        status: Published,
-                        mentoring_status: Finished,
-                        published_iteration_head_tests_status: Passed,
-                        has_notifications: false,
-                        num_views: 0,
-                        num_stars: 0,
-                        num_comments: 0,
-                        num_iterations: 13,
-                        num_loc: Some(252),
-                        is_out_of_date: false,
-                        published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                        completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                        updated_at: "2023-08-27T07:06:01Z".to_string(),
-                        last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
-                        exercise: SolutionExercise {
-                            name: "poker".to_string(),
-                            title: "Poker".to_string(),
-                            icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
-                        },
-                        track: SolutionTrack {
-                            name: "rust".to_string(),
-                            title: "Rust".to_string(),
-                            icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
-                        },
+                    track: SolutionTrack {
+                        name: "rust".to_string(),
+                        title: "Rust".to_string(),
+                        icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
                     },
-                ],
+                }],
             };
             let actual: ExercisesResponse = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);

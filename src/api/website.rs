@@ -65,8 +65,14 @@ impl Client {
     /// - [`ApiError`]: Error while fetching exercise information from API
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
-    pub async fn get_exercises(&self, track: &str, filters: Option<ExerciseFilters>) -> Result<ExercisesResponse> {
-        let mut request = self.api_client.get(format!("/tracks/{}/exercises", track).as_str());
+    pub async fn get_exercises(
+        &self,
+        track: &str,
+        filters: Option<ExerciseFilters>,
+    ) -> Result<ExercisesResponse> {
+        let mut request = self
+            .api_client
+            .get(format!("/tracks/{}/exercises", track).as_str());
         if let Some(filters) = filters {
             let query: Vec<_> = filters.into();
             request = request.query(&query);
