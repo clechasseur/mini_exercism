@@ -68,10 +68,13 @@ mod tests {
 
             assert_eq!(
                 config_dir,
-                Some(format!(
-                    "{}{}{}{}{}",
-                    home, MAIN_SEPARATOR, ".config", MAIN_SEPARATOR, "exercism"
-                ).into())
+                Some(
+                    format!(
+                        "{}{}{}{}{}",
+                        home, MAIN_SEPARATOR, ".config", MAIN_SEPARATOR, "exercism"
+                    )
+                    .into()
+                )
             );
         }
 

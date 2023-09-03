@@ -46,6 +46,7 @@ mod tests {
 
     mod get_cli_credentials {
         use std::path::PathBuf;
+
         use assert_matches::assert_matches;
         use mockall::predicate::*;
         use serial_test::serial;
@@ -79,8 +80,9 @@ mod tests {
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx.expect().return_once(|| None);
 
-            let expected_config_path: PathBuf =
-                [env::current_dir().unwrap(), "user.json".into()].iter().collect();
+            let expected_config_path: PathBuf = [env::current_dir().unwrap(), "user.json".into()]
+                .iter()
+                .collect();
             let expected_json_file = "{\"token\": \"some_token\"}".to_string();
             let rts_ctx = helpers::read_to_string_context();
             rts_ctx

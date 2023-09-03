@@ -29,7 +29,10 @@ mod tests {
             env::set_var("APPDATA", app_data);
             let config_dir = get_cli_config_dir();
 
-            assert_eq!(config_dir, Some(format!("{}{}{}", app_data, MAIN_SEPARATOR, "exercism").into()));
+            assert_eq!(
+                config_dir,
+                Some(format!("{}{}{}", app_data, MAIN_SEPARATOR, "exercism").into())
+            );
         }
 
         #[test]
