@@ -3,6 +3,9 @@ name = "mini_exercism"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+cli = []
+
 [dependencies]
 derive_builder = "0.12.0"
 futures = "0.3.28"
