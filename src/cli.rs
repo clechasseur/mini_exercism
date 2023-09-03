@@ -2,7 +2,6 @@
 
 mod detail;
 
-use std::path::PathBuf;
 use std::{env, io};
 
 use mockall_double::double;
@@ -26,12 +25,12 @@ use crate::core::{Credentials, Error, Result};
 /// [`ConfigParseError`]: crate::core::Error#variant.ConfigParseError
 /// [`ApiTokenNotFoundInConfig`]: crate::core::Error#variant.ApiTokenNotFoundInConfig
 pub fn get_cli_credentials() -> Result<Credentials> {
-    let config_dir = helpers::get_cli_config_dir()
+    let mut config_file_path = helpers::get_cli_config_dir()
         .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))
-        .or_else(|_| env::current_dir().map(|path| path.to_string_lossy().to_string()))?;
+        .or_else(|_| env::current_dir())?;
+    config_file_path.push("user.json");
 
-    let config_file_path: PathBuf = [config_dir, "user.json".to_string()].iter().collect();
-    match helpers::read_to_string(config_file_path.as_path()) {
+    match helpers::read_to_string(&config_file_path) {
         Ok(config) => {
             let config = CliConfig::from_string(config.as_str())?;
             Ok(Credentials::from_api_token(config.api_token))
@@ -46,6 +45,7 @@ mod tests {
     use super::*;
 
     mod get_cli_credentials {
+        use std::path::PathBuf;
         use assert_matches::assert_matches;
         use mockall::predicate::*;
         use serial_test::serial;
@@ -55,7 +55,7 @@ mod tests {
         #[test]
         #[serial]
         fn test_valid() {
-            let expected_config_dir = "/some/config/dir".to_string();
+            let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx
                 .expect()
@@ -70,7 +70,7 @@ mod tests {
                 .return_once(move |_| Ok(expected_json_file));
 
             assert_matches!(get_cli_credentials(),
-                Ok(creds) if creds == Credentials::from_api_token("some_token".to_string()));
+                Ok(creds) if creds == Credentials::from_api_token("some_token"));
         }
 
         #[test]
@@ -79,9 +79,8 @@ mod tests {
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx.expect().return_once(|| None);
 
-            let current_dir = env::current_dir().unwrap().to_string_lossy().to_string();
             let expected_config_path: PathBuf =
-                [current_dir, "user.json".to_string()].iter().collect();
+                [env::current_dir().unwrap(), "user.json".into()].iter().collect();
             let expected_json_file = "{\"token\": \"some_token\"}".to_string();
             let rts_ctx = helpers::read_to_string_context();
             rts_ctx
@@ -90,13 +89,13 @@ mod tests {
                 .return_once(move |_| Ok(expected_json_file));
 
             assert_matches!(get_cli_credentials(),
-                Ok(creds) if creds == Credentials::from_api_token("some_token".to_string()));
+                Ok(creds) if creds == Credentials::from_api_token("some_token"));
         }
 
         #[test]
         #[serial]
         fn test_invalid_config() {
-            let expected_config_dir = "/some/config/dir".to_string();
+            let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx
                 .expect()
@@ -116,7 +115,7 @@ mod tests {
         #[test]
         #[serial]
         fn test_config_file_not_found() {
-            let expected_config_dir = "/some/config/dir".to_string();
+            let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx
                 .expect()
@@ -135,7 +134,7 @@ mod tests {
         #[test]
         #[serial]
         fn test_config_file_inaccessible() {
-            let expected_config_dir = "/some/config/dir".to_string();
+            let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx
                 .expect()

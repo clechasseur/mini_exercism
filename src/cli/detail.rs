@@ -7,7 +7,7 @@ use crate::core::{Error, Result};
 
 #[cfg_attr(test, automock)]
 pub mod helpers {
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
     use std::{env, fs, io};
 
     use crate::cli::detail::os;
@@ -17,7 +17,7 @@ pub mod helpers {
 
     #[allow(dead_code)]
     #[cfg(not(tarpaulin_include))]
-    pub fn get_cli_config_dir() -> Option<String> {
+    pub fn get_cli_config_dir() -> Option<PathBuf> {
         match env::consts::OS {
             "windows" => os::windows::get_cli_config_dir(),
             _ => os::nix::get_cli_config_dir(),

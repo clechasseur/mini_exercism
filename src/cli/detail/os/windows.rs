@@ -1,15 +1,13 @@
 use std::env;
 use std::path::PathBuf;
 
-pub fn get_cli_config_dir() -> Option<String> {
+pub fn get_cli_config_dir() -> Option<PathBuf> {
     // Based on:
     // https://github.com/exercism/cli/blob/9e1285b62502f3f5a4a896a44e540ee1bee5c1bf/config/config.go#L57-L60
 
-    let path: PathBuf = [env::var_os("APPDATA")?, "exercism".into()]
-        .iter()
-        .collect();
-
-    Some(path.to_str()?.to_string())
+    let mut path: PathBuf = env::var_os("APPDATA")?.into();
+    path.push("exercism");
+    Some(path)
 }
 
 #[cfg(test)]
@@ -31,7 +29,7 @@ mod tests {
             env::set_var("APPDATA", app_data);
             let config_dir = get_cli_config_dir();
 
-            assert_eq!(config_dir, Some(format!("{}{}{}", app_data, MAIN_SEPARATOR, "exercism")));
+            assert_eq!(config_dir, Some(format!("{}{}{}", app_data, MAIN_SEPARATOR, "exercism").into()));
         }
 
         #[test]

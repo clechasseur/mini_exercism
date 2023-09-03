@@ -1,7 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 
-pub fn get_cli_config_dir() -> Option<String> {
+pub fn get_cli_config_dir() -> Option<PathBuf> {
     // Based on:
     // https://github.com/exercism/cli/blob/9e1285b62502f3f5a4a896a44e540ee1bee5c1bf/config/config.go#L62-L72
 
@@ -19,7 +19,7 @@ pub fn get_cli_config_dir() -> Option<String> {
         path.push("exercism");
     }
 
-    Some(path.to_str()?.to_string())
+    Some(path)
 }
 
 #[cfg(test)]
@@ -40,7 +40,7 @@ mod tests {
             env::set_var("EXERCISM_CONFIG_HOME", exercism_config_home);
             let config_dir = get_cli_config_dir();
 
-            assert_eq!(config_dir, Some(exercism_config_home.to_string()));
+            assert_eq!(config_dir, Some(exercism_config_home.into()));
         }
 
         #[test]
@@ -53,7 +53,7 @@ mod tests {
 
             assert_eq!(
                 config_dir,
-                Some(format!("{}{}{}", xdg_config_home, MAIN_SEPARATOR, "exercism"))
+                Some(format!("{}{}{}", xdg_config_home, MAIN_SEPARATOR, "exercism").into())
             );
         }
 
@@ -71,7 +71,7 @@ mod tests {
                 Some(format!(
                     "{}{}{}{}{}",
                     home, MAIN_SEPARATOR, ".config", MAIN_SEPARATOR, "exercism"
-                ))
+                ).into())
             );
         }
 
