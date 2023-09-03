@@ -4,7 +4,7 @@ mod detail;
 
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use strum_macros::Display;
+use strum_macros::{Display, IntoStaticStr};
 
 use crate::api::website::detail::{ExerciseFiltersBuilderError, TrackFiltersBuilderError};
 use crate::core::Result;
@@ -34,7 +34,7 @@ impl Client {
     /// - [`ApiError`]: Error while fetching track information from API
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
-    pub async fn get_tracks(&self, filters: Option<TrackFilters>) -> Result<TracksResponse> {
+    pub async fn get_tracks(&self, filters: Option<TrackFilters<'_>>) -> Result<TracksResponse> {
         let mut request = self.api_client.get("/tracks");
         if let Some(filters) = filters {
             let query: Vec<_> = filters.into();
@@ -68,7 +68,7 @@ impl Client {
     pub async fn get_exercises(
         &self,
         track: &str,
-        filters: Option<ExerciseFilters>,
+        filters: Option<ExerciseFilters<'_>>,
     ) -> Result<ExercisesResponse> {
         let mut request = self
             .api_client
@@ -91,11 +91,11 @@ impl Client {
     setter(strip_option),
     build_fn(private, name = "fallible_build", error = "TrackFiltersBuilderError")
 )]
-pub struct TrackFilters {
+pub struct TrackFilters<'a> {
     /// Criteria used to filter language tracks.
     /// Applied to both track [`name`](Track::name)s (e.g. slugs) and [`title`](Track::title)s.
     #[builder(setter(into))]
-    pub criteria: Option<String>,
+    pub criteria: Option<&'a str>,
 
     /// List of [`tags`](Track::tags) that must be attached to the language track.
     ///
@@ -103,8 +103,8 @@ pub struct TrackFilters {
     ///
     /// This filter does not currently seem to work; whether this is the result of
     /// a bug in the Exercism website API or in this library remains to be determined.
-    #[builder(setter(each(name = "tag", into)))]
-    pub tags: Vec<String>,
+    #[builder(setter(into, each(name = "tag")))]
+    pub tags: Vec<&'a str>,
 
     /// Language track's status filter.
     ///
@@ -115,45 +115,45 @@ pub struct TrackFilters {
     pub status: Option<TrackStatusFilter>,
 }
 
-impl TrackFilters {
+impl<'a> TrackFilters<'a> {
     /// Returns a builder for the [`TrackFilters`] type.
-    pub fn builder() -> TrackFiltersBuilder {
+    pub fn builder() -> TrackFiltersBuilder<'a> {
         TrackFiltersBuilder::default()
     }
 }
 
-impl From<TrackFilters> for Vec<(String, String)> {
+impl<'a> From<TrackFilters<'a>> for Vec<(&'static str, &'a str)> {
     /// Converts [`TrackFilters`] into a sequence of key/value pair
     /// that can be used as [query string parameters](reqwest::RequestBuilder::query).
-    fn from(filters: TrackFilters) -> Self {
+    fn from(filters: TrackFilters<'a>) -> Self {
         let mut query = Self::new();
 
         if let Some(criteria) = filters.criteria {
-            query.push(("criteria".to_string(), criteria));
+            query.push(("criteria", criteria));
         }
 
         filters.tags.into_iter().for_each(|tag| {
-            query.push(("tags[]".to_string(), tag));
+            query.push(("tags[]", tag));
         });
 
         if let Some(status) = filters.status {
-            query.push(("status".to_string(), status.to_string()));
+            query.push(("status", status.into()));
         }
 
         query
     }
 }
 
-impl TrackFiltersBuilder {
+impl<'a> TrackFiltersBuilder<'a> {
     /// Builds a new [TrackFilters].
-    pub fn build(&self) -> TrackFilters {
+    pub fn build(&self) -> TrackFilters<'a> {
         self.fallible_build()
             .expect("All fields should have had default values")
     }
 }
 
 /// Possible status filter of [Exercism](https://exercism.org) language tracks.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Display)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Display, IntoStaticStr)]
 #[strum(serialize_all = "snake_case")]
 pub enum TrackStatusFilter {
     /// Return all language tracks.
@@ -247,45 +247,45 @@ pub struct TrackLinks {
     setter(strip_option),
     build_fn(private, name = "fallible_build", error = "ExerciseFiltersBuilderError")
 )]
-pub struct ExerciseFilters {
+pub struct ExerciseFilters<'a> {
     /// Criteria used to filter exercises.
     /// Applied to both exercise [`name`](Exercise::name)s (e.g. slugs) and [`title`](Exercise::title)s.
     #[builder(setter(into))]
-    pub criteria: Option<String>,
+    pub criteria: Option<&'a str>,
 
     /// Whether to include solutions in the response.
     /// Only has an effect if the query is specified for an authenticated user.
     pub include_solutions: bool,
 }
 
-impl ExerciseFilters {
+impl<'a> ExerciseFilters<'a> {
     /// Returns a builder for the [`ExerciseFilters`] type.
-    pub fn builder() -> ExerciseFiltersBuilder {
+    pub fn builder() -> ExerciseFiltersBuilder<'a> {
         ExerciseFiltersBuilder::default()
     }
 }
 
-impl From<ExerciseFilters> for Vec<(String, String)> {
+impl<'a> From<ExerciseFilters<'a>> for Vec<(&'static str, &'a str)> {
     /// Converts [`ExerciseFilters`] into a sequence of key/value pair
     /// that can be used as [query string parameters](reqwest::RequestBuilder::query).
-    fn from(filters: ExerciseFilters) -> Self {
+    fn from(filters: ExerciseFilters<'a>) -> Self {
         let mut query = Self::new();
 
         if let Some(criteria) = filters.criteria {
-            query.push(("criteria".to_string(), criteria));
+            query.push(("criteria", criteria));
         }
 
         if filters.include_solutions {
-            query.push(("sideload".to_string(), "solutions".to_string()));
+            query.push(("sideload", "solutions"));
         }
 
         query
     }
 }
 
-impl ExerciseFiltersBuilder {
+impl<'a> ExerciseFiltersBuilder<'a> {
     /// Builds a new [ExerciseFilters].
-    pub fn build(&self) -> ExerciseFilters {
+    pub fn build(&self) -> ExerciseFilters<'a> {
         self.fallible_build()
             .expect("All fields should have had default values")
     }

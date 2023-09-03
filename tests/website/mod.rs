@@ -198,15 +198,15 @@ mod track_filters {
         fn test_into_query_params() {
             let filters = TrackFilters::builder()
                 .criteria("clojure")
-                .tags(vec!["Functional".to_string(), "Compiled".to_string()])
+                .tags(vec!["Functional", "Compiled"])
                 .status(Unjoined)
                 .build();
 
             let expected = vec![
-                ("criteria".to_string(), "clojure".to_string()),
-                ("tags[]".to_string(), "Functional".to_string()),
-                ("tags[]".to_string(), "Compiled".to_string()),
-                ("status".to_string(), "unjoined".to_string()),
+                ("criteria", "clojure"),
+                ("tags[]", "Functional"),
+                ("tags[]", "Compiled"),
+                ("status", "unjoined"),
             ];
             let actual: Vec<(_, _)> = filters.into();
             assert_eq!(expected, actual);
@@ -585,10 +585,7 @@ mod exercise_filters {
                 .include_solutions(true)
                 .build();
 
-            let expected = vec![
-                ("criteria".to_string(), "clojure".to_string()),
-                ("sideload".to_string(), "solutions".to_string()),
-            ];
+            let expected = vec![("criteria", "clojure"), ("sideload", "solutions")];
             let actual: Vec<(_, _)> = filters.into();
             assert_eq!(expected, actual);
         }
