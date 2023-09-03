@@ -780,3 +780,296 @@ mod exercises_response {
         }
     }
 }
+
+mod exercise {
+    mod deserialize {
+        use mini_exercism::api::website::ExerciseDifficulty::Easy;
+        use mini_exercism::api::website::ExerciseType::Tutorial;
+        use mini_exercism::api::website::{
+            Exercise, ExerciseDifficulty, ExerciseLinks, ExerciseType,
+        };
+
+        #[test]
+        fn test_all() {
+            let json = r#"{
+                "slug": "hello-world",
+                "type": "tutorial",
+                "title": "Hello World",
+                "icon_url": "https://assets.exercism.org/exercises/hello-world.svg",
+                "difficulty": "easy",
+                "blurb": "The classical introductory exercise. Just say \"Hello, World!\".",
+                "is_external": true,
+                "is_unlocked": true,
+                "is_recommended": false,
+                "links": {
+                    "self": "/tracks/rust/exercises/hello-world"
+                }
+            }"#;
+
+            let expected = Exercise {
+                name: "hello-world".to_string(),
+                exercise_type: Tutorial,
+                title: "Hello World".to_string(),
+                icon_url: "https://assets.exercism.org/exercises/hello-world.svg".to_string(),
+                difficulty: Easy,
+                blurb: "The classical introductory exercise. Just say \"Hello, World!\"."
+                    .to_string(),
+                is_external: true,
+                is_unlocked: true,
+                is_recommended: false,
+                links: ExerciseLinks {
+                    self_path: "/tracks/rust/exercises/hello-world".to_string(),
+                },
+            };
+            let actual: Exercise = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+
+        #[test]
+        fn test_unknown() {
+            let json = r#"{
+                "slug": "rlyehian",
+                "type": "mglw'nafh",
+                "title": "R'lyehian",
+                "icon_url": "https://assets.exercism.org/exercises/rlyehian.svg",
+                "difficulty": "syha'h",
+                "blurb": "Cahf ah nafl mglw'nafh hh' ahor syha'h ah'legeth, ng llll or'azath syha'hnahh n'ghftephai n'gha ahornah ah'mglw'nafh.",
+                "is_external": true,
+                "is_unlocked": true,
+                "is_recommended": false,
+                "links": {
+                    "self": "/tracks/rust/exercises/rlyehian"
+                }
+            }"#;
+
+            let expected = Exercise {
+                name: "rlyehian".to_string(),
+                exercise_type: ExerciseType::Unknown,
+                title: "R'lyehian".to_string(),
+                icon_url: "https://assets.exercism.org/exercises/rlyehian.svg"
+                    .to_string(),
+                difficulty: ExerciseDifficulty::Unknown,
+                blurb: "Cahf ah nafl mglw'nafh hh' ahor syha'h ah'legeth, ng llll or'azath syha'hnahh n'ghftephai n'gha ahornah ah'mglw'nafh."
+                    .to_string(),
+                is_external: true,
+                is_unlocked: true,
+                is_recommended: false,
+                links: ExerciseLinks {
+                    self_path: "/tracks/rust/exercises/rlyehian".to_string(),
+                },
+            };
+            let actual: Exercise = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+    }
+}
+
+mod exercise_links {
+    mod deserialize {
+        use mini_exercism::api::website::ExerciseLinks;
+
+        #[test]
+        fn test_all() {
+            let json = r#"{
+                "self": "/tracks/rust/exercises/hello-world"
+            }"#;
+
+            let expected =
+                ExerciseLinks { self_path: "/tracks/rust/exercises/hello-world".to_string() };
+            let actual: ExerciseLinks = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+    }
+}
+
+mod solution {
+    mod deserialize {
+        use mini_exercism::api::website::SolutionMentoringStatus::Finished;
+        use mini_exercism::api::website::SolutionStatus::Published;
+        use mini_exercism::api::website::SolutionTestsStatus::Passed;
+        use mini_exercism::api::website::{
+            Solution, SolutionExercise, SolutionMentoringStatus, SolutionStatus,
+            SolutionTestsStatus, SolutionTrack,
+        };
+
+        #[test]
+        fn test_all() {
+            let json = r#"{
+                "uuid": "00c717b68e1b4213b316df82636f5e0f",
+                "private_url": "https://exercism.org/tracks/rust/exercises/poker",
+                "public_url": "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur",
+                "status": "published",
+                "mentoring_status": "finished",
+                "published_iteration_head_tests_status": "passed",
+                "has_notifications": false,
+                "num_views": 0,
+                "num_stars": 0,
+                "num_comments": 0,
+                "num_iterations": 13,
+                "num_loc": 252,
+                "is_out_of_date": false,
+                "published_at": "2023-05-08T00:02:21Z",
+                "completed_at": "2023-05-08T00:02:21Z",
+                "updated_at": "2023-08-27T07:06:01Z",
+                "last_iterated_at": "2023-05-07T05:35:43Z",
+                "exercise": {
+                    "slug": "poker",
+                    "title": "Poker",
+                    "icon_url": "https://assets.exercism.org/exercises/poker.svg"
+                },
+                "track": {
+                    "slug": "rust",
+                    "title": "Rust",
+                    "icon_url": "https://assets.exercism.org/tracks/rust.svg"
+                }
+            }"#;
+
+            let expected = Solution {
+                uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
+                private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                public_url:
+                    "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
+                        .to_string(),
+                status: Published,
+                mentoring_status: Finished,
+                published_iteration_head_tests_status: Passed,
+                has_notifications: false,
+                num_views: 0,
+                num_stars: 0,
+                num_comments: 0,
+                num_iterations: 13,
+                num_loc: Some(252),
+                is_out_of_date: false,
+                published_at: Some("2023-05-08T00:02:21Z".to_string()),
+                completed_at: Some("2023-05-08T00:02:21Z".to_string()),
+                updated_at: "2023-08-27T07:06:01Z".to_string(),
+                last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                exercise: SolutionExercise {
+                    name: "poker".to_string(),
+                    title: "Poker".to_string(),
+                    icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                },
+                track: SolutionTrack {
+                    name: "rust".to_string(),
+                    title: "Rust".to_string(),
+                    icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                },
+            };
+            let actual: Solution = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+
+        #[test]
+        fn test_unknown() {
+            let json = r#"{
+                "uuid": "7b1fe9e73ccf44d5aa4da9b3d28da405",
+                "private_url": "https://exercism.org/tracks/rust/exercises/rlyehian",
+                "public_url": "https://exercism.org/tracks/rust/exercises/rlyehian/solutions/clechasseur",
+                "status": "syha'hnahh",
+                "mentoring_status": "or'azath",
+                "published_iteration_head_tests_status": "ah'mglw'nafh",
+                "has_notifications": false,
+                "num_views": 0,
+                "num_stars": 0,
+                "num_comments": 0,
+                "num_iterations": 13,
+                "num_loc": 252,
+                "is_out_of_date": false,
+                "published_at": "2023-05-08T00:02:21Z",
+                "completed_at": "2023-05-08T00:02:21Z",
+                "updated_at": "2023-08-27T07:06:01Z",
+                "last_iterated_at": "2023-05-07T05:35:43Z",
+                "exercise": {
+                    "slug": "rlyehian",
+                    "title": "R'lyehian",
+                    "icon_url": "https://assets.exercism.org/exercises/rlyehian.svg"
+                },
+                "track": {
+                    "slug": "rust",
+                    "title": "Rust",
+                    "icon_url": "https://assets.exercism.org/tracks/rust.svg"
+                }
+            }"#;
+
+            let expected = Solution {
+                uuid: "7b1fe9e73ccf44d5aa4da9b3d28da405".to_string(),
+                private_url: "https://exercism.org/tracks/rust/exercises/rlyehian".to_string(),
+                public_url:
+                    "https://exercism.org/tracks/rust/exercises/rlyehian/solutions/clechasseur"
+                        .to_string(),
+                status: SolutionStatus::Unknown,
+                mentoring_status: SolutionMentoringStatus::Unknown,
+                published_iteration_head_tests_status: SolutionTestsStatus::Unknown,
+                has_notifications: false,
+                num_views: 0,
+                num_stars: 0,
+                num_comments: 0,
+                num_iterations: 13,
+                num_loc: Some(252),
+                is_out_of_date: false,
+                published_at: Some("2023-05-08T00:02:21Z".to_string()),
+                completed_at: Some("2023-05-08T00:02:21Z".to_string()),
+                updated_at: "2023-08-27T07:06:01Z".to_string(),
+                last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                exercise: SolutionExercise {
+                    name: "rlyehian".to_string(),
+                    title: "R'lyehian".to_string(),
+                    icon_url: "https://assets.exercism.org/exercises/rlyehian.svg".to_string(),
+                },
+                track: SolutionTrack {
+                    name: "rust".to_string(),
+                    title: "Rust".to_string(),
+                    icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                },
+            };
+            let actual: Solution = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+    }
+}
+
+mod solution_exercise {
+    mod deserialize {
+        use mini_exercism::api::website::SolutionExercise;
+
+        #[test]
+        fn test_all() {
+            let json = r#"{
+                "slug": "poker",
+                "title": "Poker",
+                "icon_url": "https://assets.exercism.org/exercises/poker.svg"
+            }"#;
+
+            let expected = SolutionExercise {
+                name: "poker".to_string(),
+                title: "Poker".to_string(),
+                icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+            };
+            let actual: SolutionExercise = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+    }
+}
+
+mod solution_track {
+    mod deserialize {
+        use mini_exercism::api::website::SolutionTrack;
+
+        #[test]
+        fn test_all() {
+            let json = r#"{
+                "slug": "rust",
+                "title": "Rust",
+                "icon_url": "https://assets.exercism.org/tracks/rust.svg"
+            }"#;
+
+            let expected = SolutionTrack {
+                name: "rust".to_string(),
+                title: "Rust".to_string(),
+                icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+            };
+            let actual: SolutionTrack = serde_json::from_str(json).unwrap();
+            assert_eq!(expected, actual);
+        }
+    }
+}
