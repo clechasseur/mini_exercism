@@ -1,4 +1,4 @@
-//! Types and functions to interact with the [Exercism website](https://exercism.org) API.
+//! Types and functions to interact with the [Exercism website](https://exercism.org) v2 API.
 
 mod detail;
 
@@ -6,16 +6,16 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, IntoStaticStr};
 
-use crate::api::website::detail::{ExerciseFiltersBuilderError, TrackFiltersBuilderError};
+use crate::api::v2::detail::{ExerciseFiltersBuilderError, TrackFiltersBuilderError};
 use crate::core::Result;
 
-/// Default base URL for the [Exercism website](https://exercism.org) API.
-pub const DEFAULT_WEBSITE_API_BASE_URL: &str = "https://exercism.org/api/v2";
+/// Default base URL for the [Exercism website](https://exercism.org) v2 API.
+pub const DEFAULT_V2_API_BASE_URL: &str = "https://exercism.org/api/v2";
 
 define_api_client! {
-    /// Client for the [Exercism website](https://exercism.org) API. This API is undocumented and
-    /// is mostly used by the website itself to fetch information.
-    pub struct Client(DEFAULT_WEBSITE_API_BASE_URL);
+    /// Client for the [Exercism website](https://exercism.org) v2 API. This API is undocumented
+    /// and is mostly used by the website itself to fetch information.
+    pub struct Client(DEFAULT_V2_API_BASE_URL);
 }
 
 impl Client {
@@ -44,7 +44,7 @@ impl Client {
         Ok(request.send().await?.json().await?)
     }
 
-    /// Returns a list of exercises for an [Exercism](https://exercism.org) [track],
+    /// Returns a list of exercises for an [Exercism](https://exercism.org) `track`,
     /// optionally loading the user's solutions.
     ///
     /// - If the request is performed anonymously, returns a list of all exercises in
@@ -54,9 +54,9 @@ impl Client {
     ///   returns a list of all exercises in the track, with information about whether
     ///   each exercise has been [unlocked](Exercise::is_unlocked) by the user. Each
     ///   exercise's [`is_external`](Exercise::is_external) field will be set to `false`.
-    ///   Additionally, if the [`filters`] parameter's [`include_solutions`](ExerciseFilters::include_solutions)
-    ///   is set to `true`, the response will contain a list of solutions the user has
-    ///   submitted for the track's exercises.
+    ///   Additionally, if the `filters` parameter's [`include_solutions`](ExerciseFilters::include_solutions)
+    ///   is set to `true`, the response will contain a list of solutions the user has submitted
+    ///   for the track's exercises.
     ///
     /// The list of exercises can optionally be filtered using [`ExerciseFilters`].
     ///
@@ -82,8 +82,8 @@ impl Client {
     }
 }
 
-/// Filters that can be applied when fetching language tracks from the [Exercism website](https://exercism.org) API
-/// (see [`Client::get_tracks`]).
+/// Filters that can be applied when fetching language tracks from the
+/// [Exercism website](https://exercism.org) v2 API (see [`Client::get_tracks`]).
 #[derive(Debug, Default, Builder)]
 #[builder(
     derive(Debug),
@@ -102,16 +102,17 @@ pub struct TrackFilters<'a> {
     /// # Note
     ///
     /// This filter does not currently seem to work; whether this is the result of
-    /// a bug in the Exercism website API or in this library remains to be determined.
+    /// a bug in the Exercism v2 API or in this library remains to be determined.
     #[builder(setter(into, each(name = "tag")))]
     pub tags: Vec<&'a str>,
 
-    /// Language track's status filter.
+    /// Language track's [status filter](TrackStatusFilter).
     ///
     /// # Note
     ///
-    /// Using this filter requires an authenticated query to the [Exercism website](https://exercism.org) API,
-    /// otherwise you will get a `500 Internal Server Error`.
+    /// Using this filter requires an authenticated query to the [Exercism website](https://exercism.org)
+    /// v2 API, otherwise you will get a `500 Internal Server Error` (even when asking for
+    /// [`All`](TrackStatusFilter#variant.All) tracks).
     pub status: Option<TrackStatusFilter>,
 }
 
@@ -168,14 +169,17 @@ pub enum TrackStatusFilter {
 }
 
 /// Struct representing a response to a query for language tracks on the
-/// [Exercism website](https://exercism.org) API.
+/// [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TracksResponse {
-    /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by track name.
+    /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by
+    /// track name, with tracks joined by the user first (if query is performed with
+    /// [`credentials`](ClientBuilder::credentials)).
     pub tracks: Vec<Track>,
 }
 
-/// Struct representing a single language track returned by the [Exercism website](https://exercism.org) API.
+/// Struct representing a single language track returned by the
+/// [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Track {
     /// Name of the language track.
@@ -223,7 +227,7 @@ pub struct Track {
 }
 
 /// Struct containing links pertaining to an [Exercism](https://exercism.org) language track
-/// returned by the website API.
+/// returned by the v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrackLinks {
     /// URL of the language track on the [Exercism website](https://exercism.org).
@@ -239,7 +243,7 @@ pub struct TrackLinks {
 }
 
 /// Filters that can be applied when fetching exercises from the
-/// [Exercism website](https://exercism.org) API (see [`Client::get_exercises`]).
+/// [Exercism website](https://exercism.org) v2 API (see [`Client::get_exercises`]).
 #[derive(Debug, Default, Builder)]
 #[builder(
     derive(Debug),
@@ -253,8 +257,8 @@ pub struct ExerciseFilters<'a> {
     #[builder(setter(into))]
     pub criteria: Option<&'a str>,
 
-    /// Whether to include solutions in the response.
-    /// Only has an effect if the query is specified for an authenticated user.
+    /// Whether to include solutions in the response. Only has an effect if the query is
+    /// performed with [`credentials`](ClientBuilder::credentials).
     pub include_solutions: bool,
 }
 
@@ -292,7 +296,7 @@ impl<'a> ExerciseFiltersBuilder<'a> {
 }
 
 /// Struct representing a response to a query for exercises on the
-/// [Exercism website](https://exercism.org) API.
+/// [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExercisesResponse {
     /// List of exercises for the requested track. The ordering depends on
@@ -311,7 +315,7 @@ pub struct ExercisesResponse {
     pub solutions: Vec<Solution>,
 }
 
-/// Struct representing a single exercise returned by the [Exercism website](https://exercism.org) API.
+/// Struct representing a single exercise returned by the [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Exercise {
     /// Name of the exercise. This is an internal name, like `forth`. Also called `slug`.
@@ -392,10 +396,10 @@ pub enum ExerciseDifficulty {
 }
 
 /// Struct containing links pertaining to an [Exercism](https://exercism.org) exercise
-/// returned by the website API.
+/// returned by the v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExerciseLinks {
-    /// Path of the exercise on the [Exercism](https://exercism.org), without the domain name.
+    /// Path of the exercise on the [Exercism website](https://exercism.org), without the domain name.
     #[serde(rename = "self")]
     pub self_path: String,
 }

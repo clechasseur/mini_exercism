@@ -1,13 +1,13 @@
 mod client {
     use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::website::ExerciseDifficulty::Hard;
-    use mini_exercism::api::website::ExerciseType::Practice;
-    use mini_exercism::api::website::SolutionMentoringStatus::Finished;
-    use mini_exercism::api::website::SolutionStatus::Published;
-    use mini_exercism::api::website::SolutionTestsStatus::Passed;
-    use mini_exercism::api::website::TrackStatusFilter::Joined;
-    use mini_exercism::api::website::{
+    use mini_exercism::api::v2::ExerciseDifficulty::Hard;
+    use mini_exercism::api::v2::ExerciseType::Practice;
+    use mini_exercism::api::v2::SolutionMentoringStatus::Finished;
+    use mini_exercism::api::v2::SolutionStatus::Published;
+    use mini_exercism::api::v2::SolutionTestsStatus::Passed;
+    use mini_exercism::api::v2::TrackStatusFilter::Joined;
+    use mini_exercism::api::v2::{
         Exercise, ExerciseFilters, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise,
         SolutionTrack, Track, TrackFilters, TrackLinks, TracksResponse,
     };
@@ -72,7 +72,7 @@ mod client {
             .mount(&mock_server)
             .await;
 
-        let client = api::website::Client::builder()
+        let client = api::v2::Client::builder()
             .api_base_url(mock_server.uri().as_str())
             .credentials(Credentials::from_api_token(API_TOKEN))
             .build();
@@ -147,7 +147,7 @@ mod client {
             .mount(&mock_server)
             .await;
 
-        let client = api::website::Client::builder()
+        let client = api::v2::Client::builder()
             .api_base_url(mock_server.uri().as_str())
             .credentials(Credentials::from_api_token(API_TOKEN))
             .build();
@@ -171,8 +171,8 @@ mod client {
 mod track_filters {
     mod builder {
         use assert_matches::assert_matches;
-        use mini_exercism::api::website::TrackFilters;
-        use mini_exercism::api::website::TrackStatusFilter::Joined;
+        use mini_exercism::api::v2::TrackFilters;
+        use mini_exercism::api::v2::TrackStatusFilter::Joined;
 
         #[test]
         fn test_build() {
@@ -191,8 +191,8 @@ mod track_filters {
     }
 
     mod from {
-        use mini_exercism::api::website::TrackFilters;
-        use mini_exercism::api::website::TrackStatusFilter::Unjoined;
+        use mini_exercism::api::v2::TrackFilters;
+        use mini_exercism::api::v2::TrackStatusFilter::Unjoined;
 
         #[test]
         fn test_into_query_params() {
@@ -216,7 +216,7 @@ mod track_filters {
 
 mod tracks_response {
     mod deserialize {
-        use mini_exercism::api::website::{Track, TrackLinks, TracksResponse};
+        use mini_exercism::api::v2::{Track, TrackLinks, TracksResponse};
 
         #[test]
         fn test_all() {
@@ -366,7 +366,7 @@ mod tracks_response {
 
 mod track {
     mod deserialize {
-        use mini_exercism::api::website::{Track, TrackLinks};
+        use mini_exercism::api::v2::{Track, TrackLinks};
 
         #[test]
         fn test_anonymous() {
@@ -537,7 +537,7 @@ mod track {
 
 mod track_links {
     mod deserialize {
-        use mini_exercism::api::website::TrackLinks;
+        use mini_exercism::api::v2::TrackLinks;
 
         #[test]
         fn test_all() {
@@ -561,7 +561,7 @@ mod track_links {
 mod exercise_filters {
     mod builder {
         use assert_matches::assert_matches;
-        use mini_exercism::api::website::ExerciseFilters;
+        use mini_exercism::api::v2::ExerciseFilters;
 
         #[test]
         fn test_build() {
@@ -576,7 +576,7 @@ mod exercise_filters {
     }
 
     mod from {
-        use mini_exercism::api::website::ExerciseFilters;
+        use mini_exercism::api::v2::ExerciseFilters;
 
         #[test]
         fn test_into_query_params() {
@@ -594,12 +594,12 @@ mod exercise_filters {
 
 mod exercises_response {
     mod deserialize {
-        use mini_exercism::api::website::ExerciseDifficulty::{Easy, Hard};
-        use mini_exercism::api::website::ExerciseType::{Practice, Tutorial};
-        use mini_exercism::api::website::SolutionMentoringStatus::Finished;
-        use mini_exercism::api::website::SolutionStatus::Published;
-        use mini_exercism::api::website::SolutionTestsStatus::Passed;
-        use mini_exercism::api::website::{
+        use mini_exercism::api::v2::ExerciseDifficulty::{Easy, Hard};
+        use mini_exercism::api::v2::ExerciseType::{Practice, Tutorial};
+        use mini_exercism::api::v2::SolutionMentoringStatus::Finished;
+        use mini_exercism::api::v2::SolutionStatus::Published;
+        use mini_exercism::api::v2::SolutionTestsStatus::Passed;
+        use mini_exercism::api::v2::{
             Exercise, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise, SolutionTrack,
         };
 
@@ -783,11 +783,9 @@ mod exercises_response {
 
 mod exercise {
     mod deserialize {
-        use mini_exercism::api::website::ExerciseDifficulty::Easy;
-        use mini_exercism::api::website::ExerciseType::Tutorial;
-        use mini_exercism::api::website::{
-            Exercise, ExerciseDifficulty, ExerciseLinks, ExerciseType,
-        };
+        use mini_exercism::api::v2::ExerciseDifficulty::Easy;
+        use mini_exercism::api::v2::ExerciseType::Tutorial;
+        use mini_exercism::api::v2::{Exercise, ExerciseDifficulty, ExerciseLinks, ExerciseType};
 
         #[test]
         fn test_all() {
@@ -866,7 +864,7 @@ mod exercise {
 
 mod exercise_links {
     mod deserialize {
-        use mini_exercism::api::website::ExerciseLinks;
+        use mini_exercism::api::v2::ExerciseLinks;
 
         #[test]
         fn test_all() {
@@ -884,10 +882,10 @@ mod exercise_links {
 
 mod solution {
     mod deserialize {
-        use mini_exercism::api::website::SolutionMentoringStatus::Finished;
-        use mini_exercism::api::website::SolutionStatus::Published;
-        use mini_exercism::api::website::SolutionTestsStatus::Passed;
-        use mini_exercism::api::website::{
+        use mini_exercism::api::v2::SolutionMentoringStatus::Finished;
+        use mini_exercism::api::v2::SolutionStatus::Published;
+        use mini_exercism::api::v2::SolutionTestsStatus::Passed;
+        use mini_exercism::api::v2::{
             Solution, SolutionExercise, SolutionMentoringStatus, SolutionStatus,
             SolutionTestsStatus, SolutionTrack,
         };
@@ -1030,7 +1028,7 @@ mod solution {
 
 mod solution_exercise {
     mod deserialize {
-        use mini_exercism::api::website::SolutionExercise;
+        use mini_exercism::api::v2::SolutionExercise;
 
         #[test]
         fn test_all() {
@@ -1053,7 +1051,7 @@ mod solution_exercise {
 
 mod solution_track {
     mod deserialize {
-        use mini_exercism::api::website::SolutionTrack;
+        use mini_exercism::api::v2::SolutionTrack;
 
         #[test]
         fn test_all() {

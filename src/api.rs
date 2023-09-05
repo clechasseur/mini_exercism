@@ -3,4 +3,4 @@
 #[macro_use]
 pub(crate) mod detail;
 
-pub mod website;
+pub mod v2;

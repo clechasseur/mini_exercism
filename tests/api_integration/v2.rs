@@ -1,11 +1,11 @@
 mod get_tracks {
     use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::website::TrackFilters;
+    use mini_exercism::api::v2::TrackFilters;
 
     #[tokio::test]
     async fn test_all_tracks() {
-        let client = api::website::Client::builder().build();
+        let client = api::v2::Client::builder().build();
         let tracks_response = client.get_tracks(None).await;
         assert_matches!(tracks_response, Ok(_));
 
@@ -19,7 +19,7 @@ mod get_tracks {
 
     #[tokio::test]
     async fn test_julia_track() {
-        let client = api::website::Client::builder().build();
+        let client = api::v2::Client::builder().build();
         let filters = TrackFilters::builder().criteria("julia").build();
         let track_response = client.get_tracks(Some(filters)).await;
         assert_matches!(track_response, Ok(_));
@@ -34,7 +34,7 @@ mod get_tracks {
 
     #[tokio::test]
     async fn test_tags() {
-        let client = api::website::Client::builder().build();
+        let client = api::v2::Client::builder().build();
         let filters = TrackFilters::builder().tag("Functional").build();
         let track_response = client.get_tracks(Some(filters)).await;
         assert_matches!(track_response, Ok(_));
@@ -47,11 +47,11 @@ mod get_tracks {
 mod get_exercises {
     use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::website::ExerciseFilters;
+    use mini_exercism::api::v2::ExerciseFilters;
 
     #[tokio::test]
     async fn test_all_exercises() {
-        let client = api::website::Client::builder().build();
+        let client = api::v2::Client::builder().build();
         let exercises_response = client.get_exercises("rust", None).await;
         assert_matches!(exercises_response, Ok(_));
 
@@ -68,7 +68,7 @@ mod get_exercises {
 
     #[tokio::test]
     async fn test_difference_of_squares_exercise() {
-        let client = api::website::Client::builder().build();
+        let client = api::v2::Client::builder().build();
         let filters = ExerciseFilters::builder()
             .criteria("difference-of-squares")
             .build();
@@ -82,7 +82,7 @@ mod get_exercises {
 
     #[tokio::test]
     async fn test_solutions_sideloading() {
-        let client = api::website::Client::builder().build();
+        let client = api::v2::Client::builder().build();
         let filters = ExerciseFilters::builder().include_solutions(true).build();
         let exercises_response = client.get_exercises("rust", Some(filters)).await;
         assert_matches!(exercises_response, Ok(_));
