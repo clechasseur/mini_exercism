@@ -3,4 +3,5 @@
 #[macro_use]
 pub(crate) mod detail;
 
+pub mod v1;
 pub mod v2;
