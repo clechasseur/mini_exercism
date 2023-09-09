@@ -3,7 +3,7 @@ mod client {
     use mini_exercism::api;
     use mini_exercism::api::v1::{
         Solution, SolutionExercise, SolutionResponse, SolutionSubmission, SolutionTrack,
-        SolutionUser, TrackResponse,
+        SolutionUser, TokenStatus, TrackResponse, ValidateTokenResponse,
     };
     use mini_exercism::core::Credentials;
     use reqwest::StatusCode;
@@ -153,5 +153,31 @@ mod client {
         let track = track_response.unwrap().track;
         assert_eq!("rust", track.name);
         assert_eq!("Rust", track.title);
+    }
+
+    #[tokio::test]
+    async fn test_validate_token() {
+        let mock_server = MockServer::start().await;
+
+        let validate_token_response =
+            ValidateTokenResponse { token_status: TokenStatus { status: "valid".to_string() } };
+        Mock::given(method(Get))
+            .and(path("/validate_token"))
+            .and(bearer_token(API_TOKEN))
+            .respond_with(
+                ResponseTemplate::new(StatusCode::OK).set_body_json(validate_token_response),
+            )
+            .mount(&mock_server)
+            .await;
+
+        let client = api::v1::Client::builder()
+            .api_base_url(mock_server.uri().as_str())
+            .credentials(Credentials::from_api_token(API_TOKEN))
+            .build();
+        let validate_token_response = client.validate_token().await;
+        assert_matches!(validate_token_response, Ok(_));
+
+        let token_status = validate_token_response.unwrap().token_status;
+        assert_eq!("valid", token_status.status);
     }
 }

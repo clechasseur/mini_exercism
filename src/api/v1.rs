@@ -100,6 +100,25 @@ impl Client {
             .json()
             .await?)
     }
+
+    /// Validates the API token used to perform API requests. If the API token is invalid or
+    /// if the query is performed without [`credentials`](ClientBuilder::credentials), a
+    /// `401 Unauthorized` error will be returned.
+    ///
+    /// # Errors
+    ///
+    /// - [`ApiError`]: Error while validating API token
+    ///
+    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    pub async fn validate_token(&self) -> Result<ValidateTokenResponse> {
+        Ok(self
+            .api_client
+            .get("/validate_token")
+            .send()
+            .await?
+            .json()
+            .await?)
+    }
 }
 
 /// Struct representing a response to a query for a solution on the
@@ -207,4 +226,22 @@ pub struct SolutionSubmission {
 pub struct TrackResponse {
     /// Information about the language track.
     pub track: SolutionTrack,
+}
+
+/// Struct representing a response to a query to validate API token, as returned by
+/// the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ValidateTokenResponse {
+    /// Information about status of the API token.
+    #[serde(rename = "status")]
+    pub token_status: TokenStatus,
+}
+
+/// Struct representing the status of an API token.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TokenStatus {
+    /// Token status. Will always contain the string `valid`; if the API token
+    /// is invalid, then the query will simply fail with a `401 Unauthorized`.
+    #[serde(rename = "token")]
+    pub status: String,
 }
