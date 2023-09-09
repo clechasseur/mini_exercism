@@ -3,7 +3,7 @@ mod client {
     use mini_exercism::api;
     use mini_exercism::api::v1::{
         Solution, SolutionExercise, SolutionResponse, SolutionSubmission, SolutionTrack,
-        SolutionUser, TokenStatus, TrackResponse, ValidateTokenResponse,
+        SolutionUser, TrackResponse,
     };
     use mini_exercism::core::Credentials;
     use reqwest::StatusCode;
@@ -159,14 +159,10 @@ mod client {
     async fn test_validate_token() {
         let mock_server = MockServer::start().await;
 
-        let validate_token_response =
-            ValidateTokenResponse { token_status: TokenStatus { status: "valid".to_string() } };
         Mock::given(method(Get))
             .and(path("/validate_token"))
             .and(bearer_token(API_TOKEN))
-            .respond_with(
-                ResponseTemplate::new(StatusCode::OK).set_body_json(validate_token_response),
-            )
+            .respond_with(ResponseTemplate::new(StatusCode::OK))
             .mount(&mock_server)
             .await;
 
@@ -175,9 +171,6 @@ mod client {
             .credentials(Credentials::from_api_token(API_TOKEN))
             .build();
         let validate_token_response = client.validate_token().await;
-        assert_matches!(validate_token_response, Ok(_));
-
-        let token_status = validate_token_response.unwrap().token_status;
-        assert_eq!("valid", token_status.status);
+        assert_matches!(validate_token_response, Ok(true));
     }
 }

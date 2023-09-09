@@ -1,3 +1,7 @@
+//! Types and functions to interact with the [Exercism website](https://exercism.org) v1 API.
+
+use reqwest::StatusCode;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use crate::core::Result;
@@ -33,13 +37,8 @@ impl Client {
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_solution(&self, uuid: &str) -> Result<SolutionResponse> {
-        Ok(self
-            .api_client
-            .get(format!("/solutions/{}", uuid).as_str())
-            .send()
-            .await?
-            .json()
-            .await?)
+        self.get(format!("/solutions/{}", uuid).as_str(), None)
+            .await
     }
 
     /// Returns information about the latest solution submitted by the user for
@@ -65,14 +64,8 @@ impl Client {
         track: &str,
         exercise: &str,
     ) -> Result<SolutionResponse> {
-        Ok(self
-            .api_client
-            .get("/solutions/latest")
-            .query(&[("track_id", track), ("exercise_id", exercise)])
-            .send()
-            .await?
-            .json()
-            .await?)
+        let query = [("track_id", track), ("exercise_id", exercise)];
+        self.get("/solutions/latest", Some(&query)).await
     }
 
     /// Returns information about a language track.
@@ -92,32 +85,38 @@ impl Client {
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_track(&self, track: &str) -> Result<TrackResponse> {
-        Ok(self
-            .api_client
-            .get(format!("/tracks/{}", track).as_str())
-            .send()
-            .await?
-            .json()
-            .await?)
+        self.get(format!("/tracks/{}", track).as_str(), None).await
     }
 
     /// Validates the API token used to perform API requests. If the API token is invalid or
-    /// if the query is performed without [`credentials`](ClientBuilder::credentials), a
-    /// `401 Unauthorized` error will be returned.
+    /// if the query is performed without [`credentials`](ClientBuilder::credentials), the
+    /// API will return `401 Unauthorized` and this method will return `false`. If another HTTP
+    /// error is returned by the API, this method will return an [`ApiError`].
     ///
     /// # Errors
     ///
-    /// - [`ApiError`]: Error while validating API token
+    /// - [`ApiError`]: Error while validating API token (other than `401 Unauthorized`)
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
-    pub async fn validate_token(&self) -> Result<ValidateTokenResponse> {
-        Ok(self
-            .api_client
-            .get("/validate_token")
-            .send()
-            .await?
-            .json()
-            .await?)
+    pub async fn validate_token(&self) -> Result<bool> {
+        // This API call returns a payload, but it doesn't really contain useful information:
+        // if the token is invalid, 401 will be returned.
+        match self.api_client.get("/validate_token").send().await {
+            Ok(_) => Ok(true),
+            Err(error) if error.status() == Some(StatusCode::UNAUTHORIZED) => Ok(false),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn get<'a, T>(&self, url: &str, query: Option<&[(&'static str, &'a str)]>) -> Result<T>
+    where
+        T: DeserializeOwned,
+    {
+        let mut request = self.api_client.get(url);
+        if let Some(query) = query {
+            request = request.query(query);
+        }
+        Ok(request.send().await?.json().await?)
     }
 }
 
@@ -159,12 +158,12 @@ pub struct Solution {
 
     /// Base URL that can be used to download solution files. To fetch a specific file,
     /// use `{{file_download_base_url}}/{{file path}}` (with `{{file path}}` replaced by
-    /// the path of a file returned in [`files`].
+    /// the path of a file returned in [`files`](Self::files).
     pub file_download_base_url: String,
 
     /// List of files that are part of the solution. This includes files submitted by
     /// the user as well as files that are provided by the exercise project. Files can
-    /// be fetched by pre-pending their path with [`file_download_base_url`].
+    /// be fetched by pre-pending their path with [`file_download_base_url`](Self::file_download_base_url).
     pub files: Vec<String>,
 
     /// Information about the submission of the solution. Only present if
@@ -226,22 +225,4 @@ pub struct SolutionSubmission {
 pub struct TrackResponse {
     /// Information about the language track.
     pub track: SolutionTrack,
-}
-
-/// Struct representing a response to a query to validate API token, as returned by
-/// the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ValidateTokenResponse {
-    /// Information about status of the API token.
-    #[serde(rename = "status")]
-    pub token_status: TokenStatus,
-}
-
-/// Struct representing the status of an API token.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TokenStatus {
-    /// Token status. Will always contain the string `valid`; if the API token
-    /// is invalid, then the query will simply fail with a `401 Unauthorized`.
-    #[serde(rename = "token")]
-    pub status: String,
 }
