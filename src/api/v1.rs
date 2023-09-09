@@ -14,7 +14,9 @@ define_api_client! {
 
 impl Client {
     pub async fn get_solution(&self, uuid: Option<String>) -> Result<SolutionResponse> {
-        let request = self.api_client.get(format!("/solutions/{}", uuid.unwrap()).as_str());
+        let request = self
+            .api_client
+            .get(format!("/solutions/{}", uuid.unwrap()).as_str());
 
         Ok(request.send().await?.json().await?)
     }

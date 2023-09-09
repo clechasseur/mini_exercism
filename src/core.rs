@@ -1,8 +1,5 @@
 //! Core types used across the [mini_exercism](crate) library.
 
-#[cfg(feature = "cli")]
-use std::io;
-
 use thiserror::Error;
 
 /// Struct storing the credentials used to access the [Exercism](https://exercism.org) APIs.
@@ -49,7 +46,7 @@ pub enum Error {
     /// I/O error reading CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
     #[error("Could not read Exercism CLI config file: {0:?}")]
-    ConfigReadError(#[from] io::Error),
+    ConfigReadError(#[from] std::io::Error),
 
     /// JSON error parsing CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
