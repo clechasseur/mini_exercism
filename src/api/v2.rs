@@ -29,6 +29,10 @@ impl Client {
     ///
     /// The list of tracks can optionally be filtered using [`TrackFilters`].
     ///
+    /// # Arguments
+    ///
+    /// * `filters` - Optional [`TrackFilters`] used to filter for specific tracks.
+    ///
     /// # Errors
     ///
     /// - [`ApiError`]: Error while fetching track information from API
@@ -59,6 +63,17 @@ impl Client {
     ///   for the track's exercises.
     ///
     /// The list of exercises can optionally be filtered using [`ExerciseFilters`].
+    ///
+    /// # Arguments
+    ///
+    /// * `track` - Name of the language track. Also called `slug`.
+    /// * `filters` - Optional [`ExerciseFilters`] used to filter for specific exercises.
+    ///
+    /// # Notes
+    ///
+    /// If the `filters` parameter's [`include_solutions`](ExerciseFilters::include_solutions) is
+    /// set to `true`, the returned [`solutions`](ExercisesResponse::solutions) will return all
+    /// solutions; the solutions are not filtered like exercises are.
     ///
     /// # Errors
     ///
@@ -409,7 +424,8 @@ pub struct ExerciseLinks {
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Solution {
     /// Solution unique ID. This UUID can be used to fetch information about
-    /// the solution from other API calls.
+    /// the solution from other API calls, like
+    /// [`api::v1::Client::get_solution`](crate::api::v1::Client::get_solution).
     pub uuid: String,
 
     /// Private solution URL. This usually points to the exercise on the
