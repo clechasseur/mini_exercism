@@ -21,10 +21,10 @@ impl Client {
     ///
     /// # Arguments
     ///
-    /// * `uuid` - UUID of the solution to fetch. This can be provided by the mentoring
-    /// interface, or returned by another API, like
-    /// [`api::v2::Client::get_exercises`](crate::api::v2::Client::get_exercises)
-    /// (see [`Solution::uuid`](crate::api::v2::Solution::uuid)).
+    /// - `uuid` - UUID of the solution to fetch. This can be provided by the mentoring
+    ///            interface, or returned by another API, like
+    ///            [`api::v2::Client::get_exercises`](crate::api::v2::Client::get_exercises)
+    ///            (see [`Solution::uuid`](crate::api::v2::Solution::uuid)).
     ///
     /// # Notes
     ///
@@ -46,8 +46,8 @@ impl Client {
     ///
     /// # Arguments
     ///
-    /// * `track` - Name of the language track. Also called `slug`.
-    /// * `exercise` - Name of the exercise. Also called `slug`.
+    /// - `track` - Name of the language track. Also called `slug`.
+    /// - `exercise` - Name of the exercise. Also called `slug`.
     ///
     /// # Notes
     ///
@@ -72,7 +72,7 @@ impl Client {
     ///
     /// # Arguments
     ///
-    /// * `track` - Name of the language track. Also called `slug`.
+    /// - `track` - Name of the language track. Also called `slug`.
     ///
     /// # Notes
     ///
@@ -108,9 +108,31 @@ impl Client {
         }
     }
 
-    async fn get<'a, T>(&self, url: &str, query: Option<&[(&'static str, &'a str)]>) -> Result<T>
+    /// Sends a "ping" to the server to determine if service is up and available. The call
+    /// returns information about the website and database.
+    ///
+    /// # Notes
+    ///
+    /// - This call does not require [`credentials`](ClientBuilder::credentials), but works
+    ///   anyway if they are provided.
+    /// - As of this writing, the [current implementation](https://github.com/exercism/website/blob/2580b8fa2b13cad7aa7e8a877551bbd8552bee8b/app/controllers/api/v1/ping_controller.rb)
+    ///   of this endpoint always return `true` as status for all components. It makes sense
+    ///   if you think about it: if the database or the Rails server misbehave, then the API
+    ///   would be inaccessible anyway 😅 It also means that if the service is actually down,
+    ///   this method will simply return an [`ApiError`].
+    ///
+    /// # Errors
+    ///
+    /// - [`ApiError`]: Error while pinging API
+    ///
+    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    pub async fn ping(&self) -> Result<PingResponse> {
+        self.get("/ping", None).await
+    }
+
+    async fn get<'a, R>(&self, url: &str, query: Option<&[(&'static str, &'a str)]>) -> Result<R>
     where
-        T: DeserializeOwned,
+        R: DeserializeOwned,
     {
         let mut request = self.api_client.get(url);
         if let Some(query) = query {
@@ -225,4 +247,21 @@ pub struct SolutionSubmission {
 pub struct TrackResponse {
     /// Information about the language track.
     pub track: SolutionTrack,
+}
+
+/// Struct representing a response to a ping request to the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PingResponse {
+    /// Information about the status of the [Exercism](https://exercism.org) services.
+    pub status: ServiceStatus,
+}
+
+/// Struct representing the status of services, as returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ServiceStatus {
+    /// Whether the [Exercism website](https://exercism.org) is up and running.
+    pub website: bool,
+
+    /// Whether the database backing the [Exercism website](https://exercism.org) is working.
+    pub database: bool,
 }

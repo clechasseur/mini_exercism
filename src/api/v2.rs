@@ -3,6 +3,7 @@
 mod detail;
 
 use derive_builder::Builder;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, IntoStaticStr};
 
@@ -31,7 +32,7 @@ impl Client {
     ///
     /// # Arguments
     ///
-    /// * `filters` - Optional [`TrackFilters`] used to filter for specific tracks.
+    /// - `filters` - Optional [`TrackFilters`] used to filter for specific tracks.
     ///
     /// # Errors
     ///
@@ -39,13 +40,7 @@ impl Client {
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_tracks(&self, filters: Option<TrackFilters<'_>>) -> Result<TracksResponse> {
-        let mut request = self.api_client.get("/tracks");
-        if let Some(filters) = filters {
-            let query: Vec<_> = filters.into();
-            request = request.query(&query);
-        }
-
-        Ok(request.send().await?.json().await?)
+        self.get("/tracks", filters).await
     }
 
     /// Returns a list of exercises for an [Exercism](https://exercism.org) `track`,
@@ -66,8 +61,8 @@ impl Client {
     ///
     /// # Arguments
     ///
-    /// * `track` - Name of the language track. Also called `slug`.
-    /// * `filters` - Optional [`ExerciseFilters`] used to filter for specific exercises.
+    /// - `track` - Name of the language track. Also called `slug`.
+    /// - `filters` - Optional [`ExerciseFilters`] used to filter for specific exercises.
     ///
     /// # Notes
     ///
@@ -85,14 +80,20 @@ impl Client {
         track: &str,
         filters: Option<ExerciseFilters<'_>>,
     ) -> Result<ExercisesResponse> {
-        let mut request = self
-            .api_client
-            .get(format!("/tracks/{}/exercises", track).as_str());
+        self.get(format!("/tracks/{}/exercises", track).as_str(), filters)
+            .await
+    }
+
+    async fn get<'a, F, R>(&self, url: &str, filters: Option<F>) -> Result<R>
+    where
+        F: Into<Vec<(&'static str, &'a str)>>,
+        R: DeserializeOwned,
+    {
+        let mut request = self.api_client.get(url);
         if let Some(filters) = filters {
             let query: Vec<_> = filters.into();
             request = request.query(&query);
         }
-
         Ok(request.send().await?.json().await?)
     }
 }
