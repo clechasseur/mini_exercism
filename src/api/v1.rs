@@ -1,5 +1,8 @@
 //! Types and functions to interact with the [Exercism website](https://exercism.org) v1 API.
 
+use bytes::Bytes;
+use futures::future::Either;
+use futures::{stream, Stream, StreamExt, TryStreamExt};
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -66,6 +69,73 @@ impl Client {
     ) -> Result<SolutionResponse> {
         let query = [("track_id", track), ("exercise_id", exercise)];
         self.get("/solutions/latest", Some(&query)).await
+    }
+
+    /// Returns the contents of a specific file that is part of a solution.
+    ///
+    /// # Arguments
+    ///
+    /// - `solution_uuid` - [UUID](Solution::uuid) of the solution containing the file.
+    /// - `file_path` - Path to the file, as returned in [`Solution::files`].
+    ///
+    /// # Return value
+    ///
+    /// A [`Stream`] of [`Bytes`]. Each element in the stream contains a part of the
+    /// file, wrapped in a [`Result`].
+    ///
+    /// # Notes
+    ///
+    /// If the API call to fetch file content fails, this method will return a [`Stream`]
+    /// containing a single [`ApiError`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use std::fs::File;
+    /// use std::io::Write;
+    ///
+    /// use futures::StreamExt;
+    /// use mini_exercism::api;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// async fn save_solution_file(
+    ///     solution_uuid: &str,
+    ///     remote_path: &str,
+    ///     local_path: &str,
+    /// ) -> mini_exercism::core::Result<()> {
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(Credentials::from_api_token("SOME_API_TOKEN"))
+    ///         .build();
+    ///
+    ///     let mut local_file = File::create(local_path)?;
+    ///     let mut remote_file = client.get_file(solution_uuid, remote_path).await;
+    ///     while let Some(bytes) = remote_file.next().await {
+    ///         local_file.write_all(&bytes?)?;
+    ///     }
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    pub async fn get_file(
+        &self,
+        solution_uuid: &str,
+        file_path: &str,
+    ) -> impl Stream<Item = Result<Bytes>> {
+        let result = self
+            .api_client
+            .get(format!("/solutions/{}/{}", solution_uuid, file_path).as_str())
+            .send()
+            .await
+            .and_then(|response| response.error_for_status());
+
+        // The result of `stream::once` is not `Unpin`, so calling `boxed()` will make sure it's
+        // possible for callers to use `next()` on the returned `Stream` without pinning it first.
+        match result {
+            Ok(response) => Either::Left(response.bytes_stream().map_err(|err| err.into())),
+            Err(error) => Either::Right(stream::once(async { Err(error.into()) }).boxed()),
+        }
     }
 
     /// Returns information about a language track.
