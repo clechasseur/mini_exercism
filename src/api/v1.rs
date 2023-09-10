@@ -101,7 +101,13 @@ impl Client {
     pub async fn validate_token(&self) -> Result<bool> {
         // This API call returns a payload, but it doesn't really contain useful information:
         // if the token is invalid, 401 will be returned.
-        match self.api_client.get("/validate_token").send().await {
+        let response = self
+            .api_client
+            .get("/validate_token")
+            .send()
+            .await
+            .and_then(|r| r.error_for_status());
+        match response {
             Ok(_) => Ok(true),
             Err(error) if error.status() == Some(StatusCode::UNAUTHORIZED) => Ok(false),
             Err(error) => Err(error.into()),
@@ -138,7 +144,7 @@ impl Client {
         if let Some(query) = query {
             request = request.query(query);
         }
-        Ok(request.send().await?.json().await?)
+        Ok(request.send().await?.error_for_status()?.json().await?)
     }
 }
 

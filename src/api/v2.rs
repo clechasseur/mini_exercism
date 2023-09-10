@@ -94,7 +94,7 @@ impl Client {
             let query: Vec<_> = filters.into();
             request = request.query(&query);
         }
-        Ok(request.send().await?.json().await?)
+        Ok(request.send().await?.error_for_status()?.json().await?)
     }
 }
 

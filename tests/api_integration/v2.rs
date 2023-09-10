@@ -2,6 +2,9 @@ mod get_tracks {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::TrackFilters;
+    use mini_exercism::api::v2::TrackStatusFilter::Joined;
+    use mini_exercism::core::Error;
+    use reqwest::StatusCode;
 
     #[tokio::test]
     async fn test_all_tracks() {
@@ -41,6 +44,17 @@ mod get_tracks {
 
         // Tags do not currently work.
         assert!(track_response.unwrap().tracks.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_status() {
+        let client = api::v2::Client::builder().build();
+        let filters = TrackFilters::builder().status(Joined).build();
+        let track_response = client.get_tracks(Some(filters)).await;
+
+        // Asking for a specific status fails when querying anonymously.
+        // Furthermore, it actually results in a `500 Internal Server Error`.
+        assert_matches!(track_response, Err(Error::ApiError(error)) if error.status() == Some(StatusCode::INTERNAL_SERVER_ERROR));
     }
 }
 

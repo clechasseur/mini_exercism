@@ -155,23 +155,65 @@ mod client {
         assert_eq!("Rust", track.title);
     }
 
-    #[tokio::test]
-    async fn test_validate_token() {
-        let mock_server = MockServer::start().await;
+    mod validate_token {
+        use mini_exercism::core::Error;
 
-        Mock::given(method(Get))
-            .and(path("/validate_token"))
-            .and(bearer_token(API_TOKEN))
-            .respond_with(ResponseTemplate::new(StatusCode::OK))
-            .mount(&mock_server)
-            .await;
+        use super::*;
 
-        let client = api::v1::Client::builder()
-            .api_base_url(mock_server.uri().as_str())
-            .credentials(Credentials::from_api_token(API_TOKEN))
-            .build();
-        let validate_token_response = client.validate_token().await;
-        assert_matches!(validate_token_response, Ok(true));
+        #[tokio::test]
+        async fn test_valid_token() {
+            let mock_server = MockServer::start().await;
+
+            Mock::given(method(Get))
+                .and(path("/validate_token"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(ResponseTemplate::new(StatusCode::OK))
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v1::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let validate_token_response = client.validate_token().await;
+            assert_matches!(validate_token_response, Ok(true));
+        }
+
+        #[tokio::test]
+        async fn test_invalid_token() {
+            let mock_server = MockServer::start().await;
+
+            Mock::given(method(Get))
+                .and(path("/validate_token"))
+                .respond_with(ResponseTemplate::new(StatusCode::UNAUTHORIZED))
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v1::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let validate_token_response = client.validate_token().await;
+            assert_matches!(validate_token_response, Ok(false));
+        }
+
+        #[tokio::test]
+        async fn test_internal_server_error() {
+            let mock_server = MockServer::start().await;
+
+            Mock::given(method(Get))
+                .and(path("/validate_token"))
+                .respond_with(ResponseTemplate::new(StatusCode::INTERNAL_SERVER_ERROR))
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v1::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let validate_token_response = client.validate_token().await;
+            assert_matches!(validate_token_response, Err(Error::ApiError(error)) if error.status() == Some(StatusCode::INTERNAL_SERVER_ERROR));
+        }
     }
 
     #[tokio::test]
