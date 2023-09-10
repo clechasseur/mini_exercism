@@ -5,12 +5,12 @@ mod windows;
 
 use std::path::PathBuf;
 
-#[cfg(not(windows))]
+#[cfg(all(not(windows), not(tarpaulin_include)))]
 pub fn get_cli_config_dir() -> Option<PathBuf> {
     nix::get_cli_config_dir()
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, not(tarpaulin_include)))]
 pub fn get_cli_config_dir() -> Option<PathBuf> {
     windows::get_cli_config_dir()
 }
