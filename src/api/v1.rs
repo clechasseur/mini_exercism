@@ -47,11 +47,6 @@ impl Client {
     /// Returns information about the latest solution submitted by the user for
     /// a given exercise.
     ///
-    /// # Arguments
-    ///
-    /// - `track` - Name of the language track. Also called `slug`.
-    /// - `exercise` - Name of the exercise. Also called `slug`.
-    ///
     /// # Notes
     ///
     /// Performing this request requires [`credentials`](ClientBuilder::credentials),
@@ -78,15 +73,12 @@ impl Client {
     /// - `solution_uuid` - [UUID](Solution::uuid) of the solution containing the file.
     /// - `file_path` - Path to the file, as returned in [`Solution::files`].
     ///
-    /// # Return value
-    ///
-    /// A [`Stream`] of [`Bytes`]. Each element in the stream contains a part of the
-    /// file, wrapped in a [`Result`].
-    ///
     /// # Notes
     ///
-    /// If the API call to fetch file content fails, this method will return a [`Stream`]
-    /// containing a single [`ApiError`].
+    /// - Performing this request requires [`credentials`](ClientBuilder::credentials),
+    ///   otherwise a `401 Unauthorized` error will be returned.
+    /// - If the API call to fetch file content fails, this method will return a [`Stream`]
+    ///   containing a single [`ApiError`].
     ///
     /// # Examples
     ///
@@ -139,10 +131,6 @@ impl Client {
     }
 
     /// Returns information about a language track.
-    ///
-    /// # Arguments
-    ///
-    /// - `track` - Name of the language track. Also called `slug`.
     ///
     /// # Notes
     ///

@@ -30,10 +30,6 @@ impl Client {
     ///
     /// The list of tracks can optionally be filtered using [`TrackFilters`].
     ///
-    /// # Arguments
-    ///
-    /// - `filters` - Optional [`TrackFilters`] used to filter for specific tracks.
-    ///
     /// # Errors
     ///
     /// - [`ApiError`]: Error while fetching track information from API
@@ -58,11 +54,6 @@ impl Client {
     ///   for the track's exercises.
     ///
     /// The list of exercises can optionally be filtered using [`ExerciseFilters`].
-    ///
-    /// # Arguments
-    ///
-    /// - `track` - Name of the language track. Also called `slug`.
-    /// - `filters` - Optional [`ExerciseFilters`] used to filter for specific exercises.
     ///
     /// # Notes
     ///
