@@ -15,7 +15,6 @@ mod tests {
     use super::*;
 
     mod get_cli_config_dir {
-        use std::env;
         use std::path::MAIN_SEPARATOR;
 
         use serial_test::serial;

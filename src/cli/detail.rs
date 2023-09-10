@@ -8,9 +8,9 @@ use crate::core::{Error, Result};
 #[cfg_attr(test, automock)]
 pub mod helpers {
     use std::path::{Path, PathBuf};
-    use std::{env, fs, io};
+    use std::{fs, io};
 
-    use crate::cli::detail::os;
+    use super::os;
 
     // Note: the methods in this module are indeed used (see cli.rs),
     // but apparently rustc gets confused because of the automock shenanigans.
@@ -18,10 +18,7 @@ pub mod helpers {
     #[allow(dead_code)]
     #[cfg(not(tarpaulin_include))]
     pub fn get_cli_config_dir() -> Option<PathBuf> {
-        match env::consts::OS {
-            "windows" => os::windows::get_cli_config_dir(),
-            _ => os::nix::get_cli_config_dir(),
-        }
+        os::get_cli_config_dir()
     }
 
     #[allow(dead_code)]
