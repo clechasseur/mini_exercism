@@ -2,6 +2,9 @@ name: CI
 
 on: [ push ]
 
+env:
+  CI: 1
+
 jobs:
   clippy:
     name: Clippy validation
