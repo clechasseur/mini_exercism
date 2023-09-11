@@ -48,7 +48,7 @@ jobs:
           cargo +nightly fmt --version
 
       - name: Run Rustfmt
-        uses: clechasseur/rs-fmt-check@v1
+        uses: clechasseur/rs-fmt-check@v2
         with:
           args: --all
 
