@@ -63,11 +63,31 @@ macro_rules! define_api_client {
 
             impl $api_name {
                 #[doc = r"
+                    Creates a new [`" $api_name r"`] with default values.
+
+                    This is the same as calling `" $api_name r"::builder().build()`.
+                "]
+                pub fn new() -> Self {
+                    Self::default()
+                }
+
+                #[doc = r"
                     Returns a [`" $api_name r"Builder`] that can be used to
                     create an API client instance.
                 "]
                 pub fn builder() -> [<$api_name Builder>] {
                     [<$api_name Builder>]::default()
+                }
+            }
+
+            impl Default for $api_name {
+                #[doc = r"
+                    Creates a new [`" $api_name r"`] with default values.
+
+                    This is the same as calling `" $api_name r"::builder().build()`.
+                "]
+                fn default() -> Self {
+                    Self::builder().build()
                 }
             }
 
@@ -84,6 +104,16 @@ macro_rules! define_api_client {
             }
 
             impl [<$api_name Builder>] {
+                #[doc = r"
+                    Creates a new [`" $api_name r"Builder`] that can be used to
+                    create an API client instance.
+
+                    This is the same as calling [`" $api_name "::builder`].
+                "]
+                pub fn new() -> Self {
+                    Self::default()
+                }
+
                 #[doc = r"
                     Sets the [HTTP client](reqwest::Client) to use to perform requests
                     to the API. If not specified, a default client will be created.
@@ -369,6 +399,27 @@ mod tests {
                 .build();
 
             assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
+        }
+
+        #[test]
+        fn test_builder_with_new() {
+            let test_api_client = TestApiClientBuilder::new().build();
+
+            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+        }
+
+        #[test]
+        fn test_default_client() {
+            let test_api_client = TestApiClient::default();
+
+            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+        }
+
+        #[test]
+        fn test_client_with_new() {
+            let test_api_client = TestApiClient::new();
+
+            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
         }
     }
 }

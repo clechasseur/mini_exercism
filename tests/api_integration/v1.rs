@@ -6,7 +6,7 @@ mod get_solution {
 
     #[tokio::test]
     async fn test_anonymous() {
-        let client = api::v1::Client::builder().build();
+        let client = api::v1::Client::new();
         let solution_response = client
             .get_solution("00c717b68e1b4213b316df82636f5e0f")
             .await;
@@ -25,7 +25,7 @@ mod get_latest_solution {
 
     #[tokio::test]
     async fn test_anonymous() {
-        let client = api::v1::Client::builder().build();
+        let client = api::v1::Client::new();
         let solution_response = client.get_latest_solution("rust", "poker").await;
 
         // Querying the latest solution anonymously fails.
@@ -37,13 +37,13 @@ mod get_latest_solution {
 mod get_file {
     use assert_matches::assert_matches;
     use futures::StreamExt;
-    use reqwest::StatusCode;
     use mini_exercism::api;
     use mini_exercism::core::Error;
+    use reqwest::StatusCode;
 
     #[tokio::test]
     async fn test_anonymous() {
-        let client = api::v1::Client::builder().build();
+        let client = api::v1::Client::new();
         let mut file_response_stream = client
             .get_file("00c717b68e1b4213b316df82636f5e0f", "Cargo.toml")
             .await;
@@ -63,7 +63,7 @@ mod get_track {
 
     #[tokio::test]
     async fn test_anonymous() {
-        let client = api::v1::Client::builder().build();
+        let client = api::v1::Client::new();
         let track_response = client.get_track("rust").await;
 
         // Querying a track anonymously fails. (This is a bit strange as the
@@ -79,7 +79,7 @@ mod validate_token {
 
     #[tokio::test]
     async fn test_anonymous() {
-        let client = api::v1::Client::builder().build();
+        let client = api::v1::Client::new();
         let validate_token_response = client.validate_token().await;
 
         // Validating token anonymously fails, but the method should silently returns `false`.
@@ -92,7 +92,7 @@ mod ping {
 
     #[tokio::test]
     async fn test_ping() {
-        let client = api::v1::Client::builder().build();
+        let client = api::v1::Client::new();
         let ping_response = client.ping().await;
         let status = ping_response.unwrap().status;
         assert!(status.website);
