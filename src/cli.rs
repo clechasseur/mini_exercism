@@ -48,13 +48,13 @@ mod tests {
         use std::path::PathBuf;
 
         use assert_matches::assert_matches;
-        use mockall::predicate::*;
+        use mockall::predicate::eq;
         use serial_test::serial;
 
         use super::*;
 
         #[test]
-        #[serial]
+        #[serial(cli_rs_get_cli_credentials)]
         fn test_valid() {
             let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
@@ -75,7 +75,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(cli_rs_get_cli_credentials)]
         fn test_no_config_dir() {
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx.expect().return_once(|| None);
@@ -95,7 +95,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(cli_rs_get_cli_credentials)]
         fn test_invalid_config() {
             let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
@@ -111,11 +111,12 @@ mod tests {
                 .with(eq(expected_config_path))
                 .return_once(move |_| Ok(expected_json_file));
 
-            assert_matches!(get_cli_credentials(), Err(Error::ConfigParseError(_)));
+            assert_matches!(get_cli_credentials(),
+                Err(Error::ConfigParseError(json_error)) if json_error.is_syntax());
         }
 
         #[test]
-        #[serial]
+        #[serial(cli_rs_get_cli_credentials)]
         fn test_config_file_not_found() {
             let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
@@ -134,7 +135,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(cli_rs_get_cli_credentials)]
         fn test_config_file_inaccessible() {
             let expected_config_dir = "/some/config/dir".into();
             let gccd_ctx = helpers::get_cli_config_dir_context();
@@ -149,7 +150,8 @@ mod tests {
                 .with(eq(expected_config_path))
                 .return_once(|_| Err(io::Error::from(io::ErrorKind::PermissionDenied)));
 
-            assert_matches!(get_cli_credentials(), Err(Error::ConfigReadError(_)));
+            assert_matches!(get_cli_credentials(),
+                Err(Error::ConfigReadError(io_error)) if io_error.kind() == io::ErrorKind::PermissionDenied);
         }
     }
 }

@@ -22,7 +22,7 @@ mod tests {
         use super::*;
 
         #[test]
-        #[serial]
+        #[serial(windows_rs_get_cli_config_dir)]
         fn test_valid() {
             let app_data = r"C:\Users\some_user\AppData\Roaming";
             env::set_var("APPDATA", app_data);
@@ -35,7 +35,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(windows_rs_get_cli_config_dir)]
         fn test_invalid() {
             env::remove_var("APPDATA");
             let config_dir = get_cli_config_dir();

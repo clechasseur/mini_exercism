@@ -34,7 +34,7 @@ mod tests {
         use super::*;
 
         #[test]
-        #[serial]
+        #[serial(nix_rs_get_cli_config_dir)]
         fn test_from_exercism_config_home() {
             let exercism_config_home = "/some/config/home";
             env::set_var("EXERCISM_CONFIG_HOME", exercism_config_home);
@@ -44,7 +44,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(nix_rs_get_cli_config_dir)]
         fn test_from_xdg_config_home() {
             let xdg_config_home = "/some/config/home";
             env::remove_var("EXERCISM_CONFIG_HOME");
@@ -58,7 +58,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(nix_rs_get_cli_config_dir)]
         fn test_from_home() {
             let home = "/some/home";
             env::remove_var("EXERCISM_CONFIG_HOME");
@@ -79,7 +79,7 @@ mod tests {
         }
 
         #[test]
-        #[serial]
+        #[serial(nix_rs_get_cli_config_dir)]
         fn test_invalid() {
             env::remove_var("EXERCISM_CONFIG_HOME");
             env::remove_var("XDG_CONFIG_HOME");
