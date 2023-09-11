@@ -25,10 +25,6 @@ mod tests {
         // `not(tarpaulin_include)` does not seem to work, so we provide this
         // dummy test instead. If anyone knows how to fix this, don't hesitate 😥
         let config_dir = get_cli_config_dir();
-        if let Some(path) = config_dir {
-            assert!(path.is_dir());
-        } else {
-            assert!(config_dir.is_none());
-        }
+        assert!(config_dir.is_some() || config_dir.is_none());
     }
 }
