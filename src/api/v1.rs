@@ -38,6 +38,27 @@ impl Client {
     ///
     /// - [`ApiError`]: Error while fetching solution information from API
     ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v1::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// let solution = client
+    ///     .get_solution("SOME_SOLUTION_UUID")
+    ///     .await
+    ///     .unwrap()
+    ///     .solution;
+    /// println!("Solution URL: {}", solution.url);
+    /// # });
+    /// ```
+    ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_solution(&self, uuid: &str) -> Result<SolutionResponse> {
         self.get(format!("/solutions/{}", uuid).as_str(), None)
@@ -55,6 +76,27 @@ impl Client {
     /// # Errors
     ///
     /// - [`ApiError`]: Error while fetching solution information from API
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v1::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// let solution = client
+    ///     .get_latest_solution("some_cool_language", "some_exercise")
+    ///     .await
+    ///     .unwrap()
+    ///     .solution;
+    /// println!("Solution URL: {}", solution.url);
+    /// # });
+    /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_latest_solution(
@@ -83,30 +125,32 @@ impl Client {
     /// # Examples
     ///
     /// ```no_run
-    /// use std::fs::File;
     /// use std::io::Write;
     ///
     /// use futures::StreamExt;
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// async fn save_solution_file(
-    ///     solution_uuid: &str,
-    ///     remote_path: &str,
-    ///     local_path: &str,
-    /// ) -> mini_exercism::core::Result<()> {
-    ///     let client = api::v1::Client::builder()
-    ///         .credentials(Credentials::from_api_token("SOME_API_TOKEN"))
-    ///         .build();
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v1::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
     ///
-    ///     let mut local_file = File::create(local_path)?;
-    ///     let mut remote_file = client.get_file(solution_uuid, remote_path).await;
-    ///     while let Some(bytes) = remote_file.next().await {
-    ///         local_file.write_all(&bytes?)?;
+    /// let solution = client
+    ///     .get_latest_solution("some_cool_language", "some_exercise")
+    ///     .await
+    ///     .unwrap()
+    ///     .solution;
+    /// for file in &solution.files {
+    ///     let mut file_response = client.get_file(&solution.uuid, file).await;
+    ///     let mut file_content: Vec<u8> = Vec::new();
+    ///     while let Some(bytes) = file_response.next().await {
+    ///         file_content.write_all(&(bytes.unwrap())).unwrap();
     ///     }
-    ///
-    ///     Ok(())
+    ///     println!("Content of {}: {}", file, String::from_utf8(file_content).unwrap());
     /// }
+    /// # });
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -141,6 +185,27 @@ impl Client {
     ///
     /// - [`ApiError`]: Error while fetching track information from API
     ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v1::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// let track = client
+    ///     .get_track("some_cool_language")
+    ///     .await
+    ///     .unwrap()
+    ///     .track;
+    /// println!("Track name: {}, title: {}", track.name, track.title);
+    /// # });
+    /// ```
+    ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_track(&self, track: &str) -> Result<TrackResponse> {
         self.get(format!("/tracks/{}", track).as_str(), None).await
@@ -154,6 +219,26 @@ impl Client {
     /// # Errors
     ///
     /// - [`ApiError`]: Error while validating API token (other than `401 Unauthorized`)
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v1::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// if client.validate_token().await.unwrap() {
+    ///     println!("Credentials are valid.");
+    /// } else {
+    ///     println!("Credentials are invalid.");
+    /// }
+    /// # });
+    /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn validate_token(&self) -> Result<bool> {
@@ -188,6 +273,27 @@ impl Client {
     /// # Errors
     ///
     /// - [`ApiError`]: Error while pinging API
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v1::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// let service_status = client
+    ///     .ping()
+    ///     .await
+    ///     .unwrap()
+    ///     .status;
+    /// println!("Status: website: {}, database: {}", service_status.website, service_status.database);
+    /// # });
+    /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn ping(&self) -> Result<PingResponse> {

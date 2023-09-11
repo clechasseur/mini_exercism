@@ -34,6 +34,35 @@ impl Client {
     ///
     /// - [`ApiError`]: Error while fetching track information from API
     ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::api::v2::TrackFilters;
+    /// use mini_exercism::api::v2::TrackStatusFilter::Joined;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v2::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// let filters = TrackFilters::builder()
+    ///     .status(Joined)
+    ///     .build();
+    /// let tracks = client
+    ///     .get_tracks(Some(filters))
+    ///     .await
+    ///     .unwrap()
+    ///     .tracks;
+    ///
+    /// for track in &tracks {
+    ///     println!("You have joined track {}", track.name);
+    /// }
+    /// # });
+    /// ```
+    ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_tracks(&self, filters: Option<TrackFilters<'_>>) -> Result<TracksResponse> {
         self.get("/tracks", filters).await
@@ -64,6 +93,39 @@ impl Client {
     /// # Errors
     ///
     /// - [`ApiError`]: Error while fetching exercise information from API
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::api::v2::ExerciseFilters;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+    /// let client = api::v2::Client::builder()
+    ///     .credentials(credentials)
+    ///     .build();
+    ///
+    /// let filters = ExerciseFilters::builder()
+    ///     .include_solutions(true)
+    ///     .build();
+    /// let exercise_response = client
+    ///     .get_exercises("some_cool_language", Some(filters))
+    ///     .await
+    ///     .unwrap();
+    ///
+    /// let exercises = exercise_response.exercises;
+    /// for exercise in &exercises {
+    ///     println!("Track {} contains exercise {}", "some_cool_language", exercise.name);
+    /// }
+    ///
+    /// let solutions = exercise_response.solutions;
+    /// for solution in &solutions {
+    ///     println!("You have a solution for exercise {} at {}", solution.exercise.name, solution.public_url);
+    /// }
+    /// # });
+    /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_exercises(
