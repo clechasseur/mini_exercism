@@ -34,6 +34,27 @@ mod get_latest_solution {
     }
 }
 
+mod get_file {
+    use assert_matches::assert_matches;
+    use futures::StreamExt;
+    use reqwest::StatusCode;
+    use mini_exercism::api;
+    use mini_exercism::core::Error;
+
+    #[tokio::test]
+    async fn test_anonymous() {
+        let client = api::v1::Client::builder().build();
+        let mut file_response_stream = client
+            .get_file("00c717b68e1b4213b316df82636f5e0f", "Cargo.toml")
+            .await;
+
+        // Fetching the contents of a file anonymously fails.
+        let file_response = file_response_stream.next().await;
+        assert_matches!(file_response,
+            Some(Err(Error::ApiError(error))) if error.status() == Some(StatusCode::UNAUTHORIZED));
+    }
+}
+
 mod get_track {
     use assert_matches::assert_matches;
     use mini_exercism::api;
