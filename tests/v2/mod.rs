@@ -1,16 +1,5 @@
 mod client {
-    use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::v2::ExerciseDifficulty::Hard;
-    use mini_exercism::api::v2::ExerciseType::Practice;
-    use mini_exercism::api::v2::SolutionMentoringStatus::Finished;
-    use mini_exercism::api::v2::SolutionStatus::Published;
-    use mini_exercism::api::v2::SolutionTestsStatus::Passed;
-    use mini_exercism::api::v2::TrackStatusFilter::Joined;
-    use mini_exercism::api::v2::{
-        Exercise, ExerciseFilters, ExerciseLinks, ExercisesResponse, Solution, SolutionExercise,
-        SolutionTrack, Track, TrackFilters, TrackLinks, TracksResponse,
-    };
     use mini_exercism::core::Credentials;
     use reqwest::StatusCode;
     use wiremock::http::Method::Get;
@@ -19,152 +8,172 @@ mod client {
 
     const API_TOKEN: &str = "some_api_token";
 
-    #[tokio::test]
-    async fn test_get_tracks() {
-        let mock_server = MockServer::start().await;
+    mod get_tracks {
+        use assert_matches::assert_matches;
+        use mini_exercism::api::v2::TrackStatusFilter::Joined;
+        use mini_exercism::api::v2::{Track, TrackFilters, TrackLinks, TracksResponse};
 
-        let tracks_response = TracksResponse {
-            tracks: vec![Track {
-                name: "cpp".to_string(),
-                title: "C++".to_string(),
-                num_concepts: 14,
-                num_exercises: 73,
-                web_url: "https://exercism.org/tracks/cpp".to_string(),
-                icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/cpp.svg".to_string(),
-                tags: vec![
-                    "Object-oriented".to_string(),
-                    "Static".to_string(),
-                    "Strong".to_string(),
-                    "Compiled".to_string(),
-                    "Android".to_string(),
-                    "iOS".to_string(),
-                    "Linux".to_string(),
-                    "Mac OSX".to_string(),
-                    "Windows".to_string(),
-                    "Standalone executable".to_string(),
-                    "Backends".to_string(),
-                    "Cross-platform development".to_string(),
-                    "Embedded systems".to_string(),
-                    "Financial systems".to_string(),
-                    "Games".to_string(),
-                    "GUIs".to_string(),
-                    "Mobile".to_string(),
-                    "Robotics".to_string(),
-                    "Scientific calculations".to_string(),
-                ],
-                links: TrackLinks {
-                    self_url: "https://exercism.org/tracks/cpp".to_string(),
-                    exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
-                    concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
-                },
-                is_joined: true,
-                num_learnt_concepts: 0,
-                num_completed_exercises: 1,
-            }],
-        };
-        Mock::given(method(Get))
-            .and(path("/tracks"))
-            .and(query_param("criteria", "cpp"))
-            .and(query_param("tags[]", "Object-oriented"))
-            .and(query_param("status", "joined"))
-            .and(bearer_token(API_TOKEN))
-            .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(tracks_response))
-            .mount(&mock_server)
-            .await;
+        use super::*;
 
-        let client = api::v2::Client::builder()
-            .api_base_url(mock_server.uri().as_str())
-            .credentials(Credentials::from_api_token(API_TOKEN))
-            .build();
-        let filters = TrackFilters::builder()
-            .criteria("cpp")
-            .tag("Object-oriented")
-            .status(Joined)
-            .build();
-        let track_response = client.get_tracks(Some(filters)).await;
-        assert_matches!(track_response, Ok(_));
+        #[tokio::test]
+        async fn test_get_tracks() {
+            let mock_server = MockServer::start().await;
 
-        let tracks = track_response.unwrap().tracks;
-        let track = tracks.first();
-        assert_matches!(track, Some(track) if track.name == "cpp" && track.title == "C++");
+            let tracks_response = TracksResponse {
+                tracks: vec![Track {
+                    name: "cpp".to_string(),
+                    title: "C++".to_string(),
+                    num_concepts: 14,
+                    num_exercises: 73,
+                    web_url: "https://exercism.org/tracks/cpp".to_string(),
+                    icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/cpp.svg".to_string(),
+                    tags: vec![
+                        "Object-oriented".to_string(),
+                        "Static".to_string(),
+                        "Strong".to_string(),
+                        "Compiled".to_string(),
+                        "Android".to_string(),
+                        "iOS".to_string(),
+                        "Linux".to_string(),
+                        "Mac OSX".to_string(),
+                        "Windows".to_string(),
+                        "Standalone executable".to_string(),
+                        "Backends".to_string(),
+                        "Cross-platform development".to_string(),
+                        "Embedded systems".to_string(),
+                        "Financial systems".to_string(),
+                        "Games".to_string(),
+                        "GUIs".to_string(),
+                        "Mobile".to_string(),
+                        "Robotics".to_string(),
+                        "Scientific calculations".to_string(),
+                    ],
+                    links: TrackLinks {
+                        self_url: "https://exercism.org/tracks/cpp".to_string(),
+                        exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
+                        concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
+                    },
+                    is_joined: true,
+                    num_learnt_concepts: 0,
+                    num_completed_exercises: 1,
+                }],
+            };
+            Mock::given(method(Get))
+                .and(path("/tracks"))
+                .and(query_param("criteria", "cpp"))
+                .and(query_param("tags[]", "Object-oriented"))
+                .and(query_param("status", "joined"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(tracks_response))
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let filters = TrackFilters::builder()
+                .criteria("cpp")
+                .tag("Object-oriented")
+                .status(Joined)
+                .build();
+            let track_response = client.get_tracks(Some(filters)).await;
+            let tracks = track_response.unwrap().tracks;
+            let track = tracks.first();
+            assert_matches!(track, Some(track) if track.name == "cpp" && track.title == "C++");
+        }
     }
 
-    #[tokio::test]
-    async fn test_get_exercises() {
-        let mock_server = MockServer::start().await;
+    mod get_exercises {
+        use mini_exercism::api::v2::ExerciseDifficulty::Hard;
+        use mini_exercism::api::v2::ExerciseType::Practice;
+        use mini_exercism::api::v2::SolutionMentoringStatus::Finished;
+        use mini_exercism::api::v2::SolutionStatus::Published;
+        use mini_exercism::api::v2::SolutionTestsStatus::Passed;
+        use mini_exercism::api::v2::{
+            Exercise, ExerciseFilters, ExerciseLinks, ExercisesResponse, Solution,
+            SolutionExercise, SolutionTrack,
+        };
 
-        let exercises_response = ExercisesResponse {
-            exercises: vec![Exercise {
-                name: "poker".to_string(),
-                exercise_type: Practice,
-                title: "Poker".to_string(),
-                icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
-                difficulty: Hard,
-                blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
-                is_external: false,
-                is_unlocked: true,
-                is_recommended: false,
-                links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".to_string() },
-            }],
-            solutions: vec![Solution {
-                uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                public_url:
-                    "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
-                        .to_string(),
-                status: Published,
-                mentoring_status: Finished,
-                published_iteration_head_tests_status: Passed,
-                has_notifications: false,
-                num_views: 0,
-                num_stars: 0,
-                num_comments: 0,
-                num_iterations: 13,
-                num_loc: Some(252),
-                is_out_of_date: false,
-                published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                updated_at: "2023-08-27T07:06:01Z".to_string(),
-                last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
-                exercise: SolutionExercise {
+        use super::*;
+
+        #[tokio::test]
+        async fn test_get_exercises() {
+            let mock_server = MockServer::start().await;
+
+            let exercises_response = ExercisesResponse {
+                exercises: vec![Exercise {
                     name: "poker".to_string(),
+                    exercise_type: Practice,
                     title: "Poker".to_string(),
                     icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
-                },
-                track: SolutionTrack {
-                    name: "rust".to_string(),
-                    title: "Rust".to_string(),
-                    icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
-                },
-            }],
-        };
-        Mock::given(method(Get))
-            .and(path("/tracks/rust/exercises"))
-            .and(query_param("criteria", "poker"))
-            .and(query_param("sideload", "solutions"))
-            .and(bearer_token(API_TOKEN))
-            .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(exercises_response))
-            .mount(&mock_server)
-            .await;
+                    difficulty: Hard,
+                    blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
+                    is_external: false,
+                    is_unlocked: true,
+                    is_recommended: false,
+                    links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".to_string() },
+                }],
+                solutions: vec![Solution {
+                    uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
+                    private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                    public_url:
+                        "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
+                            .to_string(),
+                    status: Published,
+                    mentoring_status: Finished,
+                    published_iteration_head_tests_status: Passed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 13,
+                    num_loc: Some(252),
+                    is_out_of_date: false,
+                    published_at: Some("2023-05-08T00:02:21Z".to_string()),
+                    completed_at: Some("2023-05-08T00:02:21Z".to_string()),
+                    updated_at: "2023-08-27T07:06:01Z".to_string(),
+                    last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                    exercise: SolutionExercise {
+                        name: "poker".to_string(),
+                        title: "Poker".to_string(),
+                        icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                    },
+                    track: SolutionTrack {
+                        name: "rust".to_string(),
+                        title: "Rust".to_string(),
+                        icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                    },
+                }],
+            };
+            Mock::given(method(Get))
+                .and(path("/tracks/rust/exercises"))
+                .and(query_param("criteria", "poker"))
+                .and(query_param("sideload", "solutions"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(
+                    ResponseTemplate::new(StatusCode::OK).set_body_json(exercises_response),
+                )
+                .mount(&mock_server)
+                .await;
 
-        let client = api::v2::Client::builder()
-            .api_base_url(mock_server.uri().as_str())
-            .credentials(Credentials::from_api_token(API_TOKEN))
-            .build();
-        let filters = ExerciseFilters::builder()
-            .criteria("poker")
-            .include_solutions(true)
-            .build();
-        let exercises_response = client.get_exercises("rust", Some(filters)).await;
-        assert_matches!(exercises_response, Ok(_));
-
-        let exercises_response = exercises_response.unwrap();
-        let exercises = exercises_response.exercises;
-        let solutions = exercises_response.solutions;
-        assert_eq!(1, exercises.len());
-        assert_eq!("poker", exercises.first().unwrap().name);
-        assert_eq!(1, solutions.len());
-        assert_eq!("00c717b68e1b4213b316df82636f5e0f", solutions.first().unwrap().uuid);
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let filters = ExerciseFilters::builder()
+                .criteria("poker")
+                .include_solutions(true)
+                .build();
+            let exercises_response = client.get_exercises("rust", Some(filters)).await;
+            let exercises_response = exercises_response.unwrap();
+            let exercises = exercises_response.exercises;
+            let solutions = exercises_response.solutions;
+            assert_eq!(1, exercises.len());
+            assert_eq!("poker", exercises.first().unwrap().name);
+            assert_eq!(1, solutions.len());
+            assert_eq!("00c717b68e1b4213b316df82636f5e0f", solutions.first().unwrap().uuid);
+        }
     }
 }
 

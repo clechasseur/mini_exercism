@@ -117,7 +117,7 @@ impl Client {
     ) -> impl Stream<Item = Result<Bytes>> {
         let result = self
             .api_client
-            .get(format!("/solutions/{}/{}", solution_uuid, file_path).as_str())
+            .get(format!("/solutions/{}/files/{}", solution_uuid, file_path).as_str())
             .send()
             .await
             .and_then(|response| response.error_for_status());

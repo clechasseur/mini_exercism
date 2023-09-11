@@ -17,8 +17,6 @@ pub fn get_cli_config_dir() -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use assert_matches::assert_matches;
-
     use super::*;
 
     #[test]
@@ -30,7 +28,7 @@ mod tests {
         if let Some(path) = config_dir {
             assert!(path.is_dir());
         } else {
-            assert_matches!(config_dir, None);
+            assert!(config_dir.is_none());
         }
     }
 }

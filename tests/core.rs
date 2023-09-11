@@ -1,5 +1,6 @@
 mod error {
     use std::collections::HashMap;
+    use std::io;
 
     use assert_matches::assert_matches;
     use mini_exercism::core::Error;
@@ -7,9 +8,10 @@ mod error {
     #[test]
     #[cfg(feature = "cli")]
     fn test_config_read_error_from() {
-        let error: Error = std::io::Error::from(std::io::ErrorKind::NotFound).into();
+        let error: Error = io::Error::from(io::ErrorKind::NotFound).into();
 
-        assert_matches!(error, Error::ConfigReadError(_));
+        assert_matches!(error,
+            Error::ConfigReadError(io_error) if io_error.kind() == io::ErrorKind::NotFound);
     }
 
     #[test]
@@ -20,7 +22,8 @@ mod error {
             .unwrap_err()
             .into();
 
-        assert_matches!(error, Error::ConfigParseError(_));
+        assert_matches!(error,
+            Error::ConfigParseError(serde_error) if serde_error.is_syntax());
     }
 
     #[test]
@@ -36,6 +39,6 @@ mod error {
             .unwrap_err();
         let error: Error = reqwest_error.into();
 
-        assert_matches!(error, Error::ApiError(_));
+        assert_matches!(error, Error::ApiError(error) if error.is_builder());
     }
 }

@@ -86,7 +86,7 @@ mod tests {
             env::remove_var("HOME");
             let config_dir = get_cli_config_dir();
 
-            assert_eq!(config_dir, None);
+            assert!(config_dir.is_none());
         }
     }
 }

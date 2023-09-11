@@ -67,7 +67,7 @@ mod tests {
             let config_json = "{invalid: json}";
             let config = CliConfig::from_string(config_json);
 
-            assert_matches!(config, Err(Error::ConfigParseError(_)));
+            assert_matches!(config, Err(Error::ConfigParseError(serde_error)) if serde_error.is_syntax());
         }
 
         #[test]
