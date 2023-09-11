@@ -1473,6 +1473,7 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
+ "num_cpus",
  "pin-project-lite",
  "socket2 0.5.3",
  "tokio-macros",
