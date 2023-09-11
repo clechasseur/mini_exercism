@@ -1,7 +1,22 @@
 [package]
 name = "mini_exercism"
 version = "0.1.0"
+authors = [ "Charles Lechasseur <shiftingbeard@gmx.com>" ]
 edition = "2021"
+
+readme = "README.md"
+license = "MIT"
+
+homepage = "https://github.com/clechasseur/mini_exercism#readme"
+repository = "https://github.com/clechasseur/mini_exercism"
+documentation = "https://docs.rs/mini_exercism/"
+
+description = "Minimalistic Rust library to interact with the Exercism.org APIs"
+
+keywords = [ "api", "rest", "http", "exercism" ]
+categories = [ "api bindings", "asynchronous" ]
+
+include = [ "src/**/*", "tests/**/*", "build.rs", "LICENSE", "README.md" ]
 
 [features]
 cli = []
