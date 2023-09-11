@@ -161,7 +161,7 @@ jobs:
         uses: clechasseur/rs-cargo@v2
         with:
           command: tarpaulin
-          args: --workspace --all-features --engine llvm --tests --out Xml
+          args: --out Xml
 
       - name: Upload code coverage results to codecov.io
         uses: codecov/codecov-action@v3

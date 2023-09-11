@@ -1,0 +1,6 @@
+[default]
+all = true
+all_features = true
+engine = "Llvm"
+exclude-files = [ "target*/*" ]
+run-types = [ "Tests" ]
