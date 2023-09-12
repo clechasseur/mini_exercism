@@ -48,12 +48,13 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v1::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let solution = client
     ///     .get_solution("SOME_SOLUTION_UUID")
     ///     .await
-    ///     .unwrap()
+    ///     .expect("Solution `SOME_SOLUTION_UUID` should be accessible to this user")
     ///     .solution;
     /// println!("Solution URL: {}", solution.url);
     /// # });
@@ -87,12 +88,13 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v1::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let solution = client
     ///     .get_latest_solution("some_cool_language", "some_exercise")
     ///     .await
-    ///     .unwrap()
+    ///     .expect("Latest solution for exercise `some_exercise` of track `some_cool_language` should exist")
     ///     .solution;
     /// println!("Solution URL: {}", solution.url);
     /// # });
@@ -135,20 +137,28 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v1::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let solution = client
     ///     .get_latest_solution("some_cool_language", "some_exercise")
     ///     .await
-    ///     .unwrap()
+    ///     .expect("Latest solution for exercise `some_exercise` of track `some_cool_language` should exist")
     ///     .solution;
     /// for file in &solution.files {
     ///     let mut file_response = client.get_file(&solution.uuid, file).await;
     ///     let mut file_content: Vec<u8> = Vec::new();
     ///     while let Some(bytes) = file_response.next().await {
-    ///         file_content.write_all(&(bytes.unwrap())).unwrap();
+    ///         let bytes = bytes.expect("File content should be accessible to this user");
+    ///         file_content
+    ///             .write_all(&bytes)
+    ///             .expect("File content should be writable");
     ///     }
-    ///     println!("Content of {}: {}", file, String::from_utf8(file_content).unwrap());
+    ///     println!(
+    ///         "Content of {}: {}",
+    ///         file,
+    ///         String::from_utf8(file_content).expect("File content should be valid UTF-8"),
+    ///     );
     /// }
     /// # });
     /// ```
@@ -195,12 +205,13 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v1::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let track = client
     ///     .get_track("some_cool_language")
     ///     .await
-    ///     .unwrap()
+    ///     .expect("Track `some_cool_language` should accessible to this user")
     ///     .track;
     /// println!("Track name: {}, title: {}", track.name, track.title);
     /// # });
@@ -230,9 +241,10 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v1::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
-    /// if client.validate_token().await.unwrap() {
+    /// if client.validate_token().await.expect("Validating token should work for this user") {
     ///     println!("Credentials are valid.");
     /// } else {
     ///     println!("Credentials are invalid.");
@@ -284,12 +296,13 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v1::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let service_status = client
     ///     .ping()
     ///     .await
-    ///     .unwrap()
+    ///     .expect("Exercism service should be pingable")
     ///     .status;
     /// println!("Status: website: {}, database: {}", service_status.website, service_status.database);
     /// # });

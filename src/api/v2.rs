@@ -46,7 +46,8 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v2::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let filters = TrackFilters::builder()
     ///     .status(Joined)
@@ -54,7 +55,7 @@ impl Client {
     /// let tracks = client
     ///     .get_tracks(Some(filters))
     ///     .await
-    ///     .unwrap()
+    ///     .expect("Joined tracks should be available for this user")
     ///     .tracks;
     ///
     /// for track in &tracks {
@@ -105,7 +106,8 @@ impl Client {
     /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
     /// let client = api::v2::Client::builder()
     ///     .credentials(credentials)
-    ///     .build();
+    ///     .build()
+    ///     .expect("reqwest should not fail to create default HTTP client");
     ///
     /// let filters = ExerciseFilters::builder()
     ///     .include_solutions(true)
@@ -113,7 +115,7 @@ impl Client {
     /// let exercise_response = client
     ///     .get_exercises("some_cool_language", Some(filters))
     ///     .await
-    ///     .unwrap();
+    ///     .expect("Exercises and solutions for `some_cool_language` should be accessible for this user");
     ///
     /// let exercises = exercise_response.exercises;
     /// for exercise in &exercises {

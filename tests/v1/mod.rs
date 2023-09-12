@@ -68,9 +68,12 @@ mod client {
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .expect("Tried to use default HTTP client, but failed");
             let solution_response = client.get_solution(solution_uuid).await;
-            let solution = solution_response.unwrap().solution;
+            let solution = solution_response
+                .expect("Solution should accessible to user")
+                .solution;
             assert_eq!(solution_uuid, solution.uuid);
             assert_eq!("poker", solution.exercise.name);
             assert_eq!("rust", solution.exercise.track.name);
@@ -140,9 +143,12 @@ mod client {
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .expect("Tried to use default HTTP client, but failed");
             let solution_response = client.get_latest_solution("rust", "poker").await;
-            let solution = solution_response.unwrap().solution;
+            let solution = solution_response
+                .expect("Latest solution for exercise `poker` on track `rust` should be accessible")
+                .solution;
             assert_eq!(solution_uuid, solution.uuid);
             assert_eq!("poker", solution.exercise.name);
             assert_eq!("rust", solution.exercise.track.name);
@@ -182,13 +188,20 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .expect("Tried to use default HTTP client, but failed");
             let mut file_response = client.get_file(solution_uuid, file_path).await;
             let mut output: Vec<u8> = Vec::new();
             while let Some(bytes) = file_response.next().await {
-                output.write_all(&(bytes.unwrap())).unwrap();
+                let bytes = bytes.expect("File content should be accessible to user");
+                output
+                    .write_all(&bytes)
+                    .expect("Output buffer should be writable");
             }
-            assert_eq!(file_content, String::from_utf8(output).unwrap());
+            assert_eq!(
+                file_content,
+                String::from_utf8(output).expect("File content should be valid UTF-8"),
+            );
         }
 
         #[tokio::test]
@@ -207,10 +220,11 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .expect("Tried to use default HTTP client, but failed");
             let mut file_response = client.get_file(solution_uuid, file_path).await;
 
-            let file_result = file_response.next().await.unwrap();
+            let file_result = file_response.next().await.expect("There should be one entry in stream");
             assert_matches!(file_result,
                 Err(Error::ApiError(api_error)) if api_error.status() == Some(StatusCode::NOT_FOUND));
         }
@@ -238,7 +252,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .expect("Tried to use default HTTP client, but failed");
             let track_response = client.get_track("rust").await;
             let track = track_response.unwrap().track;
             assert_eq!("rust", track.name);
@@ -266,7 +281,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response, Ok(true));
         }
@@ -284,7 +300,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response, Ok(false));
         }
@@ -302,7 +319,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response,
                 Err(Error::ApiError(error)) if error.status() == Some(StatusCode::INTERNAL_SERVER_ERROR));
@@ -328,7 +346,8 @@ version = "1.1.0"
 
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
-                .build();
+                .build()
+                .unwrap();
             let ping_response = client.ping().await;
             let status = ping_response.unwrap().status;
             assert!(status.website);

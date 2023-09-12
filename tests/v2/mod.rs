@@ -71,7 +71,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = TrackFilters::builder()
                 .criteria("cpp")
                 .tag("Object-oriented")
@@ -160,7 +161,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = ExerciseFilters::builder()
                 .criteria("poker")
                 .include_solutions(true)
