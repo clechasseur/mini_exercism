@@ -40,21 +40,25 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// CLI config file could not be found (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
+    #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
     #[error("Exercism CLI config file not found - perhaps CLI application is not installed or configured?")]
     ConfigNotFound,
 
     /// I/O error reading CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
+    #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
     #[error("Could not read Exercism CLI config file: {0:?}")]
     ConfigReadError(#[from] std::io::Error),
 
     /// JSON error parsing CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
+    #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
     #[error("Failed to parse Exercism CLI config file: {0:?}")]
     ConfigParseError(#[from] serde_json::Error),
 
     /// CLI config file did not contain an API token (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
+    #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
     #[error("Exercism CLI config file did not contain an API token")]
     ApiTokenNotFoundInConfig,
 

@@ -18,3 +18,14 @@ tarpaulin:
 
 doc:
     cargo +nightly doc --workspace --no-deps --all-features --open
+
+msrv:
+    mv Cargo.toml Cargo.toml.bak
+    mv Cargo.lock Cargo.lock.bak
+    mv Cargo.toml.msrv Cargo.toml
+    mv Cargo.lock.msrv Cargo.lock
+    cargo msrv -- cargo check --workspace --lib --all-features
+    rm Cargo.toml
+    rm Cargo.lock
+    mv Cargo.toml.bak Cargo.toml
+    mv Cargo.lock.bak Cargo.lock
