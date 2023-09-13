@@ -97,7 +97,7 @@
 //! ```no_run
 //! use mini_exercism::api;
 //!
-//! async fn print_language_tracks() -> mini_exercism::core::Result<()> {
+//! async fn print_language_tracks() -> anyhow::Result<()> {
 //!     let client = api::v2::Client::new();
 //!
 //!     let tracks = client.get_tracks(None).await?.tracks;
@@ -105,10 +105,10 @@
 //!         println!("Exercism language track: {}", track.title);
 //!     }
 //!
-//!     Ok(())
+//!     anyhow::Ok(())
 //! }
 //!
-//! async fn print_solutions(track: &str) -> mini_exercism::core::Result<()> {
+//! async fn print_solutions(track: &str) -> anyhow::Result<()> {
 //!     let client = api::v2::Client::new();
 //!
 //!     let solutions = client.get_exercises(track, None).await?.solutions;
@@ -119,7 +119,7 @@
 //!         );
 //!     }
 //!
-//!     Ok(())
+//!     anyhow::Ok(())
 //! }
 //! ```
 //!
@@ -161,13 +161,12 @@
 //!
 //! ```no_run
 //! use mini_exercism::api;
-//! use mini_exercism::cli::get_cli_credentials;
 //!
 //! fn get_api_client() -> api::v2::Client {
 //!     let mut client_builder = api::v2::Client::builder();
 //!
-//!     let cli_credentials = get_cli_credentials();
-//!     if let Ok(credentials) = cli_credentials {
+//!     #[cfg(feature = "cli")]
+//!     if let Ok(credentials) = mini_exercism::cli::get_cli_credentials() {
 //!         client_builder.credentials(credentials);
 //!     } else {
 //!         // Find some other way to fetch credentials, or perform queries anonymously
@@ -187,12 +186,12 @@
 //! ```no_run
 //! use mini_exercism::api;
 //!
-//! fn get_api_client() -> mini_exercism::core::Result<api::v2::Client> {
+//! fn get_api_client() -> anyhow::Result<api::v2::Client> {
 //!     let http_client_builder = reqwest::Client::builder();
 //!     // ... customize HTTP client with `http_client_builder` here ...
 //!     let http_client = http_client_builder.build()?;
 //!
-//!     Ok(api::v2::Client::builder().http_client(http_client).build())
+//!     anyhow::Ok(api::v2::Client::builder().http_client(http_client).build())
 //! }
 //! ```
 //!
@@ -207,7 +206,7 @@
 //!
 //! ## Minimum Rust version
 //!
-//! TODO: complete this section
+//! [mini_exercism](crate) currently builds on Rust 1.63 or newer.
 
 #![deny(missing_docs)]
 #![deny(rustdoc::missing_crate_level_docs)]

@@ -42,14 +42,14 @@ impl Client {
     /// use mini_exercism::api::v2::TrackStatusFilter::Joined;
     /// use mini_exercism::core::Credentials;
     ///
-    /// async fn get_joined_tracks(api_token: &str) -> mini_exercism::core::Result<Vec<String>> {
+    /// async fn get_joined_tracks(api_token: &str) -> anyhow::Result<Vec<String>> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v2::Client::builder().credentials(credentials).build();
     ///
     ///     let filters = TrackFilters::builder().status(Joined).build();
     ///     let tracks = client.get_tracks(Some(filters)).await?.tracks;
     ///
-    ///     Ok(tracks.into_iter().map(|track| track.name).collect())
+    ///     anyhow::Ok(tracks.into_iter().map(|track| track.name).collect())
     /// }
     /// ```
     ///
@@ -94,18 +94,20 @@ impl Client {
     /// async fn get_published_solution_uuids(
     ///     api_token: &str,
     ///     track: &str,
-    /// ) -> mini_exercism::core::Result<Vec<String>> {
+    /// ) -> anyhow::Result<Vec<String>> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v2::Client::builder().credentials(credentials).build();
     ///
     ///     let filters = ExerciseFilters::builder().include_solutions(true).build();
     ///     let solutions = client.get_exercises(track, Some(filters)).await?.solutions;
     ///
-    ///     Ok(solutions
-    ///         .into_iter()
-    ///         .filter(|solution| solution.published_at.is_some())
-    ///         .map(|solution| solution.uuid)
-    ///         .collect())
+    ///     anyhow::Ok(
+    ///         solutions
+    ///             .into_iter()
+    ///             .filter(|solution| solution.published_at.is_some())
+    ///             .map(|solution| solution.uuid)
+    ///             .collect(),
+    ///     )
     /// }
     /// ```
     ///

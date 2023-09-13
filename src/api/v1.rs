@@ -44,14 +44,11 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// async fn get_solution_url(
-    ///     api_token: &str,
-    ///     solution_uuid: &str,
-    /// ) -> mini_exercism::core::Result<String> {
+    /// async fn get_solution_url(api_token: &str, solution_uuid: &str) -> anyhow::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     Ok(client.get_solution(solution_uuid).await?.solution.url)
+    ///     anyhow::Ok(client.get_solution(solution_uuid).await?.solution.url)
     /// }
     /// ```
     ///
@@ -83,15 +80,17 @@ impl Client {
     ///     api_token: &str,
     ///     track: &str,
     ///     exercise: &str,
-    /// ) -> mini_exercism::core::Result<String> {
+    /// ) -> anyhow::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     Ok(client
-    ///         .get_latest_solution(track, exercise)
-    ///         .await?
-    ///         .solution
-    ///         .url)
+    ///     anyhow::Ok(
+    ///         client
+    ///             .get_latest_solution(track, exercise)
+    ///             .await?
+    ///             .solution
+    ///             .url,
+    ///     )
     /// }
     /// ```
     ///
@@ -133,7 +132,7 @@ impl Client {
     ///     track: &str,
     ///     exercise: &str,
     ///     file: &str,
-    /// ) -> mini_exercism::core::Result<String> {
+    /// ) -> anyhow::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
@@ -144,7 +143,7 @@ impl Client {
     ///         file_content.write_all(&bytes?)?;
     ///     }
     ///
-    ///     Ok(String::from_utf8(file_content).expect("File should be valid UTF-8"))
+    ///     anyhow::Ok(String::from_utf8(file_content).expect("File should be valid UTF-8"))
     /// }
     /// ```
     ///
@@ -190,11 +189,11 @@ impl Client {
     /// async fn get_language_track_details(
     ///     api_token: &str,
     ///     track: &str,
-    /// ) -> mini_exercism::core::Result<SolutionTrack> {
+    /// ) -> anyhow::Result<SolutionTrack> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     Ok(client.get_track(track).await?.track)
+    ///     anyhow::Ok(client.get_track(track).await?.track)
     /// }
     /// ```
     ///
@@ -266,7 +265,7 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// async fn report_service_status() -> mini_exercism::core::Result<()> {
+    /// async fn report_service_status() -> anyhow::Result<()> {
     ///     let client = api::v1::Client::new();
     ///
     ///     let service_status = client.ping().await?.status;
@@ -275,7 +274,7 @@ impl Client {
     ///         service_status.website, service_status.database,
     ///     );
     ///
-    ///     Ok(())
+    ///     anyhow::Ok(())
     /// }
     /// ```
     ///

@@ -71,8 +71,10 @@ jobs:
 
       - name: Install MSRV cargo files
         run: |
-          mv -f Cargo.toml.msrv Cargo.toml
-          mv -f Cargo.lock.msrv Cargo.lock
+          rm Cargo.toml
+          rm Cargo.lock
+          mv Cargo.toml.msrv Cargo.toml
+          mv Cargo.lock.msrv Cargo.lock
 
       - name: Install Rust toolchain ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master

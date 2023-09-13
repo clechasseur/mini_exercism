@@ -57,3 +57,7 @@ async fn get_published_solution_uuids(
 ```
 
 For more information, see [the docs](https://docs.rs/mini_exercism).
+
+## Minimum Rust version
+
+`mini_exercism` currently builds on Rust 1.63 or newer.

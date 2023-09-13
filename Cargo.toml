@@ -41,6 +41,7 @@ strum_macros = ">= 0.13, < 1"
 thiserror = "1.0.2"
 
 [dev-dependencies]
+anyhow = "1.0.75"
 assert_matches = "1.5.0"
 mockall = "0.11.4"
 serial_test = "2.0.0"
