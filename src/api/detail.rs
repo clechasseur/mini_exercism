@@ -1,13 +1,11 @@
-use derive_builder::{Builder, UninitializedFieldError};
+use derive_builder::Builder;
 use reqwest::{Client, Method, RequestBuilder};
-use thiserror::Error;
 
-use crate::core::{Credentials, Error, Result};
+use crate::core::Credentials;
 
 #[derive(Builder)]
-#[builder(build_fn(error = "ApiClientBuilderError"))]
 pub struct ApiClient {
-    #[builder(default = "self.default_http_client()?")]
+    #[builder(default)]
     http_client: Client,
 
     #[builder(setter(custom))]
@@ -50,26 +48,6 @@ impl ApiClientBuilder {
         self.api_base_url = Some(url.trim_end_matches('/').to_string());
         self
     }
-
-    fn default_http_client(&self) -> Result<Client> {
-        Client::builder().build().map_err(|e| e.into())
-    }
-}
-
-#[derive(Debug, Error)]
-#[error(transparent)]
-pub struct ApiClientBuilderError(#[from] Error);
-
-impl From<UninitializedFieldError> for ApiClientBuilderError {
-    fn from(_: UninitializedFieldError) -> Self {
-        panic!("All fields should have had default values, or a reqwest failure should have been produced");
-    }
-}
-
-impl From<ApiClientBuilderError> for Error {
-    fn from(value: ApiClientBuilderError) -> Self {
-        value.0
-    }
 }
 
 macro_rules! define_api_client {
@@ -85,11 +63,43 @@ macro_rules! define_api_client {
 
             impl $api_name {
                 #[doc = r"
+                    Creates a new [`" $api_name r"`] with default values.
+
+                    This is the same as calling `" $api_name r"::builder().build()`.
+
+                    # Panics
+
+                    This method can panic when building a default HTTP client. To handle this
+                    type of error gracefully, use a [`builder`](Self::builder). (See
+                    [crate documentation](crate#custom-http-client) for details.)
+                "]
+                pub fn new() -> Self {
+                    Self::default()
+                }
+
+                #[doc = r"
                     Returns a [`" $api_name r"Builder`] that can be used to
                     create an API client instance.
                 "]
                 pub fn builder() -> [<$api_name Builder>] {
                     [<$api_name Builder>]::default()
+                }
+            }
+
+            impl Default for $api_name {
+                #[doc = r"
+                    Creates a new [`" $api_name r"`] with default values.
+
+                    This is the same as calling `" $api_name r"::builder().build()`.
+
+                    # Panics
+
+                    This method can panic when building a default HTTP client. To handle this
+                    type of error gracefully, use a [`builder`](Self::builder). (See
+                    [crate documentation](crate#custom-http-client) for details.)
+                "]
+                fn default() -> Self {
+                    Self::builder().build()
                 }
             }
 
@@ -146,19 +156,11 @@ macro_rules! define_api_client {
                     self
                 }
 
-                #[doc = r"
-                    Builds a new [`" $api_name "`] instance using the parameters of this builder.
-
-                    # Errors
-
-                    - [`ApiError`]: The creation of a default HTTP client failed
-
-                    [`ApiError`]: crate::core::Error#variant.ApiError
-                "]
-                pub fn build(&self) -> $crate::core::Result<$api_name> {
-                    Ok($api_name {
-                        api_client: self.api_client_builder.build()?,
-                    })
+                #[doc = "Builds a new [`" $api_name "`] instance using the parameters of this builder."]
+                pub fn build(&self) -> $api_name {
+                    $api_name {
+                        api_client: self.api_client_builder.build().unwrap(),
+                    }
                 }
             }
 
@@ -396,8 +398,7 @@ mod tests {
             let test_api_client = TestApiClient::builder()
                 .http_client(Client::default())
                 .credentials(Credentials::from_api_token(TEST_API_TOKEN))
-                .build()
-                .unwrap();
+                .build();
 
             assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
         }
@@ -407,15 +408,28 @@ mod tests {
             let custom_api_base_url = "https://custom.api.client/api";
             let test_api_client = TestApiClient::builder()
                 .api_base_url(custom_api_base_url)
-                .build()
-                .unwrap();
+                .build();
 
             assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
         }
 
         #[test]
         fn test_builder_with_new() {
-            let test_api_client = TestApiClientBuilder::new().build().unwrap();
+            let test_api_client = TestApiClientBuilder::new().build();
+
+            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+        }
+
+        #[test]
+        fn test_default_client() {
+            let test_api_client = TestApiClient::default();
+
+            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+        }
+
+        #[test]
+        fn test_client_with_new() {
+            let test_api_client = TestApiClient::new();
 
             assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
         }

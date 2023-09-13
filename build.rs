@@ -1,7 +1,13 @@
 use std::env;
+use rustc_version::Channel::Nightly;
+use rustc_version::version_meta;
 
 fn main() {
     println!("cargo:rerun-if-env-changed=CI");
+
+    if version_meta().unwrap().channel == Nightly {
+        println!("cargo:rustc-cfg=nightly_rustc");
+    }
 
     // On CI, do not run integration tests.
     if env::var("CI").is_ok() {

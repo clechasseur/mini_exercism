@@ -80,8 +80,7 @@ mod tests {
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx.expect().return_once(|| None);
 
-            let current_dir = env::current_dir().expect("Current directory should be fetchable");
-            let expected_config_path: PathBuf = [current_dir, "user.json".into()]
+            let expected_config_path: PathBuf = [env::current_dir().unwrap(), "user.json".into()]
                 .iter()
                 .collect();
             let expected_json_file = "{\"token\": \"some_token\"}".to_string();

@@ -44,20 +44,14 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v1::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn get_solution_url(api_token: &str, solution_uuid: &str) -> mini_exercism::core::Result<String> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// let solution = client
-    ///     .get_solution("SOME_SOLUTION_UUID")
-    ///     .await
-    ///     .expect("Solution `SOME_SOLUTION_UUID` should be accessible to this user")
-    ///     .solution;
-    /// println!("Solution URL: {}", solution.url);
-    /// # });
+    ///     Ok(client.get_solution(solution_uuid).await?.solution.url)
+    /// }
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -84,20 +78,18 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v1::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn get_latest_solution_url(
+    ///     api_token: &str,
+    ///     track: &str,
+    ///     exercise: &str,
+    /// ) -> mini_exercism::core::Result<String> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// let solution = client
-    ///     .get_latest_solution("some_cool_language", "some_exercise")
-    ///     .await
-    ///     .expect("Latest solution for exercise `some_exercise` of track `some_cool_language` should exist")
-    ///     .solution;
-    /// println!("Solution URL: {}", solution.url);
-    /// # });
+    ///     Ok(client.get_latest_solution(track, exercise).await?.solution.url)
+    /// }
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -133,34 +125,26 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v1::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn get_file_content(
+    ///     api_token: &str,
+    ///     track: &str,
+    ///     exercise: &str,
+    ///     file: &str,
+    /// ) -> mini_exercism::core::Result<String> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// let solution = client
-    ///     .get_latest_solution("some_cool_language", "some_exercise")
-    ///     .await
-    ///     .expect("Latest solution for exercise `some_exercise` of track `some_cool_language` should exist")
-    ///     .solution;
-    /// for file in &solution.files {
+    ///     let solution = client.get_latest_solution(track, exercise).await?.solution;
     ///     let mut file_response = client.get_file(&solution.uuid, file).await;
     ///     let mut file_content: Vec<u8> = Vec::new();
     ///     while let Some(bytes) = file_response.next().await {
-    ///         let bytes = bytes.expect("File content should be accessible to this user");
-    ///         file_content
-    ///             .write_all(&bytes)
-    ///             .expect("File content should be writable");
+    ///         file_content.write_all(&bytes?)?;
     ///     }
-    ///     println!(
-    ///         "Content of {}: {}",
-    ///         file,
-    ///         String::from_utf8(file_content).expect("File content should be valid UTF-8"),
-    ///     );
+    ///
+    ///     Ok(String::from_utf8(file_content).expect("File should be valid UTF-8"))
     /// }
-    /// # });
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -199,22 +183,20 @@ impl Client {
     ///
     /// ```no_run
     /// use mini_exercism::api;
+    /// use mini_exercism::api::v1::SolutionTrack;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v1::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn get_language_track_details(
+    ///     api_token: &str,
+    ///     track: &str,
+    /// ) -> mini_exercism::core::Result<SolutionTrack> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// let track = client
-    ///     .get_track("some_cool_language")
-    ///     .await
-    ///     .expect("Track `some_cool_language` should accessible to this user")
-    ///     .track;
-    /// println!("Track name: {}, title: {}", track.name, track.title);
-    /// # });
+    ///     Ok(client.get_track(track).await?.track)
+    /// }
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -237,19 +219,14 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v1::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn is_api_token_valid(api_token: &str) -> bool {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// if client.validate_token().await.expect("Validating token should work for this user") {
-    ///     println!("Credentials are valid.");
-    /// } else {
-    ///     println!("Credentials are invalid.");
+    ///     client.validate_token().await.unwrap_or(false)
     /// }
-    /// # });
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -292,20 +269,18 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v1::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn report_service_status() -> mini_exercism::core::Result<()> {
+    ///     let client = api::v1::Client::new();
     ///
-    /// let service_status = client
-    ///     .ping()
-    ///     .await
-    ///     .expect("Exercism service should be pingable")
-    ///     .status;
-    /// println!("Status: website: {}, database: {}", service_status.website, service_status.database);
-    /// # });
+    ///     let service_status = client.ping().await?.status;
+    ///     println!(
+    ///         "Status: website: {}, database: {}",
+    ///         service_status.website,
+    ///         service_status.database,
+    ///     );
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError

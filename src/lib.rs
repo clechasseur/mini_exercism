@@ -1,6 +1,18 @@
 //! A lightweight crate to interact with the [Exercism website](https://exercism.org)'s APIs.
 //!
-//! # Installing
+//! # TOC
+//!
+//! - [`Installing`](#installing)
+//! - [`API clients`](#api-clients)
+//! - [`Async methods`](#async-methods)
+//! - [`Example`](#example)
+//! - [`Credentials`](#credentials)
+//! - [`CLI credentials`](#cli-credentials)
+//! - [`Custom HTTP client`](#custom-http-client)
+//! - [`Crate status`](#crate-status)
+//! - [`Minimum Rust version`](#minimum-rust-version)
+//!
+//! ## Installing
 //!
 //! Add [mini_exercism](crate) to your dependencies:
 //!
@@ -15,7 +27,7 @@
 //! cargo add mini_exercism
 //! ```
 //!
-//! # API clients
+//! ## API clients
 //!
 //! To interact with an [Exercism](https://exericms.org) API, you can simply use one of
 //! the provided API clients. Each API has its own client:
@@ -23,7 +35,30 @@
 //! - [`api::v1::Client`]
 //! - [`api::v2::Client`]
 //!
-//! # Async methods
+//! To create a client, either use its `new` or `default` methods to create a default instance, or
+//! use its `builder` method to construct one:
+//!
+//! ```no_run
+//! use mini_exercism::api;
+//!
+//! fn get_default_client() -> api::v2::Client {
+//!     api::v2::Client::new()
+//! }
+//!
+//! fn get_custom_client() -> api::v2::Client {
+//!     let mut builder = api::v2::Client::builder();
+//!     // ... customize API client with builder ...
+//!
+//!     builder.build()
+//! }
+//! ```
+//!
+//! Note that the creation of a default client results in the creation of a default internal
+//! HTTP client, which can result in a [panic in the `reqwest crate`](https://docs.rs/reqwest/latest/reqwest/struct.Client.html#method.new).
+//! This is a rare occurrence, but if you need to handle these errors, you can build the HTTP
+//! client manually - see [`Custom HTTP client`](#custom-http-client).
+//!
+//! ## Async methods
 //!
 //! The client methods used to query the APIs for information are `async`. As such, in order to
 //! call them, you will need to use the `await` keyword. For more information on async programming
@@ -50,47 +85,66 @@
 //! [Tokio](https://tokio.rs/) offers many customization options; see the [docs](https://docs.rs/tokio/latest/tokio/index.html)
 //! for more details.
 //!
-//! # Example: fetching language tracks
+//! ## Example
 //!
 //! ```no_run
 //! use mini_exercism::api;
 //!
-//! # futures::executor::block_on(async {
-//! let client = api::v2::Client::new();
-//! let tracks = client.get_tracks(None).await.unwrap().tracks;
-//! for track in &tracks {
-//!     println!("Exercism language track: {}", track.title);
+//! async fn print_language_tracks() -> mini_exercism::core::Result<()> {
+//!     let client = api::v2::Client::new();
+//!
+//!     let tracks = client.get_tracks(None).await?.tracks;
+//!     for track in &tracks {
+//!         println!("Exercism language track: {}", track.title);
+//!     }
+//!
+//!     Ok(())
 //! }
-//! # });
+//!
+//! async fn print_solutions(track: &str) -> mini_exercism::core::Result<()> {
+//!     let client = api::v2::Client::new();
+//!
+//!     let solutions = client.get_exercises(track, None).await?.solutions;
+//!     for solution in &solutions {
+//!         println!(
+//!             "Solution for exercise {}, public URL: {}",
+//!             solution.exercise.title,
+//!             solution.public_url,
+//!         );
+//!     }
+//!
+//!     Ok(())
+//! }
 //! ```
 //!
-//! # Credentials
+//! ## Credentials
 //!
-//! API clients use [`Credentials`] to perform requests as a specific user. Some requests can work
-//! both anonymously and authenticated (behaving differently depending on which is used), others
-//! require authentication to work.
+//! API clients use [`Credentials`](core::Credentials) to perform requests as a specific user.
+//! Some requests can work both anonymously and authenticated (behaving differently depending on
+//! which is used), others require authentication to work.
 //!
-//! [`Credentials`] use [Exercism](https://exercism.org) API tokens to identify a user. This is the
-//! token that is used for the [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
+//! [`Credentials`](core::Credentials) use [Exercism](https://exercism.org) API tokens to identify
+//! a user. This is the token that is used for the [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
 //! It can be fetched from the [Exercism's user settings page](https://exercism.org/settings/api_cli).
 //!
-//! To pass [`Credentials`] to an API client, use its `builder`:
+//! To pass [`Credentials`](core::Credentials) to an API client, use its `builder`:
 //!
 //! ```no_run
 //! use mini_exercism::api;
 //! use mini_exercism::core::Credentials;
 //!
-//! let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-//! let client = api::v2::Client::builder()
-//!     .credentials(credentials)
-//!     .build();
-//! // From here on, `client` will perform requests as the authenticated user.
+//! fn get_api_client() -> api::v2::Client {
+//!     let credentials = Credentials::from_api_token("SOME_API_TOKEN");
+//!     api::v2::Client::builder()
+//!         .credentials(credentials)
+//!         .build()
+//! }
 //! ```
 //!
-//! # Fetching CLI credentials
+//! ## CLI credentials
 //!
-//! This crate provides a helper function to fetch the [`Credentials`] used by the currently-installed
-//! [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
+//! This crate provides a helper function to fetch the [`Credentials`](core::Credentials) used by
+//! the currently-installed [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
 //! In order to use this, you need to enable the `cli` feature:
 //!
 //! ```toml
@@ -105,17 +159,21 @@
 //! use mini_exercism::api;
 //! use mini_exercism::cli::get_cli_credentials;
 //!
-//! let mut client_builder = api::v2::Client::builder();
-//! let cli_credentials = get_cli_credentials();
-//! if let Ok(credentials) = cli_credentials {
-//!     client_builder.credentials(credentials);
-//! } else {
-//!     // Find some other way to fetch credentials, or perform queries anonymously
+//! fn get_api_client() -> api::v2::Client {
+//!     let mut client_builder = api::v2::Client::builder();
+//!
+//!     let cli_credentials = get_cli_credentials();
+//!     if let Ok(credentials) = cli_credentials {
+//!         client_builder.credentials(credentials);
+//!     } else {
+//!         // Find some other way to fetch credentials, or perform queries anonymously
+//!     }
+//!
+//!     client_builder.build()
 //! }
-//! let client = client_builder.build();
 //! ```
 //!
-//! # Customizing the HTTP client
+//! ## Custom HTTP client
 //!
 //! Internally, [`mini_exercism`](crate) uses the [`reqwest`](https://crates.io/crates/reqwest)
 //! library to perform HTTP calls. Unless overridden, API clients will create a default HTTP client.
@@ -124,27 +182,40 @@
 //!
 //! ```no_run
 //! use mini_exercism::api;
-//! let http_client_builder = reqwest::Client::builder();
-//! // Customize HTTP client with `http_client_builder` here
 //!
-//! let client = api::v2::Client::builder()
-//!     .http_client(http_client_builder.build().unwrap())
-//!     .build();
+//! fn get_api_client() -> mini_exercism::core::Result<api::v2::Client> {
+//!     let http_client_builder = reqwest::Client::builder();
+//!     // ... customize HTTP client with `http_client_builder` here ...
+//!     let http_client = http_client_builder.build()?;
+//!
+//!     Ok(api::v2::Client::builder()
+//!         .http_client(http_client)
+//!         .build())
+//! }
 //! ```
 //!
-//! # Crate status
+//! Creating the HTTP client via its `builder` also has the advantage of being able to handle
+//! errors that may arise when doing so instead of [panicking](https://docs.rs/reqwest/latest/reqwest/struct.Client.html#method.new).
+//!
+//! ## Crate status
 //!
 //! Currently, this crate is a bit minimalistic and does not implement all the [Exercism](https://exercism.org)
 //! API endpoints. To suggest new endpoints to add, you can enter an [issue](https://github.com/clechasseur/mini_exercism/issues).
 //! Or, even better, don't hesitate to submit a [pull request](https://github.com/clechasseur/mini_exercism/pulls)! 😁
 //!
-//! # Minimum Rust version
+//! ## Minimum Rust version
 //!
 //! TODO: complete this section
-//!
-//! [`Credentials`]: core::Credentials
+
+#![deny(missing_docs)]
+#![deny(rustdoc::missing_crate_level_docs)]
+#![deny(rustdoc::broken_intra_doc_links)]
+#![deny(rustdoc::private_intra_doc_links)]
+
+#![cfg_attr(any(nightly_rustc, docsrs), feature(doc_cfg))]
 
 pub mod api;
 #[cfg(feature = "cli")]
+#[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
 pub mod cli;
 pub mod core;

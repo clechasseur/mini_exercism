@@ -42,26 +42,22 @@ impl Client {
     /// use mini_exercism::api::v2::TrackStatusFilter::Joined;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v2::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn get_joined_tracks(api_token: &str) -> mini_exercism::core::Result<Vec<String>> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v2::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// let filters = TrackFilters::builder()
-    ///     .status(Joined)
-    ///     .build();
-    /// let tracks = client
-    ///     .get_tracks(Some(filters))
-    ///     .await
-    ///     .expect("Joined tracks should be available for this user")
-    ///     .tracks;
+    ///     let filters = TrackFilters::builder()
+    ///         .status(Joined)
+    ///         .build();
+    ///     let tracks = client
+    ///         .get_tracks(Some(filters))
+    ///         .await?
+    ///         .tracks;
     ///
-    /// for track in &tracks {
-    ///     println!("You have joined track {}", track.name);
+    ///     Ok(tracks.into_iter().map(|track| track.name).collect())
     /// }
-    /// # });
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
@@ -102,31 +98,29 @@ impl Client {
     /// use mini_exercism::api::v2::ExerciseFilters;
     /// use mini_exercism::core::Credentials;
     ///
-    /// # futures::executor::block_on(async {
-    /// let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-    /// let client = api::v2::Client::builder()
-    ///     .credentials(credentials)
-    ///     .build()
-    ///     .expect("reqwest should not fail to create default HTTP client");
+    /// async fn get_published_solution_uuids(
+    ///     api_token: &str,
+    ///     track: &str,
+    /// ) -> mini_exercism::core::Result<Vec<String>> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v2::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build();
     ///
-    /// let filters = ExerciseFilters::builder()
-    ///     .include_solutions(true)
-    ///     .build();
-    /// let exercise_response = client
-    ///     .get_exercises("some_cool_language", Some(filters))
-    ///     .await
-    ///     .expect("Exercises and solutions for `some_cool_language` should be accessible for this user");
+    ///     let filters = ExerciseFilters::builder()
+    ///         .include_solutions(true)
+    ///         .build();
+    ///     let solutions = client
+    ///         .get_exercises(track, Some(filters))
+    ///         .await?
+    ///         .solutions;
     ///
-    /// let exercises = exercise_response.exercises;
-    /// for exercise in &exercises {
-    ///     println!("Track {} contains exercise {}", "some_cool_language", exercise.name);
+    ///     Ok(solutions
+    ///         .into_iter()
+    ///         .filter(|solution| solution.published_at.is_some())
+    ///         .map(|solution| solution.uuid)
+    ///         .collect())
     /// }
-    ///
-    /// let solutions = exercise_response.solutions;
-    /// for solution in &solutions {
-    ///     println!("You have a solution for exercise {} at {}", solution.exercise.name, solution.public_url);
-    /// }
-    /// # });
     /// ```
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError

@@ -15,3 +15,6 @@ test:
 
 tarpaulin:
     cargo tarpaulin --target-dir target-tarpaulin
+
+doc:
+    cargo +nightly doc --workspace --no-deps --all-features --open

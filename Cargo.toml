@@ -18,6 +18,11 @@ categories = [ "api bindings", "asynchronous" ]
 
 include = [ "src/**/*", "tests/**/*", "build.rs", "LICENSE", "README.md" ]
 
+[package.metadata.docs.rs]
+all-features = true
+targets = [ "x86_64-unknown-linux-gnu" ]
+rustc-args = [ "--cfg", "docsrs" ]
+
 [features]
 cli = []
 
@@ -41,3 +46,6 @@ serial_test = "2.0.0"
 tokio = { version = "1.32.0", features = ["rt", "rt-multi-thread", "macros", "test-util"] }
 wiremock = "0.5.19"
 wiremock_logical_matchers = "0.1.2"
+
+[build-dependencies]
+rustc_version = "0.4.0"

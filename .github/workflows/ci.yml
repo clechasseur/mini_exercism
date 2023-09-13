@@ -171,3 +171,19 @@ jobs:
           path: |
             cobertura.xml
             tarpaulin-report.html
+
+  doc:
+    name: Rustdoc check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Run rustdoc
+        uses: clechasseur/rs-cargo@v2
+        with:
+          command: doc
+          args: --workspace --all-features
