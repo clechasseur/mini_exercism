@@ -44,11 +44,12 @@ impl Client {
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
     ///
-    /// async fn get_solution_url(api_token: &str, solution_uuid: &str) -> mini_exercism::core::Result<String> {
+    /// async fn get_solution_url(
+    ///     api_token: &str,
+    ///     solution_uuid: &str,
+    /// ) -> mini_exercism::core::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder()
-    ///         .credentials(credentials)
-    ///         .build();
+    ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
     ///     Ok(client.get_solution(solution_uuid).await?.solution.url)
     /// }
@@ -84,11 +85,13 @@ impl Client {
     ///     exercise: &str,
     /// ) -> mini_exercism::core::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder()
-    ///         .credentials(credentials)
-    ///         .build();
+    ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     Ok(client.get_latest_solution(track, exercise).await?.solution.url)
+    ///     Ok(client
+    ///         .get_latest_solution(track, exercise)
+    ///         .await?
+    ///         .solution
+    ///         .url)
     /// }
     /// ```
     ///
@@ -132,9 +135,7 @@ impl Client {
     ///     file: &str,
     /// ) -> mini_exercism::core::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder()
-    ///         .credentials(credentials)
-    ///         .build();
+    ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
     ///     let solution = client.get_latest_solution(track, exercise).await?.solution;
     ///     let mut file_response = client.get_file(&solution.uuid, file).await;
@@ -191,9 +192,7 @@ impl Client {
     ///     track: &str,
     /// ) -> mini_exercism::core::Result<SolutionTrack> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder()
-    ///         .credentials(credentials)
-    ///         .build();
+    ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
     ///     Ok(client.get_track(track).await?.track)
     /// }
@@ -221,9 +220,7 @@ impl Client {
     ///
     /// async fn is_api_token_valid(api_token: &str) -> bool {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder()
-    ///         .credentials(credentials)
-    ///         .build();
+    ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
     ///     client.validate_token().await.unwrap_or(false)
     /// }
@@ -275,8 +272,7 @@ impl Client {
     ///     let service_status = client.ping().await?.status;
     ///     println!(
     ///         "Status: website: {}, database: {}",
-    ///         service_status.website,
-    ///         service_status.database,
+    ///         service_status.website, service_status.database,
     ///     );
     ///
     ///     Ok(())

@@ -108,8 +108,7 @@
 //!     for solution in &solutions {
 //!         println!(
 //!             "Solution for exercise {}, public URL: {}",
-//!             solution.exercise.title,
-//!             solution.public_url,
+//!             solution.exercise.title, solution.public_url,
 //!         );
 //!     }
 //!
@@ -135,9 +134,7 @@
 //!
 //! fn get_api_client() -> api::v2::Client {
 //!     let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-//!     api::v2::Client::builder()
-//!         .credentials(credentials)
-//!         .build()
+//!     api::v2::Client::builder().credentials(credentials).build()
 //! }
 //! ```
 //!
@@ -188,9 +185,7 @@
 //!     // ... customize HTTP client with `http_client_builder` here ...
 //!     let http_client = http_client_builder.build()?;
 //!
-//!     Ok(api::v2::Client::builder()
-//!         .http_client(http_client)
-//!         .build())
+//!     Ok(api::v2::Client::builder().http_client(http_client).build())
 //! }
 //! ```
 //!
@@ -211,7 +206,6 @@
 #![deny(rustdoc::missing_crate_level_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
-
 #![cfg_attr(any(nightly_rustc, docsrs), feature(doc_cfg))]
 
 pub mod api;
