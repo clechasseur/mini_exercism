@@ -2,6 +2,7 @@
 //!
 //! # TOC
 //!
+//! - [`What is Exercism?`](#what-is-exercism)
 //! - [`Installing`](#installing)
 //! - [`API clients`](#api-clients)
 //! - [`Async methods`](#async-methods)
@@ -11,6 +12,12 @@
 //! - [`Custom HTTP client`](#custom-http-client)
 //! - [`Crate status`](#crate-status)
 //! - [`Minimum Rust version`](#minimum-rust-version)
+//!
+//! ## What is Exercism?
+//!
+//! [Exercism](https://exercism.org) is a free, not-for-profit platform to learn new programming
+//! languages. It supports a web editor for solving exercises, mentoring with real humans and
+//! a lot more. For more information, see [its about page](https://exercism.org/about).
 //!
 //! ## Installing
 //!
