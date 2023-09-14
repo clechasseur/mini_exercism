@@ -34,25 +34,20 @@ use mini_exercism::core::Credentials;
 async fn get_published_solution_uuids(
     api_token: &str,
     track: &str,
-) -> mini_exercism::core::Result<Vec<String>> {
+) -> anyhow::Result<Vec<String>> {
     let credentials = Credentials::from_api_token(api_token);
-    let client = api::v2::Client::builder()
-        .credentials(credentials)
-        .build();
+    let client = api::v2::Client::builder().credentials(credentials).build();
 
-    let filters = ExerciseFilters::builder()
-        .include_solutions(true)
-        .build();
-    let solutions = client
-        .get_exercises(track, Some(filters))
-        .await?
-        .solutions;
+    let filters = ExerciseFilters::builder().include_solutions(true).build();
+    let solutions = client.get_exercises(track, Some(filters)).await?.solutions;
 
-    Ok(solutions
-        .into_iter()
-        .filter(|solution| solution.published_at.is_some())
-        .map(|solution| solution.uuid)
-        .collect())
+    anyhow::Ok(
+        solutions
+            .into_iter()
+            .filter(|solution| solution.published_at.is_some())
+            .map(|solution| solution.uuid)
+            .collect(),
+    )
 }
 ```
 
