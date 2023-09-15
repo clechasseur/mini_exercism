@@ -19,7 +19,7 @@ A clear and concise description of what you expected to happen.
 **Environment (please complete the following information):**
  - Rust version: [e.g. 1.72.0]
  - Target: [e.g. `x86_64-unknown-linux-gnu`]
- - Crate version: [e.g. 0.1.0]
+ - Crate version: [e.g. 1.0.0]
 
 **Additional context**
 Add any other context about the problem here.
