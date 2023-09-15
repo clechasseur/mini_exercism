@@ -1,5 +1,7 @@
 //! Types and functions to interact with the [Exercism website](https://exercism.org) v1 API.
 
+use std::fmt::Display;
+
 use bytes::Bytes;
 use futures::future::Either;
 use futures::{stream, Stream, StreamExt, TryStreamExt};
@@ -16,6 +18,7 @@ define_api_client! {
     /// Client for the [Exercism website](https://exercism.org) v1 API. This API is undocumented
     /// and is mostly used by the [Exercism CLI](https://exercism.org/docs/using/solving-exercises/working-locally)
     /// to download solution files.
+    #[derive(Debug)]
     pub struct Client(DEFAULT_V1_API_BASE_URL);
 }
 
@@ -54,8 +57,7 @@ impl Client {
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_solution(&self, uuid: &str) -> Result<SolutionResponse> {
-        self.get(format!("/solutions/{}", uuid).as_str(), None)
-            .await
+        self.get(format!("/solutions/{}", uuid), None).await
     }
 
     /// Returns information about the latest solution submitted by the user for
@@ -155,7 +157,7 @@ impl Client {
     ) -> impl Stream<Item = Result<Bytes>> {
         let result = self
             .api_client
-            .get(format!("/solutions/{}/files/{}", solution_uuid, file_path).as_str())
+            .get(format!("/solutions/{}/files/{}", solution_uuid, file_path))
             .send()
             .await
             .and_then(|response| response.error_for_status());
@@ -199,7 +201,7 @@ impl Client {
     ///
     /// [`ApiError`]: crate::core::Error#variant.ApiError
     pub async fn get_track(&self, track: &str) -> Result<TrackResponse> {
-        self.get(format!("/tracks/{}", track).as_str(), None).await
+        self.get(format!("/tracks/{}", track), None).await
     }
 
     /// Validates the API token used to perform API requests. If the API token is invalid or
@@ -283,8 +285,9 @@ impl Client {
         self.get("/ping", None).await
     }
 
-    async fn get<'a, R>(&self, url: &str, query: Option<&[(&'static str, &'a str)]>) -> Result<R>
+    async fn get<U, R>(&self, url: U, query: Option<&[(&str, &str)]>) -> Result<R>
     where
+        U: Display,
         R: DeserializeOwned,
     {
         let mut request = self.api_client.get(url);

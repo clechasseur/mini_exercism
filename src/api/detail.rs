@@ -1,9 +1,12 @@
+use std::fmt::Display;
+
 use derive_builder::Builder;
 use reqwest::{Client, Method, RequestBuilder};
 
 use crate::core::Credentials;
 
-#[derive(Builder)]
+#[derive(Debug, Builder)]
+#[builder(derive(Debug))]
 pub struct ApiClient {
     #[builder(default)]
     http_client: Client,
@@ -26,7 +29,7 @@ impl ApiClient {
         self.api_base_url.as_str()
     }
 
-    pub fn request(&self, method: Method, url: &str) -> RequestBuilder {
+    pub fn request<U: Display>(&self, method: Method, url: U) -> RequestBuilder {
         let builder = self.http_client.request(method, self.api_url(url));
         match &self.credentials {
             Some(creds) => builder.bearer_auth(creds.api_token()),
@@ -34,18 +37,18 @@ impl ApiClient {
         }
     }
 
-    pub fn get(&self, url: &str) -> RequestBuilder {
+    pub fn get<U: Display>(&self, url: U) -> RequestBuilder {
         self.request(Method::GET, url)
     }
 
-    fn api_url(&self, url: &str) -> String {
+    fn api_url<U: Display>(&self, url: U) -> String {
         format!("{}{}", self.api_base_url, url)
     }
 }
 
 impl ApiClientBuilder {
     pub fn api_base_url(&mut self, url: &str) -> &mut Self {
-        self.api_base_url = Some(url.trim_end_matches('/').to_string());
+        self.api_base_url = Some(url.trim_end_matches('/').into());
         self
     }
 }
@@ -111,6 +114,7 @@ macro_rules! define_api_client {
                 Because all fields have default values, it is legal to create
                 an instance of this builder and simply call [`build`](" $api_name r"Builder::build).
             "]
+            #[derive(Debug)]
             pub struct [<$api_name Builder>] {
                 api_client_builder: $crate::api::detail::ApiClientBuilder,
             }
@@ -159,7 +163,7 @@ macro_rules! define_api_client {
                 #[doc = "Builds a new [`" $api_name "`] instance using the parameters of this builder."]
                 pub fn build(&self) -> $api_name {
                     $api_name {
-                        api_client: self.api_client_builder.build().unwrap(),
+                        api_client: self.api_client_builder.build().expect("All fields should have had default values"),
                     }
                 }
             }
@@ -384,6 +388,7 @@ mod tests {
         const TEST_API_CLIENT_BASE_URL: &str = "https://test.api.client/api";
 
         define_api_client! {
+            #[derive(Debug)]
             pub struct TestApiClient(TEST_API_CLIENT_BASE_URL);
         }
 

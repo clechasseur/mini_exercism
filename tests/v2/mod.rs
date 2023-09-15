@@ -21,37 +21,37 @@ mod client {
 
             let tracks_response = TracksResponse {
                 tracks: vec![Track {
-                    name: "cpp".to_string(),
-                    title: "C++".to_string(),
+                    name: "cpp".into(),
+                    title: "C++".into(),
                     num_concepts: 14,
                     num_exercises: 73,
-                    web_url: "https://exercism.org/tracks/cpp".to_string(),
-                    icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/cpp.svg".to_string(),
+                    web_url: "https://exercism.org/tracks/cpp".into(),
+                    icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/cpp.svg".into(),
                     tags: vec![
-                        "Object-oriented".to_string(),
-                        "Static".to_string(),
-                        "Strong".to_string(),
-                        "Compiled".to_string(),
-                        "Android".to_string(),
-                        "iOS".to_string(),
-                        "Linux".to_string(),
-                        "Mac OSX".to_string(),
-                        "Windows".to_string(),
-                        "Standalone executable".to_string(),
-                        "Backends".to_string(),
-                        "Cross-platform development".to_string(),
-                        "Embedded systems".to_string(),
-                        "Financial systems".to_string(),
-                        "Games".to_string(),
-                        "GUIs".to_string(),
-                        "Mobile".to_string(),
-                        "Robotics".to_string(),
-                        "Scientific calculations".to_string(),
+                        "Object-oriented".into(),
+                        "Static".into(),
+                        "Strong".into(),
+                        "Compiled".into(),
+                        "Android".into(),
+                        "iOS".into(),
+                        "Linux".into(),
+                        "Mac OSX".into(),
+                        "Windows".into(),
+                        "Standalone executable".into(),
+                        "Backends".into(),
+                        "Cross-platform development".into(),
+                        "Embedded systems".into(),
+                        "Financial systems".into(),
+                        "Games".into(),
+                        "GUIs".into(),
+                        "Mobile".into(),
+                        "Robotics".into(),
+                        "Scientific calculations".into(),
                     ],
                     links: TrackLinks {
-                        self_url: "https://exercism.org/tracks/cpp".to_string(),
-                        exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
-                        concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
+                        self_url: "https://exercism.org/tracks/cpp".into(),
+                        exercises: "https://exercism.org/tracks/cpp/exercises".into(),
+                        concepts: "https://exercism.org/tracks/cpp/concepts".into(),
                     },
                     is_joined: true,
                     num_learnt_concepts: 0,
@@ -103,23 +103,23 @@ mod client {
 
             let exercises_response = ExercisesResponse {
                 exercises: vec![Exercise {
-                    name: "poker".to_string(),
+                    name: "poker".into(),
                     exercise_type: Practice,
-                    title: "Poker".to_string(),
-                    icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                    title: "Poker".into(),
+                    icon_url: "https://assets.exercism.org/exercises/poker.svg".into(),
                     difficulty: Hard,
-                    blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
+                    blurb: "Pick the best hand(s) from a list of poker hands.".into(),
                     is_external: false,
                     is_unlocked: true,
                     is_recommended: false,
-                    links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".to_string() },
+                    links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".into() },
                 }],
                 solutions: vec![Solution {
-                    uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                    private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                    uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
+                    private_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
                     public_url:
                         "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
-                            .to_string(),
+                            .into(),
                     status: Published,
                     mentoring_status: Finished,
                     published_iteration_head_tests_status: Passed,
@@ -130,19 +130,19 @@ mod client {
                     num_iterations: 13,
                     num_loc: Some(252),
                     is_out_of_date: false,
-                    published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                    completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                    updated_at: "2023-08-27T07:06:01Z".to_string(),
-                    last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                    published_at: Some("2023-05-08T00:02:21Z".into()),
+                    completed_at: Some("2023-05-08T00:02:21Z".into()),
+                    updated_at: "2023-08-27T07:06:01Z".into(),
+                    last_iterated_at: Some("2023-05-07T05:35:43Z".into()),
                     exercise: SolutionExercise {
-                        name: "poker".to_string(),
-                        title: "Poker".to_string(),
-                        icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                        name: "poker".into(),
+                        title: "Poker".into(),
+                        icon_url: "https://assets.exercism.org/exercises/poker.svg".into(),
                     },
                     track: SolutionTrack {
-                        name: "rust".to_string(),
-                        title: "Rust".to_string(),
-                        icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                        name: "rust".into(),
+                        title: "Rust".into(),
+                        icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
                     },
                 }],
             };
@@ -301,65 +301,64 @@ mod tracks_response {
             let expected = TracksResponse {
                 tracks: vec![
                     Track {
-                        name: "8th".to_string(),
-                        title: "8th".to_string(),
+                        name: "8th".into(),
+                        title: "8th".into(),
                         num_concepts: 0,
                         num_exercises: 22,
-                        web_url: "https://exercism.org/tracks/8th".to_string(),
-                        icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/8th.svg".to_string(),
+                        web_url: "https://exercism.org/tracks/8th".into(),
+                        icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/8th.svg".into(),
                         tags: vec![
-                            "Functional".to_string(),
-                            "Imperative".to_string(),
-                            "Procedural".to_string(),
-                            "Static".to_string(),
-                            "Strong".to_string(),
-                            "Dynamic".to_string(),
-                            "Compiled".to_string(),
-                            "Interpreted".to_string(),
-                            "Windows".to_string(),
-                            "Mac OSX".to_string(),
-                            "Linux".to_string(),
-                            "iOS".to_string(),
-                            "Android".to_string(),
-                            "Backends".to_string(),
-                            "Cross-platform development".to_string(),
-                            "Frontends".to_string(),
-                            "Games".to_string(),
-                            "GUIs".to_string(),
-                            "Mobile".to_string(),
-                            "Web development".to_string(),
+                            "Functional".into(),
+                            "Imperative".into(),
+                            "Procedural".into(),
+                            "Static".into(),
+                            "Strong".into(),
+                            "Dynamic".into(),
+                            "Compiled".into(),
+                            "Interpreted".into(),
+                            "Windows".into(),
+                            "Mac OSX".into(),
+                            "Linux".into(),
+                            "iOS".into(),
+                            "Android".into(),
+                            "Backends".into(),
+                            "Cross-platform development".into(),
+                            "Frontends".into(),
+                            "Games".into(),
+                            "GUIs".into(),
+                            "Mobile".into(),
+                            "Web development".into(),
                         ],
                         links: TrackLinks {
-                            self_url: "https://exercism.org/tracks/8th".to_string(),
-                            exercises: "https://exercism.org/tracks/8th/exercises".to_string(),
-                            concepts: "https://exercism.org/tracks/8th/concepts".to_string(),
+                            self_url: "https://exercism.org/tracks/8th".into(),
+                            exercises: "https://exercism.org/tracks/8th/exercises".into(),
+                            concepts: "https://exercism.org/tracks/8th/concepts".into(),
                         },
                         is_joined: false,
                         num_learnt_concepts: 0,
                         num_completed_exercises: 0,
                     },
                     Track {
-                        name: "abap".to_string(),
-                        title: "ABAP".to_string(),
+                        name: "abap".into(),
+                        title: "ABAP".into(),
                         num_concepts: 0,
                         num_exercises: 40,
-                        web_url: "https://exercism.org/tracks/abap".to_string(),
-                        icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/abap.svg"
-                            .to_string(),
+                        web_url: "https://exercism.org/tracks/abap".into(),
+                        icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/abap.svg".into(),
                         tags: vec![
-                            "Object-oriented".to_string(),
-                            "Procedural".to_string(),
-                            "Static".to_string(),
-                            "Strong".to_string(),
-                            "Compiled".to_string(),
-                            "Language-specific runtime".to_string(),
-                            "Backends".to_string(),
-                            "Financial systems".to_string(),
+                            "Object-oriented".into(),
+                            "Procedural".into(),
+                            "Static".into(),
+                            "Strong".into(),
+                            "Compiled".into(),
+                            "Language-specific runtime".into(),
+                            "Backends".into(),
+                            "Financial systems".into(),
                         ],
                         links: TrackLinks {
-                            self_url: "https://exercism.org/tracks/abap".to_string(),
-                            exercises: "https://exercism.org/tracks/abap/exercises".to_string(),
-                            concepts: "https://exercism.org/tracks/abap/concepts".to_string(),
+                            self_url: "https://exercism.org/tracks/abap".into(),
+                            exercises: "https://exercism.org/tracks/abap/exercises".into(),
+                            concepts: "https://exercism.org/tracks/abap/concepts".into(),
                         },
                         is_joined: false,
                         num_learnt_concepts: 0,
@@ -417,36 +416,36 @@ mod track {
             }"#;
 
             let expected = Track {
-                name: "clojure".to_string(),
-                title: "Clojure".to_string(),
+                name: "clojure".into(),
+                title: "Clojure".into(),
                 num_concepts: 10,
                 num_exercises: 87,
-                web_url: "https://exercism.org/tracks/clojure".to_string(),
-                icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/clojure.svg".to_string(),
+                web_url: "https://exercism.org/tracks/clojure".into(),
+                icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/clojure.svg".into(),
                 tags: vec![
-                    "Declarative".to_string(),
-                    "Functional".to_string(),
-                    "Dynamic".to_string(),
-                    "Compiled".to_string(),
-                    "Windows".to_string(),
-                    "Mac OSX".to_string(),
-                    "Linux".to_string(),
-                    "JVM (Java)".to_string(),
-                    "Artificial Intelligence".to_string(),
-                    "Backends".to_string(),
-                    "Cross-platform development".to_string(),
-                    "Financial systems".to_string(),
-                    "Frontends".to_string(),
-                    "Games".to_string(),
-                    "GUIs".to_string(),
-                    "Robotics".to_string(),
-                    "Scientific calculations".to_string(),
-                    "Web development".to_string(),
+                    "Declarative".into(),
+                    "Functional".into(),
+                    "Dynamic".into(),
+                    "Compiled".into(),
+                    "Windows".into(),
+                    "Mac OSX".into(),
+                    "Linux".into(),
+                    "JVM (Java)".into(),
+                    "Artificial Intelligence".into(),
+                    "Backends".into(),
+                    "Cross-platform development".into(),
+                    "Financial systems".into(),
+                    "Frontends".into(),
+                    "Games".into(),
+                    "GUIs".into(),
+                    "Robotics".into(),
+                    "Scientific calculations".into(),
+                    "Web development".into(),
                 ],
                 links: TrackLinks {
-                    self_url: "https://exercism.org/tracks/clojure".to_string(),
-                    exercises: "https://exercism.org/tracks/clojure/exercises".to_string(),
-                    concepts: "https://exercism.org/tracks/clojure/concepts".to_string(),
+                    self_url: "https://exercism.org/tracks/clojure".into(),
+                    exercises: "https://exercism.org/tracks/clojure/exercises".into(),
+                    concepts: "https://exercism.org/tracks/clojure/concepts".into(),
                 },
                 is_joined: false,
                 num_learnt_concepts: 0,
@@ -502,37 +501,37 @@ mod track {
             }"#;
 
             let expected = Track {
-                name: "cpp".to_string(),
-                title: "C++".to_string(),
+                name: "cpp".into(),
+                title: "C++".into(),
                 num_concepts: 14,
                 num_exercises: 73,
-                web_url: "https://exercism.org/tracks/cpp".to_string(),
-                icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/cpp.svg".to_string(),
+                web_url: "https://exercism.org/tracks/cpp".into(),
+                icon_url: "https://dg8krxphbh767.cloudfront.net/tracks/cpp.svg".into(),
                 tags: vec![
-                    "Object-oriented".to_string(),
-                    "Static".to_string(),
-                    "Strong".to_string(),
-                    "Compiled".to_string(),
-                    "Android".to_string(),
-                    "iOS".to_string(),
-                    "Linux".to_string(),
-                    "Mac OSX".to_string(),
-                    "Windows".to_string(),
-                    "Standalone executable".to_string(),
-                    "Backends".to_string(),
-                    "Cross-platform development".to_string(),
-                    "Embedded systems".to_string(),
-                    "Financial systems".to_string(),
-                    "Games".to_string(),
-                    "GUIs".to_string(),
-                    "Mobile".to_string(),
-                    "Robotics".to_string(),
-                    "Scientific calculations".to_string(),
+                    "Object-oriented".into(),
+                    "Static".into(),
+                    "Strong".into(),
+                    "Compiled".into(),
+                    "Android".into(),
+                    "iOS".into(),
+                    "Linux".into(),
+                    "Mac OSX".into(),
+                    "Windows".into(),
+                    "Standalone executable".into(),
+                    "Backends".into(),
+                    "Cross-platform development".into(),
+                    "Embedded systems".into(),
+                    "Financial systems".into(),
+                    "Games".into(),
+                    "GUIs".into(),
+                    "Mobile".into(),
+                    "Robotics".into(),
+                    "Scientific calculations".into(),
                 ],
                 links: TrackLinks {
-                    self_url: "https://exercism.org/tracks/cpp".to_string(),
-                    exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
-                    concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
+                    self_url: "https://exercism.org/tracks/cpp".into(),
+                    exercises: "https://exercism.org/tracks/cpp/exercises".into(),
+                    concepts: "https://exercism.org/tracks/cpp/concepts".into(),
                 },
                 is_joined: true,
                 num_learnt_concepts: 0,
@@ -557,9 +556,9 @@ mod track_links {
             }"#;
 
             let expected = TrackLinks {
-                self_url: "https://exercism.org/tracks/cpp".to_string(),
-                exercises: "https://exercism.org/tracks/cpp/exercises".to_string(),
-                concepts: "https://exercism.org/tracks/cpp/concepts".to_string(),
+                self_url: "https://exercism.org/tracks/cpp".into(),
+                exercises: "https://exercism.org/tracks/cpp/exercises".into(),
+                concepts: "https://exercism.org/tracks/cpp/concepts".into(),
             };
             let actual: TrackLinks = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
@@ -650,35 +649,31 @@ mod exercises_response {
             let expected = ExercisesResponse {
                 exercises: vec![
                     Exercise {
-                        name: "hello-world".to_string(),
+                        name: "hello-world".into(),
                         exercise_type: Tutorial,
-                        title: "Hello World".to_string(),
-                        icon_url: "https://assets.exercism.org/exercises/hello-world.svg"
-                            .to_string(),
+                        title: "Hello World".into(),
+                        icon_url: "https://assets.exercism.org/exercises/hello-world.svg".into(),
                         difficulty: Easy,
                         blurb: "The classical introductory exercise. Just say \"Hello, World!\"."
-                            .to_string(),
+                            .into(),
                         is_external: true,
                         is_unlocked: true,
                         is_recommended: false,
                         links: ExerciseLinks {
-                            self_path: "/tracks/rust/exercises/hello-world".to_string(),
+                            self_path: "/tracks/rust/exercises/hello-world".into(),
                         },
                     },
                     Exercise {
-                        name: "forth".to_string(),
+                        name: "forth".into(),
                         exercise_type: Practice,
-                        title: "Forth".to_string(),
-                        icon_url: "https://assets.exercism.org/exercises/forth.svg".to_string(),
+                        title: "Forth".into(),
+                        icon_url: "https://assets.exercism.org/exercises/forth.svg".into(),
                         difficulty: Hard,
-                        blurb: "Implement an evaluator for a very simple subset of Forth."
-                            .to_string(),
+                        blurb: "Implement an evaluator for a very simple subset of Forth.".into(),
                         is_external: true,
                         is_unlocked: true,
                         is_recommended: false,
-                        links: ExerciseLinks {
-                            self_path: "/tracks/rust/exercises/forth".to_string(),
-                        },
+                        links: ExerciseLinks { self_path: "/tracks/rust/exercises/forth".into() },
                     },
                 ],
                 solutions: vec![],
@@ -741,23 +736,23 @@ mod exercises_response {
 
             let expected = ExercisesResponse {
                 exercises: vec![Exercise {
-                    name: "poker".to_string(),
+                    name: "poker".into(),
                     exercise_type: Practice,
-                    title: "Poker".to_string(),
-                    icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                    title: "Poker".into(),
+                    icon_url: "https://assets.exercism.org/exercises/poker.svg".into(),
                     difficulty: Hard,
-                    blurb: "Pick the best hand(s) from a list of poker hands.".to_string(),
+                    blurb: "Pick the best hand(s) from a list of poker hands.".into(),
                     is_external: false,
                     is_unlocked: true,
                     is_recommended: false,
-                    links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".to_string() },
+                    links: ExerciseLinks { self_path: "/tracks/rust/exercises/poker".into() },
                 }],
                 solutions: vec![Solution {
-                    uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                    private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                    uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
+                    private_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
                     public_url:
                         "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
-                            .to_string(),
+                            .into(),
                     status: Published,
                     mentoring_status: Finished,
                     published_iteration_head_tests_status: Passed,
@@ -768,19 +763,19 @@ mod exercises_response {
                     num_iterations: 13,
                     num_loc: Some(252),
                     is_out_of_date: false,
-                    published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                    completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                    updated_at: "2023-08-27T07:06:01Z".to_string(),
-                    last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                    published_at: Some("2023-05-08T00:02:21Z".into()),
+                    completed_at: Some("2023-05-08T00:02:21Z".into()),
+                    updated_at: "2023-08-27T07:06:01Z".into(),
+                    last_iterated_at: Some("2023-05-07T05:35:43Z".into()),
                     exercise: SolutionExercise {
-                        name: "poker".to_string(),
-                        title: "Poker".to_string(),
-                        icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                        name: "poker".into(),
+                        title: "Poker".into(),
+                        icon_url: "https://assets.exercism.org/exercises/poker.svg".into(),
                     },
                     track: SolutionTrack {
-                        name: "rust".to_string(),
-                        title: "Rust".to_string(),
-                        icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                        name: "rust".into(),
+                        title: "Rust".into(),
+                        icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
                     },
                 }],
             };
@@ -814,19 +809,16 @@ mod exercise {
             }"#;
 
             let expected = Exercise {
-                name: "hello-world".to_string(),
+                name: "hello-world".into(),
                 exercise_type: Tutorial,
-                title: "Hello World".to_string(),
-                icon_url: "https://assets.exercism.org/exercises/hello-world.svg".to_string(),
+                title: "Hello World".into(),
+                icon_url: "https://assets.exercism.org/exercises/hello-world.svg".into(),
                 difficulty: Easy,
-                blurb: "The classical introductory exercise. Just say \"Hello, World!\"."
-                    .to_string(),
+                blurb: "The classical introductory exercise. Just say \"Hello, World!\".".into(),
                 is_external: true,
                 is_unlocked: true,
                 is_recommended: false,
-                links: ExerciseLinks {
-                    self_path: "/tracks/rust/exercises/hello-world".to_string(),
-                },
+                links: ExerciseLinks { self_path: "/tracks/rust/exercises/hello-world".into() },
             };
             let actual: Exercise = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
@@ -850,19 +842,19 @@ mod exercise {
             }"#;
 
             let expected = Exercise {
-                name: "rlyehian".to_string(),
+                name: "rlyehian".into(),
                 exercise_type: ExerciseType::Unknown,
-                title: "R'lyehian".to_string(),
+                title: "R'lyehian".into(),
                 icon_url: "https://assets.exercism.org/exercises/rlyehian.svg"
-                    .to_string(),
+                    .into(),
                 difficulty: ExerciseDifficulty::Unknown,
                 blurb: "Cahf ah nafl mglw'nafh hh' ahor syha'h ah'legeth, ng llll or'azath syha'hnahh n'ghftephai n'gha ahornah ah'mglw'nafh."
-                    .to_string(),
+                    .into(),
                 is_external: true,
                 is_unlocked: true,
                 is_recommended: false,
                 links: ExerciseLinks {
-                    self_path: "/tracks/rust/exercises/rlyehian".to_string(),
+                    self_path: "/tracks/rust/exercises/rlyehian".into(),
                 },
             };
             let actual: Exercise = serde_json::from_str(json).unwrap();
@@ -881,8 +873,7 @@ mod exercise_links {
                 "self": "/tracks/rust/exercises/hello-world"
             }"#;
 
-            let expected =
-                ExerciseLinks { self_path: "/tracks/rust/exercises/hello-world".to_string() };
+            let expected = ExerciseLinks { self_path: "/tracks/rust/exercises/hello-world".into() };
             let actual: ExerciseLinks = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
         }
@@ -932,11 +923,10 @@ mod solution {
             }"#;
 
             let expected = Solution {
-                uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                private_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
+                private_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
                 public_url:
-                    "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur"
-                        .to_string(),
+                    "https://exercism.org/tracks/rust/exercises/poker/solutions/clechasseur".into(),
                 status: Published,
                 mentoring_status: Finished,
                 published_iteration_head_tests_status: Passed,
@@ -947,19 +937,19 @@ mod solution {
                 num_iterations: 13,
                 num_loc: Some(252),
                 is_out_of_date: false,
-                published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                updated_at: "2023-08-27T07:06:01Z".to_string(),
-                last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                published_at: Some("2023-05-08T00:02:21Z".into()),
+                completed_at: Some("2023-05-08T00:02:21Z".into()),
+                updated_at: "2023-08-27T07:06:01Z".into(),
+                last_iterated_at: Some("2023-05-07T05:35:43Z".into()),
                 exercise: SolutionExercise {
-                    name: "poker".to_string(),
-                    title: "Poker".to_string(),
-                    icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                    name: "poker".into(),
+                    title: "Poker".into(),
+                    icon_url: "https://assets.exercism.org/exercises/poker.svg".into(),
                 },
                 track: SolutionTrack {
-                    name: "rust".to_string(),
-                    title: "Rust".to_string(),
-                    icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                    name: "rust".into(),
+                    title: "Rust".into(),
+                    icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
                 },
             };
             let actual: Solution = serde_json::from_str(json).unwrap();
@@ -999,11 +989,11 @@ mod solution {
             }"#;
 
             let expected = Solution {
-                uuid: "7b1fe9e73ccf44d5aa4da9b3d28da405".to_string(),
-                private_url: "https://exercism.org/tracks/rust/exercises/rlyehian".to_string(),
+                uuid: "7b1fe9e73ccf44d5aa4da9b3d28da405".into(),
+                private_url: "https://exercism.org/tracks/rust/exercises/rlyehian".into(),
                 public_url:
                     "https://exercism.org/tracks/rust/exercises/rlyehian/solutions/clechasseur"
-                        .to_string(),
+                        .into(),
                 status: SolutionStatus::Unknown,
                 mentoring_status: SolutionMentoringStatus::Unknown,
                 published_iteration_head_tests_status: SolutionTestsStatus::Unknown,
@@ -1014,19 +1004,19 @@ mod solution {
                 num_iterations: 13,
                 num_loc: Some(252),
                 is_out_of_date: false,
-                published_at: Some("2023-05-08T00:02:21Z".to_string()),
-                completed_at: Some("2023-05-08T00:02:21Z".to_string()),
-                updated_at: "2023-08-27T07:06:01Z".to_string(),
-                last_iterated_at: Some("2023-05-07T05:35:43Z".to_string()),
+                published_at: Some("2023-05-08T00:02:21Z".into()),
+                completed_at: Some("2023-05-08T00:02:21Z".into()),
+                updated_at: "2023-08-27T07:06:01Z".into(),
+                last_iterated_at: Some("2023-05-07T05:35:43Z".into()),
                 exercise: SolutionExercise {
-                    name: "rlyehian".to_string(),
-                    title: "R'lyehian".to_string(),
-                    icon_url: "https://assets.exercism.org/exercises/rlyehian.svg".to_string(),
+                    name: "rlyehian".into(),
+                    title: "R'lyehian".into(),
+                    icon_url: "https://assets.exercism.org/exercises/rlyehian.svg".into(),
                 },
                 track: SolutionTrack {
-                    name: "rust".to_string(),
-                    title: "Rust".to_string(),
-                    icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                    name: "rust".into(),
+                    title: "Rust".into(),
+                    icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
                 },
             };
             let actual: Solution = serde_json::from_str(json).unwrap();
@@ -1048,9 +1038,9 @@ mod solution_exercise {
             }"#;
 
             let expected = SolutionExercise {
-                name: "poker".to_string(),
-                title: "Poker".to_string(),
-                icon_url: "https://assets.exercism.org/exercises/poker.svg".to_string(),
+                name: "poker".into(),
+                title: "Poker".into(),
+                icon_url: "https://assets.exercism.org/exercises/poker.svg".into(),
             };
             let actual: SolutionExercise = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
@@ -1071,9 +1061,9 @@ mod solution_track {
             }"#;
 
             let expected = SolutionTrack {
-                name: "rust".to_string(),
-                title: "Rust".to_string(),
-                icon_url: "https://assets.exercism.org/tracks/rust.svg".to_string(),
+                name: "rust".into(),
+                title: "Rust".into(),
+                icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
             };
             let actual: SolutionTrack = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);

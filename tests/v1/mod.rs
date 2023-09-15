@@ -23,36 +23,32 @@ mod client {
             let solution_uuid = "00c717b68e1b4213b316df82636f5e0f";
             let solution_response = SolutionResponse {
                 solution: Solution {
-                    uuid: solution_uuid.to_string(),
-                    url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                    user: SolutionUser { handle: "clechasseur".to_string(), is_requester: true },
+                    uuid: solution_uuid.into(),
+                    url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                    user: SolutionUser { handle: "clechasseur".into(), is_requester: true },
                     exercise: SolutionExercise {
-                        name: "poker".to_string(),
-                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker"
-                            .to_string(),
-                        track: SolutionTrack {
-                            name: "rust".to_string(),
-                            title: "Rust".to_string(),
-                        },
+                        name: "poker".into(),
+                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                        track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
                     },
                     file_download_base_url: format!(
                         "https://exercism.org/api/v1/solutions/{}/files/",
                         solution_uuid
                     ),
                     files: vec![
-                        ".exercism/config.json".to_string(),
-                        "README.md".to_string(),
-                        "HELP.md".to_string(),
-                        ".gitignore".to_string(),
-                        "Cargo.toml".to_string(),
-                        "src/lib.rs".to_string(),
-                        "tests/poker.rs".to_string(),
-                        "src/detail.rs".to_string(),
-                        "src/detail/slice_utils.rs".to_string(),
-                        "src/detail/slice_utils/group_by.rs".to_string(),
+                        ".exercism/config.json".into(),
+                        "README.md".into(),
+                        "HELP.md".into(),
+                        ".gitignore".into(),
+                        "Cargo.toml".into(),
+                        "src/lib.rs".into(),
+                        "tests/poker.rs".into(),
+                        "src/detail.rs".into(),
+                        "src/detail/slice_utils.rs".into(),
+                        "src/detail/slice_utils/group_by.rs".into(),
                     ],
                     submission: Some(SolutionSubmission {
-                        submitted_at: "2023-05-07T05:35:43.366Z".to_string(),
+                        submitted_at: "2023-05-07T05:35:43.366Z".into(),
                     }),
                 },
             };
@@ -93,36 +89,32 @@ mod client {
             let solution_uuid = "00c717b68e1b4213b316df82636f5e0f";
             let solution_response = SolutionResponse {
                 solution: Solution {
-                    uuid: solution_uuid.to_string(),
-                    url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                    user: SolutionUser { handle: "clechasseur".to_string(), is_requester: true },
+                    uuid: solution_uuid.into(),
+                    url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                    user: SolutionUser { handle: "clechasseur".into(), is_requester: true },
                     exercise: SolutionExercise {
-                        name: "poker".to_string(),
-                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker"
-                            .to_string(),
-                        track: SolutionTrack {
-                            name: "rust".to_string(),
-                            title: "Rust".to_string(),
-                        },
+                        name: "poker".into(),
+                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                        track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
                     },
                     file_download_base_url: format!(
                         "https://exercism.org/api/v1/solutions/{}/files/",
                         solution_uuid
                     ),
                     files: vec![
-                        ".exercism/config.json".to_string(),
-                        "README.md".to_string(),
-                        "HELP.md".to_string(),
-                        ".gitignore".to_string(),
-                        "Cargo.toml".to_string(),
-                        "src/lib.rs".to_string(),
-                        "tests/poker.rs".to_string(),
-                        "src/detail.rs".to_string(),
-                        "src/detail/slice_utils.rs".to_string(),
-                        "src/detail/slice_utils/group_by.rs".to_string(),
+                        ".exercism/config.json".into(),
+                        "README.md".into(),
+                        "HELP.md".into(),
+                        ".gitignore".into(),
+                        "Cargo.toml".into(),
+                        "src/lib.rs".into(),
+                        "tests/poker.rs".into(),
+                        "src/detail.rs".into(),
+                        "src/detail/slice_utils.rs".into(),
+                        "src/detail/slice_utils/group_by.rs".into(),
                     ],
                     submission: Some(SolutionSubmission {
-                        submitted_at: "2023-05-07T05:35:43.366Z".to_string(),
+                        submitted_at: "2023-05-07T05:35:43.366Z".into(),
                     }),
                 },
             };
@@ -226,7 +218,7 @@ version = "1.1.0"
             let mock_server = MockServer::start().await;
 
             let track_response = TrackResponse {
-                track: SolutionTrack { name: "rust".to_string(), title: "Rust".to_string() },
+                track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
             };
             Mock::given(method(Get))
                 .and(path("/tracks/rust"))
@@ -383,35 +375,35 @@ mod solution_response {
 
             let expected = SolutionResponse {
                 solution: Solution {
-                    uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                    url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                    uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
+                    url: "https://exercism.org/tracks/rust/exercises/poker".into(),
                     user: SolutionUser {
-                        handle: "clechasseur".to_string(),
+                        handle: "clechasseur".into(),
                         is_requester: true,
                     },
                     exercise: SolutionExercise {
-                        name: "poker".to_string(),
-                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
+                        name: "poker".into(),
+                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
                         track: SolutionTrack {
-                            name: "rust".to_string(),
-                            title: "Rust".to_string(),
+                            name: "rust".into(),
+                            title: "Rust".into(),
                         },
                     },
-                    file_download_base_url: "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/".to_string(),
+                    file_download_base_url: "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/".into(),
                     files: vec![
-                        ".exercism/config.json".to_string(),
-                        "README.md".to_string(),
-                        "HELP.md".to_string(),
-                        ".gitignore".to_string(),
-                        "Cargo.toml".to_string(),
-                        "src/lib.rs".to_string(),
-                        "tests/poker.rs".to_string(),
-                        "src/detail.rs".to_string(),
-                        "src/detail/slice_utils.rs".to_string(),
-                        "src/detail/slice_utils/group_by.rs".to_string(),
+                        ".exercism/config.json".into(),
+                        "README.md".into(),
+                        "HELP.md".into(),
+                        ".gitignore".into(),
+                        "Cargo.toml".into(),
+                        "src/lib.rs".into(),
+                        "tests/poker.rs".into(),
+                        "src/detail.rs".into(),
+                        "src/detail/slice_utils.rs".into(),
+                        "src/detail/slice_utils/group_by.rs".into(),
                     ],
                     submission: Some(SolutionSubmission {
-                        submitted_at: "2023-05-07T05:35:43.366Z".to_string(),
+                        submitted_at: "2023-05-07T05:35:43.366Z".into(),
                     }),
                 },
             };
@@ -463,32 +455,31 @@ mod solution {
             }"#;
 
             let expected = Solution {
-                uuid: "00c717b68e1b4213b316df82636f5e0f".to_string(),
-                url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                user: SolutionUser { handle: "clechasseur".to_string(), is_requester: true },
+                uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
+                url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                user: SolutionUser { handle: "clechasseur".into(), is_requester: true },
                 exercise: SolutionExercise {
-                    name: "poker".to_string(),
-                    instructions_url: "https://exercism.org/tracks/rust/exercises/poker"
-                        .to_string(),
-                    track: SolutionTrack { name: "rust".to_string(), title: "Rust".to_string() },
+                    name: "poker".into(),
+                    instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                    track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
                 },
                 file_download_base_url:
                     "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/"
-                        .to_string(),
+                        .into(),
                 files: vec![
-                    ".exercism/config.json".to_string(),
-                    "README.md".to_string(),
-                    "HELP.md".to_string(),
-                    ".gitignore".to_string(),
-                    "Cargo.toml".to_string(),
-                    "src/lib.rs".to_string(),
-                    "tests/poker.rs".to_string(),
-                    "src/detail.rs".to_string(),
-                    "src/detail/slice_utils.rs".to_string(),
-                    "src/detail/slice_utils/group_by.rs".to_string(),
+                    ".exercism/config.json".into(),
+                    "README.md".into(),
+                    "HELP.md".into(),
+                    ".gitignore".into(),
+                    "Cargo.toml".into(),
+                    "src/lib.rs".into(),
+                    "tests/poker.rs".into(),
+                    "src/detail.rs".into(),
+                    "src/detail/slice_utils.rs".into(),
+                    "src/detail/slice_utils/group_by.rs".into(),
                 ],
                 submission: Some(SolutionSubmission {
-                    submitted_at: "2023-05-07T05:35:43.366Z".to_string(),
+                    submitted_at: "2023-05-07T05:35:43.366Z".into(),
                 }),
             };
             let actual = serde_json::from_str(json).unwrap();
@@ -508,7 +499,7 @@ mod solution_user {
                 "is_requester": true
             }"#;
 
-            let expected = SolutionUser { handle: "clechasseur".to_string(), is_requester: true };
+            let expected = SolutionUser { handle: "clechasseur".into(), is_requester: true };
             let actual = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
         }
@@ -531,9 +522,9 @@ mod solution_exercise {
             }"#;
 
             let expected = SolutionExercise {
-                name: "poker".to_string(),
-                instructions_url: "https://exercism.org/tracks/rust/exercises/poker".to_string(),
-                track: SolutionTrack { name: "rust".to_string(), title: "Rust".to_string() },
+                name: "poker".into(),
+                instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
+                track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
             };
             let actual = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
@@ -552,7 +543,7 @@ mod solution_track {
                 "language": "Rust"
             }"#;
 
-            let expected = SolutionTrack { name: "rust".to_string(), title: "Rust".to_string() };
+            let expected = SolutionTrack { name: "rust".into(), title: "Rust".into() };
             let actual = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
         }
@@ -569,8 +560,7 @@ mod solution_submission {
                 "submitted_at": "2023-05-07T05:35:43.366Z"
             }"#;
 
-            let expected =
-                SolutionSubmission { submitted_at: "2023-05-07T05:35:43.366Z".to_string() };
+            let expected = SolutionSubmission { submitted_at: "2023-05-07T05:35:43.366Z".into() };
             let actual = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
         }
@@ -590,9 +580,8 @@ mod track_response {
                 }
             }"#;
 
-            let expected = TrackResponse {
-                track: SolutionTrack { name: "awk".to_string(), title: "AWK".to_string() },
-            };
+            let expected =
+                TrackResponse { track: SolutionTrack { name: "awk".into(), title: "AWK".into() } };
             let actual = serde_json::from_str(json).unwrap();
             assert_eq!(expected, actual);
         }

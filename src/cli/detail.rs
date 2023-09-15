@@ -40,7 +40,7 @@ impl CliConfig {
         let token = config["token"].as_str().unwrap_or("").trim();
         match token.is_empty() {
             true => Err(Error::ApiTokenNotFoundInConfig),
-            false => Ok(Self { api_token: token.to_string() }),
+            false => Ok(Self { api_token: token.into() }),
         }
     }
 }

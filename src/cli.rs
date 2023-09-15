@@ -63,7 +63,7 @@ mod tests {
                 .return_once(move || Some(expected_config_dir));
 
             let expected_config_path: PathBuf = ["/some/config/dir", "user.json"].iter().collect();
-            let expected_json_file = "{\"token\": \"some_token\"}".to_string();
+            let expected_json_file = "{\"token\": \"some_token\"}".into();
             let rts_ctx = helpers::read_to_string_context();
             rts_ctx
                 .expect()
@@ -83,7 +83,7 @@ mod tests {
             let expected_config_path: PathBuf = [env::current_dir().unwrap(), "user.json".into()]
                 .iter()
                 .collect();
-            let expected_json_file = "{\"token\": \"some_token\"}".to_string();
+            let expected_json_file = "{\"token\": \"some_token\"}".into();
             let rts_ctx = helpers::read_to_string_context();
             rts_ctx
                 .expect()
@@ -104,7 +104,7 @@ mod tests {
                 .return_once(move || Some(expected_config_dir));
 
             let expected_config_path: PathBuf = ["/some/config/dir", "user.json"].iter().collect();
-            let expected_json_file = "{invalid: json}".to_string();
+            let expected_json_file = "{invalid: json}".into();
             let rts_ctx = helpers::read_to_string_context();
             rts_ctx
                 .expect()

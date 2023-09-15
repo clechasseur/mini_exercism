@@ -2,6 +2,8 @@
 
 mod detail;
 
+use std::fmt::Display;
+
 use derive_builder::Builder;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -16,6 +18,7 @@ pub const DEFAULT_V2_API_BASE_URL: &str = "https://exercism.org/api/v2";
 define_api_client! {
     /// Client for the [Exercism website](https://exercism.org) v2 API. This API is undocumented
     /// and is mostly used by the website itself to fetch information.
+    #[derive(Debug)]
     pub struct Client(DEFAULT_V2_API_BASE_URL);
 }
 
@@ -117,12 +120,13 @@ impl Client {
         track: &str,
         filters: Option<ExerciseFilters<'_>>,
     ) -> Result<ExercisesResponse> {
-        self.get(format!("/tracks/{}/exercises", track).as_str(), filters)
+        self.get(format!("/tracks/{}/exercises", track), filters)
             .await
     }
 
-    async fn get<'a, F, R>(&self, url: &str, filters: Option<F>) -> Result<R>
+    async fn get<'a, U, F, R>(&self, url: U, filters: Option<F>) -> Result<R>
     where
+        U: Display,
         F: Into<Vec<(&'static str, &'a str)>>,
         R: DeserializeOwned,
     {
