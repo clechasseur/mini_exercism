@@ -8,6 +8,18 @@ mod client {
 
     const API_TOKEN: &str = "some_api_token";
 
+    mod debug {
+        use super::*;
+
+        #[test]
+        fn test_derive() {
+            // Note: this test is necessary because of a bug in cargo-tarpaulin, see
+            // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
+            let client = api::v1::Client::new();
+            assert!(!format!("{:?}", client).is_empty());
+        }
+    }
+
     mod get_solution {
         use mini_exercism::api::v1::{
             Solution, SolutionExercise, SolutionResponse, SolutionSubmission, SolutionTrack,

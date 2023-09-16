@@ -398,45 +398,84 @@ mod tests {
             }
         }
 
-        #[test]
-        fn test_builder_with_default_base_url() {
-            let test_api_client = TestApiClient::builder()
-                .http_client(Client::default())
-                .credentials(Credentials::from_api_token(TEST_API_TOKEN))
-                .build();
+        mod builder {
+            use super::*;
 
-            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+            #[test]
+            fn test_default_base_url() {
+                let test_api_client = TestApiClient::builder()
+                    .http_client(Client::default())
+                    .credentials(Credentials::from_api_token(TEST_API_TOKEN))
+                    .build();
+
+                assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+            }
+
+            #[test]
+            fn test_custom_base_url() {
+                let custom_api_base_url = "https://custom.api.client/api";
+                let test_api_client = TestApiClient::builder()
+                    .api_base_url(custom_api_base_url)
+                    .build();
+
+                assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
+            }
+
+            #[test]
+            fn test_new() {
+                let test_api_client = TestApiClientBuilder::new().build();
+
+                assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+            }
+
+            #[test]
+            fn test_default() {
+                let test_api_client = TestApiClientBuilder::default().build();
+
+                assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+            }
+
+            mod debug {
+                use super::*;
+
+                #[test]
+                fn test_derive() {
+                    // Note: this test is necessary because of a bug in cargo-tarpaulin, see
+                    // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
+                    let builder = TestApiClient::builder();
+                    assert!(!format!("{:?}", builder).is_empty());
+                }
+            }
         }
 
-        #[test]
-        fn test_builder_with_custom_base_url() {
-            let custom_api_base_url = "https://custom.api.client/api";
-            let test_api_client = TestApiClient::builder()
-                .api_base_url(custom_api_base_url)
-                .build();
+        mod client {
+            use super::*;
 
-            assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
-        }
+            #[test]
+            fn test_default() {
+                let test_api_client = TestApiClient::default();
 
-        #[test]
-        fn test_builder_with_new() {
-            let test_api_client = TestApiClientBuilder::new().build();
+                assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+            }
 
-            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
-        }
+            #[test]
+            fn test_new() {
+                let test_api_client = TestApiClient::new();
 
-        #[test]
-        fn test_default_client() {
-            let test_api_client = TestApiClient::default();
+                assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+            }
 
-            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
-        }
+            mod debug {
+                use super::*;
 
-        #[test]
-        fn test_client_with_new() {
-            let test_api_client = TestApiClient::new();
-
-            assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
+                #[test]
+                fn test_derive() {
+                    // Note: this test is necessary because of a bug in cargo-tarpaulin, see
+                    // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
+                    let client = TestApiClient::new();
+                    assert!(!format!("{:?}", client).is_empty());
+                }
+            }
         }
     }
 }
