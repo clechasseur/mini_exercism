@@ -15,7 +15,7 @@ documentation = "https://docs.rs/mini_exercism/"
 description = "Minimalistic Rust library to interact with the Exercism.org APIs"
 
 keywords = [ "api", "rest", "http", "exercism" ]
-categories = [ "api bindings", "asynchronous" ]
+categories = [ "api-bindings", "asynchronous" ]
 
 include = [ "src/**/*", "tests/**/*", "build.rs", "LICENSE", "README.md" ]
 
