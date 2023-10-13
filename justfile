@@ -1,5 +1,7 @@
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
+default_toolchain := ''
+
 default: test
 
 tidy: clippy fmt
@@ -10,14 +12,20 @@ clippy:
 fmt:
     cargo +nightly fmt --all
 
-test:
-    cargo test --workspace --all-features
+check toolchain=default_toolchain:
+    cargo {{toolchain}} check --workspace --all-features
 
-tarpaulin:
-    cargo tarpaulin --target-dir target-tarpaulin
+build toolchain=default_toolchain:
+    cargo {{toolchain}} build --workspace --all-features
+
+test toolchain=default_toolchain:
+    cargo {{toolchain}} test --workspace --all-features
+
+tarpaulin toolchain=default_toolchain:
+    cargo {{toolchain}} tarpaulin --target-dir target-tarpaulin
 
 doc:
-    cargo +nightly doc --workspace --no-deps --all-features --open
+    cargo +nightly doc --workspace --all-features --open
 
 msrv:
     mv Cargo.toml Cargo.toml.bak
