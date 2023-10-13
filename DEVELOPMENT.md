@@ -19,7 +19,7 @@ In order to run `rustfmt` or generate the docs, you will need a Nightly Rust too
 rustup toolchain install nightly
 ```
 
-If you already have one installed but it was too old, it was probably updated earlier when you ran `rustup update` 😉
+If you already have one installed, but it was too old, it was probably updated earlier when you ran `rustup update` 😉
 
 ### Just
 
@@ -96,4 +96,4 @@ Make sure any new public symbol is documented before submitting a PR.
 
 ## Questions?
 
-If any part of this documentation is unclear, please open a [new issue](https://github.com/clechasseur/wiremock_logical_matchers/issues/new/choose) so it can be fixed.
+If any part of this documentation is unclear, please open a [new issue](https://github.com/clechasseur/mini_exercism/issues/new/choose), so it can be fixed.
