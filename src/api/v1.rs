@@ -15,10 +15,11 @@ use crate::core::Result;
 pub const DEFAULT_V1_API_BASE_URL: &str = "https://api.exercism.io/v1";
 
 define_api_client! {
-    /// Client for the [Exercism website](https://exercism.org) v1 API. This API is undocumented
-    /// and is mostly used by the [Exercism CLI](https://exercism.org/docs/using/solving-exercises/working-locally)
+    /// Client for the [Exercism website](https://exercism.org) v1 API.
+    ///
+    /// This API is undocumented and is mostly used by the [Exercism CLI](https://exercism.org/docs/using/solving-exercises/working-locally)
     /// to download solution files.
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct Client(DEFAULT_V1_API_BASE_URL);
 }
 
@@ -55,7 +56,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn get_solution(&self, uuid: &str) -> Result<SolutionResponse> {
         self.get(format!("/solutions/{}", uuid), None).await
     }
@@ -96,7 +97,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn get_latest_solution(
         &self,
         track: &str,
@@ -149,7 +150,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn get_file(
         &self,
         solution_uuid: &str,
@@ -199,14 +200,15 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn get_track(&self, track: &str) -> Result<TrackResponse> {
         self.get(format!("/tracks/{}", track), None).await
     }
 
-    /// Validates the API token used to perform API requests. If the API token is invalid or
-    /// if the query is performed without [`credentials`](ClientBuilder::credentials), the
-    /// API will return `401 Unauthorized` and this method will return `false`. If another HTTP
+    /// Validates the token used to perform API requests.
+    ///
+    /// If the API token is invalid or if the query is performed without [`credentials`](ClientBuilder::credentials),
+    /// the API will return `401 Unauthorized` and this method will return `false`. If another HTTP
     /// error is returned by the API, this method will return an [`ApiError`].
     ///
     /// # Errors
@@ -227,7 +229,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn validate_token(&self) -> Result<bool> {
         // This API call returns a payload, but it doesn't really contain useful information:
         // if the token is invalid, 401 will be returned.
@@ -244,8 +246,9 @@ impl Client {
         }
     }
 
-    /// Sends a "ping" to the server to determine if service is up and available. The call
-    /// returns information about the website and database.
+    /// Sends a "ping" to the server to determine if service is up and available.
+    ///
+    /// The call returns information about the website and database.
     ///
     /// # Notes
     ///
@@ -280,7 +283,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn ping(&self) -> Result<PingResponse> {
         self.get("/ping", None).await
     }
@@ -298,24 +301,23 @@ impl Client {
     }
 }
 
-/// Struct representing a response to a query for a solution on the
-/// [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Response to a query for a solution on the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionResponse {
     /// Solution information.
     pub solution: Solution,
 }
 
-/// Struct representing information about a solution returned by the
-/// [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// A solution returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Solution {
     /// Solution unique ID.
     #[serde(rename = "id")]
     pub uuid: String,
 
-    /// Solution URL. This URL's value depends on who performs the query
-    /// versus who submitted the solution:
+    /// Solution URL.
+    ///
+    /// This URL's value depends on who performs the query versus who submitted the solution:
     ///
     /// | Condition                                                       | URL value used                  |
     /// |-----------------------------------------------------------------|---------------------------------|
@@ -334,25 +336,28 @@ pub struct Solution {
     /// Information about the solution's exercise.
     pub exercise: SolutionExercise,
 
-    /// Base URL that can be used to download solution files. To fetch a specific file,
-    /// use `{{file_download_base_url}}/{{file path}}` (with `{{file path}}` replaced by
-    /// the path of a file returned in [`files`](Self::files).
+    /// Base URL that can be used to download solution files.
+    ///
+    /// To fetch a specific file, use `{{file_download_base_url}}/{{file path}}`
+    /// (with `{{file path}}` replaced by the path of a file returned in [`files`](Self::files)).
     pub file_download_base_url: String,
 
-    /// List of files that are part of the solution. This includes files submitted by
-    /// the user as well as files that are provided by the exercise project. Files can
-    /// be fetched by pre-pending their path with [`file_download_base_url`](Self::file_download_base_url).
+    /// List of files that are part of the solution.
+    ///
+    /// This includes files submitted by the user as well as files that are provided by the
+    /// exercise project. Files can be fetched by pre-pending their path with
+    /// [`file_download_base_url`](Self::file_download_base_url).
     pub files: Vec<String>,
 
-    /// Information about the submission of the solution. Only present if
-    /// the solution has been submitted by the user.
+    /// Information about the submission of the solution.
+    ///
+    /// Only present if the solution has been submitted by the user.
     #[serde(default)]
     pub submission: Option<SolutionSubmission>,
 }
 
-/// Struct representing information about the user who created a solution,
-/// as returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// User who created a solution, as returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionUser {
     /// [Exercism](https://exercism.org) user handle.
     pub handle: String,
@@ -361,11 +366,12 @@ pub struct SolutionUser {
     pub is_requester: bool,
 }
 
-/// Struct representing information about the exercise for a solution, as returned by
-/// the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Exercise for a solution, as returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionExercise {
-    /// Exercise name. This is an internal name, like `forth`. Also called `slug`.
+    /// Exercise name.
+    ///
+    /// This is an internal name, like `forth`. Also called `slug`.
     #[serde(rename = "id")]
     pub name: String,
 
@@ -376,44 +382,45 @@ pub struct SolutionExercise {
     pub track: SolutionTrack,
 }
 
-/// Struct representing information about a language track returned by the
-/// [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// A language track returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionTrack {
-    /// Name of the language track. This is an internal name, like `common-lisp`. Also called `slug`.
+    /// Name of the language track.
+    ///
+    /// This is an internal name, like `common-lisp`. Also called `slug`.
     #[serde(rename = "id")]
     pub name: String,
 
     /// Language track title.
+    ///
     /// This is a textual representation of the track name, like `Common Lisp`.
     #[serde(rename = "language")]
     pub title: String,
 }
 
-/// Struct representing information about the submission of a solution, as returned by the
-/// [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Submission of a solution, as returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionSubmission {
     /// Date/time when the solution has been submitted, in ISO-8601 format.
     pub submitted_at: String,
 }
 
-/// Struct representing a response to a track query on the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Response to a track query on the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrackResponse {
     /// Information about the language track.
     pub track: SolutionTrack,
 }
 
-/// Struct representing a response to a ping request to the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Response to a ping request to the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PingResponse {
     /// Information about the status of the [Exercism](https://exercism.org) services.
     pub status: ServiceStatus,
 }
 
-/// Struct representing the status of services, as returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Status of services, as returned by the [Exercism website](https://exercism.org) v1 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ServiceStatus {
     /// Whether the [Exercism website](https://exercism.org) is up and running.
     pub website: bool,

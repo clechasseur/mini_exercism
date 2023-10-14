@@ -125,15 +125,15 @@
 //!
 //! ## Credentials
 //!
-//! API clients use [`Credentials`](core::Credentials) to perform requests as a specific user.
-//! Some requests can work both anonymously and authenticated (behaving differently depending on
-//! which is used), others require authentication to work.
+//! API clients use [`Credentials`] to perform requests as a specific user. Some requests can
+//! work both anonymously and authenticated (behaving differently depending on which is used),
+//! others require authentication to work.
 //!
-//! [`Credentials`](core::Credentials) use [Exercism](https://exercism.org) API tokens to identify
-//! a user. This is the token that is used for the [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
+//! [`Credentials`] use [Exercism](https://exercism.org) API tokens to identify a user. This is the
+//! token that is used for the [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
 //! It can be fetched from the [Exercism's user settings page](https://exercism.org/settings/api_cli).
 //!
-//! To pass [`Credentials`](core::Credentials) to an API client, use its `builder`:
+//! To pass [`Credentials`] to an API client, use its `builder`:
 //!
 //! ```no_run
 //! use mini_exercism::api;
@@ -147,8 +147,8 @@
 //!
 //! ## CLI credentials
 //!
-//! This crate provides a helper function to fetch the [`Credentials`](core::Credentials) used by
-//! the currently-installed [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
+//! This crate provides a helper function to fetch the [`Credentials`] used by the currently-installed
+//! [Exercism CLI application](https://exercism.org/docs/using/solving-exercises/working-locally).
 //! In order to use this, you need to enable the `cli` feature:
 //!
 //! ```toml
@@ -207,6 +207,8 @@
 //! ## Minimum Rust version
 //!
 //! [mini_exercism](crate) currently builds on Rust 1.63 or newer.
+//!
+//! [`Credentials`]: core::Credentials
 
 #![deny(missing_docs)]
 #![deny(rustdoc::missing_crate_level_docs)]

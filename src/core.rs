@@ -2,7 +2,7 @@
 
 use thiserror::Error;
 
-/// Struct storing the credentials used to access the [Exercism](https://exercism.org) APIs.
+/// Credentials used to access the [Exercism](https://exercism.org) APIs.
 ///
 /// # Examples
 ///

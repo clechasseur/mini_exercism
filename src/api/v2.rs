@@ -16,9 +16,10 @@ use crate::core::Result;
 pub const DEFAULT_V2_API_BASE_URL: &str = "https://exercism.org/api/v2";
 
 define_api_client! {
-    /// Client for the [Exercism website](https://exercism.org) v2 API. This API is undocumented
-    /// and is mostly used by the website itself to fetch information.
-    #[derive(Debug)]
+    /// Client for the [Exercism website](https://exercism.org) v2 API.
+    ///
+    /// This API is undocumented and is mostly used by the website itself to fetch information.
+    #[derive(Debug, Clone)]
     pub struct Client(DEFAULT_V2_API_BASE_URL);
 }
 
@@ -56,7 +57,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn get_tracks(&self, filters: Option<TrackFilters<'_>>) -> Result<TracksResponse> {
         self.get("/tracks", filters).await
     }
@@ -114,7 +115,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error#variant.ApiError
+    /// [`ApiError`]: crate::core::Error::ApiError
     pub async fn get_exercises(
         &self,
         track: &str,
@@ -140,8 +141,10 @@ impl Client {
 }
 
 /// Filters that can be applied when fetching language tracks from the
-/// [Exercism website](https://exercism.org) v2 API (see [`Client::get_tracks`]).
-#[derive(Debug, Default, Builder)]
+/// [Exercism website](https://exercism.org) v2 API.
+///
+/// See [`Client::get_tracks`].
+#[derive(Debug, Clone, Default, Builder)]
 #[builder(
     derive(Debug),
     default,
@@ -150,6 +153,7 @@ impl Client {
 )]
 pub struct TrackFilters<'a> {
     /// Criteria used to filter language tracks.
+    ///
     /// Applied to both track [`name`](Track::name)s (e.g. slugs) and [`title`](Track::title)s.
     #[builder(setter(into))]
     pub criteria: Option<&'a str>,
@@ -169,7 +173,7 @@ pub struct TrackFilters<'a> {
     ///
     /// Using this filter requires an authenticated query to the [Exercism website](https://exercism.org)
     /// v2 API, otherwise you will get a `500 Internal Server Error` (even when asking for
-    /// [`All`](TrackStatusFilter#variant.All) tracks).
+    /// [`All`](TrackStatusFilter::All) tracks).
     pub status: Option<TrackStatusFilter>,
 }
 
@@ -225,26 +229,27 @@ pub enum TrackStatusFilter {
     Unjoined,
 }
 
-/// Struct representing a response to a query for language tracks on the
-/// [Exercism website](https://exercism.org) v2 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Response to a query for language tracks on the [Exercism website](https://exercism.org) v2 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TracksResponse {
-    /// List of [Exercism](https://exercism.org) language tracks. Usually sorted alphabetically by
-    /// track name, with tracks joined by the user first (if query is performed with
-    /// [`credentials`](ClientBuilder::credentials)).
+    /// List of [Exercism](https://exercism.org) language tracks.
+    ///
+    /// Usually sorted alphabetically by track name, with tracks joined by the user first
+    /// (if query is performed with [`credentials`](ClientBuilder::credentials)).
     pub tracks: Vec<Track>,
 }
 
-/// Struct representing a single language track returned by the
-/// [Exercism website](https://exercism.org) v2 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// A single language track returned by the [Exercism website](https://exercism.org) v2 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Track {
     /// Name of the language track.
+    ///
     /// This is an internal name, like `common-lisp`. Also called `slug`.
     #[serde(rename = "slug")]
     pub name: String,
 
     /// Language track title.
+    ///
     /// This is a textual representation of the track name, like `Common Lisp`.
     pub title: String,
 
@@ -261,33 +266,37 @@ pub struct Track {
     pub icon_url: String,
 
     /// List of tags attached to this language track.
+    ///
     /// Can contain many information, like `Object-oriented`, `Linux`, etc.
     pub tags: Vec<String>,
 
-    /// Struct containing some links pertaining to the language track.
+    /// Links pertaining to the language track.
     pub links: TrackLinks,
 
     /// Whether this track has been joined by the user.
+    ///
     /// Will be set to `false` for anonymous queries or unjoined tracks.
     #[serde(default)]
     pub is_joined: bool,
 
     /// Number of concepts learnt by the user in this track.
+    ///
     /// Will be set to `0` for anonymous queries or unjoined tracks.
     #[serde(default)]
     pub num_learnt_concepts: usize,
 
     /// Number of exercises completed by the user in this track.
+    ///
     /// Will be set to `0` for anonymous queries or unjoined tracks.
     #[serde(default)]
     pub num_completed_exercises: usize,
 }
 
-/// Struct containing links pertaining to an [Exercism](https://exercism.org) language track
-/// returned by the v2 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Links pertaining to an [Exercism](https://exercism.org) language track returned by the v2 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TrackLinks {
     /// URL of the language track on the [Exercism website](https://exercism.org).
+    ///
     /// Corresponds to the track's [`web_url`](Track::web_url).
     #[serde(rename = "self")]
     pub self_url: String,
@@ -300,8 +309,10 @@ pub struct TrackLinks {
 }
 
 /// Filters that can be applied when fetching exercises from the
-/// [Exercism website](https://exercism.org) v2 API (see [`Client::get_exercises`]).
-#[derive(Debug, Default, Builder)]
+/// [Exercism website](https://exercism.org) v2 API.
+///
+/// See [`Client::get_exercises`].
+#[derive(Debug, Clone, Default, Builder)]
 #[builder(
     derive(Debug),
     default,
@@ -310,12 +321,14 @@ pub struct TrackLinks {
 )]
 pub struct ExerciseFilters<'a> {
     /// Criteria used to filter exercises.
+    ///
     /// Applied to both exercise [`name`](Exercise::name)s (e.g. slugs) and [`title`](Exercise::title)s.
     #[builder(setter(into))]
     pub criteria: Option<&'a str>,
 
-    /// Whether to include solutions in the response. Only has an effect if the query is
-    /// performed with [`credentials`](ClientBuilder::credentials).
+    /// Whether to include solutions in the response.
+    ///
+    /// Only has an effect if the query is performed with [`credentials`](ClientBuilder::credentials).
     pub include_solutions: bool,
 }
 
@@ -352,17 +365,18 @@ impl<'a> ExerciseFiltersBuilder<'a> {
     }
 }
 
-/// Struct representing a response to a query for exercises on the
-/// [Exercism website](https://exercism.org) v2 API.
+/// Response to a query for exercises on the [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExercisesResponse {
-    /// List of exercises for the requested track. The ordering depends on
-    /// the type of query performed and matches that seen on the website.
+    /// List of exercises for the requested track.
+    ///
+    /// The ordering depends on the type of query performed and matches that seen on the website.
     pub exercises: Vec<Exercise>,
 
-    /// List of solutions submitted for exercises in this track. Will only be filled
-    /// if the [`include_solutions`](ExerciseFilters::include_solutions) field of
-    /// the query's [`ExerciseFilters`] is set to `true`.
+    /// List of solutions submitted for exercises in this track.
+    ///
+    /// Will only be filled if the [`include_solutions`](ExerciseFilters::include_solutions)
+    /// field of the query's [`ExerciseFilters`] is set to `true`.
     ///
     /// # Note
     ///
@@ -372,10 +386,12 @@ pub struct ExercisesResponse {
     pub solutions: Vec<Solution>,
 }
 
-/// Struct representing a single exercise returned by the [Exercism website](https://exercism.org) v2 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// A single exercise returned by the [Exercism website](https://exercism.org) v2 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Exercise {
-    /// Name of the exercise. This is an internal name, like `forth`. Also called `slug`.
+    /// Name of the exercise.
+    ///
+    /// This is an internal name, like `forth`. Also called `slug`.
     #[serde(rename = "slug")]
     pub name: String,
 
@@ -383,7 +399,9 @@ pub struct Exercise {
     #[serde(rename = "type")]
     pub exercise_type: ExerciseType,
 
-    /// Exercise title. This is a textual representation of the title, like `Forth`.
+    /// Exercise title.
+    ///
+    /// This is a textual representation of the title, like `Forth`.
     pub title: String,
 
     /// URL of the icon representing this exercise on the [Exercism website](https://exercism.org).
@@ -395,20 +413,23 @@ pub struct Exercise {
     /// Short description of the exercise.
     pub blurb: String,
 
-    /// Whether this is an "exernal" exercise. This is used to indicate exercises that are not
-    /// tied to a user. When returned by the website API, this indicates that the request was
-    /// performed anonymously.
+    /// Whether this is an "exernal" exercise.
+    ///
+    /// This is used to indicate exercises that are not tied to a user. When returned by the
+    /// website API, this indicates that the request was performed anonymously.
     pub is_external: bool,
 
-    /// Whether this exercise has been unlocked by the user. Will always be `false` when exercises
-    /// are queried anonymously.
+    /// Whether this exercise has been unlocked by the user.
+    ///
+    /// Will always be `false` when exercises are queried anonymously.
     pub is_unlocked: bool,
 
-    /// Whether this is the next recommended exercise for the user in the language track. Will always
-    /// be `false` when exercises are queried anonymously.
+    /// Whether this is the next recommended exercise for the user in the language track.
+    ///
+    /// Will always be `false` when exercises are queried anonymously.
     pub is_recommended: bool,
 
-    /// Struct containing some links pertaining to the exercise.
+    /// Links pertaining to the exercise.
     pub links: ExerciseLinks,
 }
 
@@ -416,79 +437,97 @@ pub struct Exercise {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ExerciseType {
-    /// Tutorial exercise. Currently only known to apply to `hello-world`.
+    /// Tutorial exercise.
+    ///
+    /// Currently only known to apply to `hello-world`.
     Tutorial,
 
     /// Concept exercise, e.g. an exercise tied to a concept on the language track's syllabus.
     Concept,
 
-    /// Practice exercise. Most exercise are in this category.
+    /// Practice exercise.
+    ///
+    /// Most exercise are in this category.
     Practice,
 
-    /// Unknown exercise type. Included so that if new exercise types are introduced in
-    /// the website API later, this crate will not break (hopefully).
+    /// Unknown exercise type.
+    ///
+    /// Included so that if new exercise types are introduced in the website API later,
+    /// this crate will not break (hopefully).
     #[serde(other)]
     Unknown,
 }
 
 /// Possible difficulty rating of an exercise on the [Exercism website](https://exercism.org).
+///
 /// Internally, exercises have a difficulty rating between 1 and 10 (inclusive); however, on the
 /// website, this is only represented by specific, named difficulty ratings.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ExerciseDifficulty {
-    /// Easy exercise. Internally, an exercise with a difficulty rating between 1 and 3 (inclusive).
+    /// Easy exercise.
+    ///
+    /// Internally, an exercise with a difficulty rating between 1 and 3 (inclusive).
     Easy,
 
-    /// Medium exercise. Internally, an exercise with a difficulty rating between 4 and 7 (inclusive).
+    /// Medium exercise.
+    ///
+    /// Internally, an exercise with a difficulty rating between 4 and 7 (inclusive).
     Medium,
 
-    /// Hard exercise. Internally, an exercise with a difficulty rating above 7.
+    /// Hard exercise.
+    ///
+    /// Internally, an exercise with a difficulty rating above 7.
     Hard,
 
-    /// Unknown difficulty. Included so that if new exercise difficulty ratings are introduced
-    /// in the website API later, this crate will not break (hopefully).
+    /// Unknown difficulty.
+    ///
+    /// Included so that if new exercise difficulty ratings are introduced in the website API later,
+    /// this crate will not break (hopefully).
     #[serde(other)]
     Unknown,
 }
 
-/// Struct containing links pertaining to an [Exercism](https://exercism.org) exercise
-/// returned by the v2 API.
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Links pertaining to an [Exercism](https://exercism.org) exercise returned by the v2 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExerciseLinks {
     /// Path of the exercise on the [Exercism website](https://exercism.org), without the domain name.
     #[serde(rename = "self")]
     pub self_path: String,
 }
 
-/// Struct representing a solution to an exercise submitted to
-/// the [Exercism website](https://exercism.org).
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// A solution to an exercise submitted to the [Exercism website](https://exercism.org).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Solution {
-    /// Solution unique ID. This UUID can be used to fetch information about
-    /// the solution from other API calls, like
+    /// Solution unique ID.
+    ///
+    /// This UUID can be used to fetch information about the solution from other API calls, like
     /// [`api::v1::Client::get_solution`](crate::api::v1::Client::get_solution).
     pub uuid: String,
 
-    /// Private solution URL. This usually points to the exercise on the
-    /// [Exercism website](https://exercism.org).
+    /// Private solution URL.
+    ///
+    /// This usually points to the exercise on the [Exercism website](https://exercism.org).
     pub private_url: String,
 
-    /// Public solution URL. This points to the user's solution on the
-    /// [Exercism website](https://exercism.org).
+    /// Public solution URL.
+    ///
+    /// This points to the user's solution on the [Exercism website](https://exercism.org).
     ///
     /// # Note
     ///
-    /// If the solution has not been [`Published`](SolutionStatus#variant.Published),
-    /// this URL is only valid for the authenticated user.
+    /// If the solution has not been [`Published`](SolutionStatus::Published), this URL is only
+    /// valid for the authenticated user.
     pub public_url: String,
 
-    /// Solution status. Also indicates whether the solution has been
-    /// [`Published`](SolutionStatus#variant.Published).
+    /// Solution status.
+    ///
+    /// Also indicates whether the solution has been [`Published`](SolutionStatus::Published).
     pub status: SolutionStatus,
 
-    /// Solution mentoring status. If no mentoring has been requested, will
-    /// contain the value [`None`](SolutionMentoringStatus#variant.None).
+    /// Solution mentoring status.
+    ///
+    /// If no mentoring has been requested, will contain the value [`None`](SolutionMentoringStatus::None).
     pub mentoring_status: SolutionMentoringStatus,
 
     /// Status of tests for the solution's published iteration.
@@ -513,20 +552,24 @@ pub struct Solution {
     /// Number of iterations submitted for the solution.
     pub num_iterations: i32,
 
-    /// Number of lines of code in the solution.
+    /// Number of lines of code in the solution, excluding blank lines and comments.
     #[serde(default)]
     pub num_loc: Option<i32>,
 
     /// Whether this solution is out of date compared to the exercise.
     pub is_out_of_date: bool,
 
-    /// Date/time when the solution was [`Published`](SolutionStatus#variant.Published),
-    /// in ISO-8601 format. Will be `None` if the solution hasn't been published.
+    /// Date/time when the solution was [`Published`](SolutionStatus::Published),
+    /// in ISO-8601 format.
+    ///
+    /// Will be `None` if the solution hasn't been published.
     #[serde(default)]
     pub published_at: Option<String>,
 
-    /// Date/time when the solution was marked as [`Completed`](SolutionStatus#variant.Completed),
-    /// in ISO-8601 format. Will be `None` if the solution hasn't been marked as complete yet.
+    /// Date/time when the solution was marked as [`Completed`](SolutionStatus::Completed),
+    /// in ISO-8601 format.
+    ///
+    /// Will be `None` if the solution hasn't been marked as complete yet.
     #[serde(default)]
     pub completed_at: Option<String>,
 
@@ -534,7 +577,8 @@ pub struct Solution {
     pub updated_at: String,
 
     /// Date/time when the solution's last iteration was sumitted, in ISO-8601 format.
-    /// Will be `None` if the solution hasn't yet been [`Iterated`](SolutionStatus#variant.Iterated).
+    ///
+    /// Will be `None` if the solution hasn't yet been [`Iterated`](SolutionStatus::Iterated).
     #[serde(default)]
     pub last_iterated_at: Option<String>,
 
@@ -563,8 +607,10 @@ pub enum SolutionStatus {
     /// Exercise has been marked as complete and the solution has been published.
     Published,
 
-    /// Unknown status. Included so that if new solution statuses are introduced in
-    /// the website API later, this crate won't break (hopefully).
+    /// Unknown status.
+    ///
+    /// Included so that if new solution statuses are introduced in the website API later,
+    /// this crate won't break (hopefully).
     #[serde(other)]
     Unknown,
 }
@@ -586,8 +632,10 @@ pub enum SolutionMentoringStatus {
     /// Mentoring has completed for this exercise.
     Finished,
 
-    /// Unknown mentoring status. Included so that if new mentoring statuses
-    /// are introduced in the website API later, this crate won't break (hopefully).
+    /// Unknown mentoring status.
+    ///
+    /// Included so that if new mentoring statuses are introduced in the website API later,
+    /// this crate won't break (hopefully).
     #[serde(other)]
     Unknown,
 }
@@ -619,37 +667,43 @@ pub enum SolutionTestsStatus {
     /// Test run has been cancelled.
     Cancelled,
 
-    /// Unknown tests status. Included so that if new tests statuses are
-    /// introduced in the website API later, this crate won't break (hopefully).
+    /// Unknown tests status.
+    ///
+    /// Included so that if new tests statuses are introduced in the website API later,
+    /// this crate won't break (hopefully).
     #[serde(other)]
     Unknown,
 }
 
-/// Struct containing information about the exercise for which a solution was submitted
-/// on the [Exercism website](https://exercism.org).
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Exercise for which a solution was submitted on the [Exercism website](https://exercism.org).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionExercise {
-    /// Name of the exercise. This is an internal name, like `forth`. Also called `slug`.
+    /// Name of the exercise.
+    ///
+    /// This is an internal name, like `forth`. Also called `slug`.
     #[serde(rename = "slug")]
     pub name: String,
 
-    /// Exercise title. This is a textual representation of the title, like `Forth`.
+    /// Exercise title.
+    ///
+    /// This is a textual representation of the title, like `Forth`.
     pub title: String,
 
     /// URL of the icon representing this exercise on the [Exercism website](https://exercism.org).
     pub icon_url: String,
 }
 
-/// Struct containing information about the language track of a solution submitted
-/// on the [Exercism website](https://exercism.org).
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// Language track of a solution submitted on the [Exercism website](https://exercism.org).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SolutionTrack {
     /// Name of the language track.
+    ///
     /// This is an internal name, like `common-lisp`. Also called `slug`.
     #[serde(rename = "slug")]
     pub name: String,
 
     /// Language track title.
+    ///
     /// This is a textual representation of the track name, like `Common Lisp`.
     pub title: String,
 
