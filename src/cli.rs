@@ -20,10 +20,10 @@ use crate::core::{Credentials, Error, Result};
 /// - [`ConfigParseError`]: Config file JSON could not be parsed
 /// - [`ApiTokenNotFoundInConfig`]: Config file did not contain an API token
 ///
-/// [`ConfigNotFound`]: crate::core::Error#variant.ConfigNotFound
-/// [`ConfigReadError`]: crate::core::Error#variant.ConfigReadError
-/// [`ConfigParseError`]: crate::core::Error#variant.ConfigParseError
-/// [`ApiTokenNotFoundInConfig`]: crate::core::Error#variant.ApiTokenNotFoundInConfig
+/// [`ConfigNotFound`]: crate::core::Error::ConfigNotFound
+/// [`ConfigReadError`]: crate::core::Error::ConfigReadError
+/// [`ConfigParseError`]: crate::core::Error::ConfigParseError
+/// [`ApiTokenNotFoundInConfig`]: crate::core::Error::ApiTokenNotFoundInConfig
 pub fn get_cli_credentials() -> Result<Credentials> {
     let mut config_file_path = helpers::get_cli_config_dir()
         .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))

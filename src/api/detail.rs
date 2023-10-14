@@ -5,7 +5,7 @@ use reqwest::{Client, Method, RequestBuilder};
 
 use crate::core::Credentials;
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Clone, Builder)]
 #[builder(derive(Debug))]
 pub struct ApiClient {
     #[builder(default)]
@@ -152,8 +152,9 @@ macro_rules! define_api_client {
 
                 #[doc = r"
                     Sets the [`Credentials`](crate::core::Credentials) to use to
-                    connect to the API. If not specified, requests will be performed
-                    anonymously.
+                    connect to the API.
+
+                    If not specified, requests will be performed anonymously.
                 "]
                 pub fn credentials(&mut self, value: $crate::core::Credentials) -> &mut Self {
                     self.api_client_builder.credentials(value);
