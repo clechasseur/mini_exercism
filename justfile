@@ -13,19 +13,16 @@ fmt:
     cargo +nightly fmt --all
 
 check toolchain=default_toolchain:
-    cargo {{toolchain}} check --workspace --all-features
+    cargo {{toolchain}} check --workspace --all-targets --all-features
 
 build toolchain=default_toolchain:
-    cargo {{toolchain}} build --workspace --all-features
+    cargo {{toolchain}} build --workspace --all-targets --all-features
 
 test toolchain=default_toolchain:
     cargo {{toolchain}} test --workspace --all-features
 
 tarpaulin toolchain=default_toolchain:
     cargo {{toolchain}} tarpaulin --target-dir target-tarpaulin
-
-doc:
-    cargo +nightly doc --workspace --all-features --open
 
 pre-msrv:
     mv Cargo.toml Cargo.toml.bak
@@ -39,5 +36,10 @@ post-msrv:
     mv Cargo.toml.bak Cargo.toml
     mv Cargo.lock.bak Cargo.lock
 
-msrv: pre-msrv && post-msrv
-    cargo msrv -- cargo check --workspace --lib --all-features
+msrv:
+    {{ if path_exists("Cargo.lock.msrv") == "true" { `just pre-msrv` } else { ` ` } }}
+    cargo msrv -- cargo check --workspace --lib --bins --all-features
+    {{ if path_exists("Cargo.lock.bak") == "true" { `just post-msrv` } else { ` ` } }}
+
+doc:
+    cargo +nightly doc --workspace --all-features --open
