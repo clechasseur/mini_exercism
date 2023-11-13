@@ -19,7 +19,6 @@ define_api_client! {
     /// Client for the [Exercism website](https://exercism.org) v2 API.
     ///
     /// This API is undocumented and is mostly used by the website itself to fetch information.
-    #[derive(Debug, Clone)]
     pub struct Client(DEFAULT_V2_API_BASE_URL);
 }
 

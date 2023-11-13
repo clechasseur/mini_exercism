@@ -19,7 +19,6 @@ define_api_client! {
     ///
     /// This API is undocumented and is mostly used by the [Exercism CLI](https://exercism.org/docs/using/solving-exercises/working-locally)
     /// to download solution files.
-    #[derive(Debug, Clone)]
     pub struct Client(DEFAULT_V1_API_BASE_URL);
 }
 

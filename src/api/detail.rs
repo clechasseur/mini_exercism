@@ -5,7 +5,7 @@ use reqwest::{Client, Method, RequestBuilder};
 
 use crate::core::Credentials;
 
-#[derive(Debug, Clone, Builder)]
+#[derive(Debug, Builder)]
 #[builder(derive(Debug))]
 pub struct ApiClient {
     #[builder(default)]
@@ -56,12 +56,13 @@ impl ApiClientBuilder {
 macro_rules! define_api_client {
     (
         $(#[$attr:meta])*
-        pub struct $api_name:ident($base_url:expr);
+        $vis:vis struct $api_name:ident($base_url:expr);
     ) => {
         paste::paste! {
             $(#[$attr])*
-            pub struct $api_name {
-                api_client: $crate::api::detail::ApiClient,
+            #[derive(Debug, Clone)]
+            $vis struct $api_name {
+                api_client: std::sync::Arc<$crate::api::detail::ApiClient>,
             }
 
             impl $api_name {
@@ -115,7 +116,7 @@ macro_rules! define_api_client {
                 an instance of this builder and simply call [`build`](" $api_name r"Builder::build).
             "]
             #[derive(Debug)]
-            pub struct [<$api_name Builder>] {
+            $vis struct [<$api_name Builder>] {
                 api_client_builder: $crate::api::detail::ApiClientBuilder,
             }
 
@@ -164,7 +165,7 @@ macro_rules! define_api_client {
                 #[doc = "Builds a new [`" $api_name "`] instance using the parameters of this builder."]
                 pub fn build(&self) -> $api_name {
                     $api_name {
-                        api_client: self.api_client_builder.build().expect("All fields should have had default values"),
+                        api_client: std::sync::Arc::new(self.api_client_builder.build().expect("All fields should have had default values")),
                     }
                 }
             }
@@ -389,8 +390,7 @@ mod tests {
         const TEST_API_CLIENT_BASE_URL: &str = "https://test.api.client/api";
 
         define_api_client! {
-            #[derive(Debug)]
-            pub struct TestApiClient(TEST_API_CLIENT_BASE_URL);
+            struct TestApiClient(TEST_API_CLIENT_BASE_URL);
         }
 
         impl TestApiClient {
