@@ -93,3 +93,25 @@ mod get_exercises {
         assert!(exercises_response.unwrap().solutions.is_empty());
     }
 }
+
+mod get_solutions {
+    use assert_matches::assert_matches;
+    use mini_exercism::api;
+    use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};
+    use mini_exercism::Error;
+    use reqwest::StatusCode;
+
+    #[tokio::test]
+    async fn test_minesweeper() {
+        let client = api::v2::Client::new();
+        let filters = Filters::builder().criteria("minesweeper").build();
+        let paging = Paging::for_page(1).and_per_page(10);
+        let sort_order = SortOrder::NewestFirst;
+        let solutions_response = client
+            .get_solutions(Some(filters), Some(paging), Some(sort_order))
+            .await;
+
+        // Fetching solutions doesn't work anonymously.
+        assert_matches!(solutions_response, Err(Error::ApiError(error)) if error.status() == Some(StatusCode::UNAUTHORIZED));
+    }
+}

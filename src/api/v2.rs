@@ -128,4 +128,71 @@ impl Client {
             .execute()
             .await
     }
+
+    /// Returns a list of [Exercism](https://exercism.org) solutions for the user.
+    ///
+    /// This request cannot be performed anonymously; doing so will result in an [`ApiError`].
+    ///
+    /// The list of solutions can optionally be filtered using [`Filters`](solutions::Filters).
+    ///
+    /// The list is paginated. By default, the first page is returned. To iterate pages, pass in
+    /// [`paging`](solutions::Paging) information. It's also possible to control the [`sort_order`](solutions::SortOrder)
+    /// of the solutions; if not specified, the default sort order is to return solutions with the
+    /// [most stars first](solutions::SortOrder::MostStarred).
+    ///
+    /// # Errors
+    ///
+    /// - [`ApiError`]: Error while fetching solutions information from API
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::api::v2::solution::Solution;
+    /// use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// async fn get_user_solutions(
+    ///     api_token: &str,
+    ///     filters: Option<Filters<'_>>,
+    ///     sort_order: Option<SortOrder>,
+    /// ) -> anyhow::Result<Vec<Solution>> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v2::Client::builder().credentials(credentials).build();
+    ///
+    ///     let mut solutions = Vec::new();
+    ///     let mut page = 1i64;
+    ///     loop {
+    ///         let paging = Paging::for_page(page);
+    ///         let paged_solutions = client
+    ///             .get_solutions(filters.clone(), Some(paging), sort_order)
+    ///             .await?
+    ///             .results;
+    ///         if paged_solutions.is_empty() {
+    ///             break;
+    ///         }
+    ///
+    ///         solutions.extend(paged_solutions.into_iter());
+    ///         page += 1;
+    ///     }
+    ///
+    ///     Ok(solutions)
+    /// }
+    /// ```
+    ///
+    /// [`ApiError`]: crate::Error::ApiError
+    pub async fn get_solutions(
+        &self,
+        filters: Option<solutions::Filters<'_>>,
+        paging: Option<solutions::Paging>,
+        sort_order: Option<solutions::SortOrder>,
+    ) -> Result<solutions::Response> {
+        self.api_client
+            .get("/solutions")
+            .query(filters)
+            .query(paging)
+            .query(("order", sort_order))
+            .execute()
+            .await
+    }
 }
