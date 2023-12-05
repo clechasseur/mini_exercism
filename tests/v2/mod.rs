@@ -1,6 +1,7 @@
 mod exercise;
 mod exercises;
 mod solution;
+mod solutions;
 mod track;
 mod tracks;
 
@@ -193,6 +194,279 @@ mod client {
             assert_eq!("poker", exercises.first().unwrap().name);
             assert_eq!(1, solutions.len());
             assert_eq!("00c717b68e1b4213b316df82636f5e0f", solutions.first().unwrap().uuid);
+        }
+    }
+
+    mod get_solutions {
+        use mini_exercism::api::v2::solution::Status::Published;
+        use mini_exercism::api::v2::solution::TestsStatus::{Failed, Passed};
+        use mini_exercism::api::v2::solution::{Exercise, MentoringStatus, Solution, Track};
+        use mini_exercism::api::v2::solutions;
+        use mini_exercism::api::v2::solutions::SortOrder::NewestFirst;
+        use mini_exercism::api::v2::solutions::{Filters, Paging, ResponseMeta};
+
+        use super::*;
+
+        #[tokio::test]
+        async fn test_get_solutions() {
+            let mock_server = MockServer::start().await;
+
+            let solutions_response = solutions::Response {
+                results: vec![Solution {
+                    uuid: "82f1ce4b47514db29f4831a0d2680ebd".into(),
+                    private_url: "https://exercism.org/tracks/javascript/exercises/resistor-color-duo".into(),
+                    public_url: "https://exercism.org/tracks/javascript/exercises/resistor-color-duo/solutions/clechasseur".into(),
+                    status: Published,
+                    mentoring_status: MentoringStatus::None,
+                    published_iteration_head_tests_status: Failed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 1,
+                    num_loc: Some(5),
+                    is_out_of_date: true,
+                    published_at: Some("2019-05-25T22:17:35Z".into()),
+                    completed_at: Some("2019-05-25T22:17:32Z".into()),
+                    updated_at: "2023-11-18T06:22:04Z".into(),
+                    last_iterated_at: None,
+                    exercise: Exercise {
+                        name: "resistor-color-duo".into(),
+                        title: "Resistor Color Duo".into(),
+                        icon_url: "https://assets.exercism.org/exercises/resistor-color-duo.svg".into(),
+                    },
+                    track: Track {
+                        name: "javascript".into(),
+                        title: "JavaScript".into(),
+                        icon_url: "https://assets.exercism.org/tracks/javascript.svg".into(),
+                    },
+                }, Solution {
+                    uuid: "85bcc0c08a134bde8afcb16d062ad6b0".into(),
+                    private_url: "https://exercism.org/tracks/javascript/exercises/resistor-color".into(),
+                    public_url: "https://exercism.org/tracks/javascript/exercises/resistor-color/solutions/clechasseur".into(),
+                    status: Published,
+                    mentoring_status: MentoringStatus::None,
+                    published_iteration_head_tests_status: Passed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 1,
+                    num_loc: Some(2),
+                    is_out_of_date: false,
+                    published_at: Some("2019-05-25T21:33:35Z".into()),
+                    completed_at: Some("2019-05-25T21:33:32Z".into()),
+                    updated_at: "2023-11-23T07:09:31Z".into(),
+                    last_iterated_at: None,
+                    exercise: Exercise {
+                        name: "resistor-color".into(),
+                        title: "Resistor Color".into(),
+                        icon_url: "https://assets.exercism.org/exercises/resistor-color.svg".into(),
+                    },
+                    track: Track {
+                        name: "javascript".into(),
+                        title: "JavaScript".into(),
+                        icon_url: "https://assets.exercism.org/tracks/javascript.svg".into(),
+                    },
+                }],
+                meta: ResponseMeta {
+                    current_page: 1,
+                    total_count: 2,
+                    total_pages: 1,
+                },
+            };
+            Mock::given(method(Get))
+                .and(path("/solutions"))
+                .and(query_param("criteria", "resistor"))
+                .and(query_param("track_slug", "javascript"))
+                .and(query_param("status", "published"))
+                .and(query_param("mentoring_status", "none"))
+                .and(query_param("page", "1"))
+                .and(query_param("per_page", "10"))
+                .and(query_param("order", "newest_first"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(
+                    ResponseTemplate::new(StatusCode::OK).set_body_json(solutions_response),
+                )
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let filters = Filters::builder()
+                .criteria("resistor")
+                .track("javascript")
+                .status(Published)
+                .mentoring_status(MentoringStatus::None)
+                .build();
+            let paging = Paging::for_page(1).and_per_page(10);
+            let sort_order = NewestFirst;
+            let solutions_response = client
+                .get_solutions(Some(filters), Some(paging), Some(sort_order))
+                .await
+                .unwrap();
+            let solutions = solutions_response.results;
+            let meta = solutions_response.meta;
+            assert_eq!(2, solutions.len());
+            assert_eq!("82f1ce4b47514db29f4831a0d2680ebd", solutions.get(0).unwrap().uuid);
+            assert_eq!("resistor-color-duo", solutions.get(0).unwrap().exercise.name);
+            assert_eq!("85bcc0c08a134bde8afcb16d062ad6b0", solutions.get(1).unwrap().uuid);
+            assert_eq!("resistor-color", solutions.get(1).unwrap().exercise.name);
+            assert_eq!(1, meta.current_page);
+            assert_eq!(2, meta.total_count);
+            assert_eq!(1, meta.total_pages);
+        }
+
+        #[tokio::test]
+        async fn test_get_out_of_date_solutions() {
+            let mock_server = MockServer::start().await;
+
+            let solutions_response = solutions::Response {
+                results: vec![Solution {
+                    uuid: "82f1ce4b47514db29f4831a0d2680ebd".into(),
+                    private_url: "https://exercism.org/tracks/javascript/exercises/resistor-color-duo".into(),
+                    public_url: "https://exercism.org/tracks/javascript/exercises/resistor-color-duo/solutions/clechasseur".into(),
+                    status: Published,
+                    mentoring_status: MentoringStatus::None,
+                    published_iteration_head_tests_status: Failed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 1,
+                    num_loc: Some(5),
+                    is_out_of_date: true,
+                    published_at: Some("2019-05-25T22:17:35Z".into()),
+                    completed_at: Some("2019-05-25T22:17:32Z".into()),
+                    updated_at: "2023-11-18T06:22:04Z".into(),
+                    last_iterated_at: None,
+                    exercise: Exercise {
+                        name: "resistor-color-duo".into(),
+                        title: "Resistor Color Duo".into(),
+                        icon_url: "https://assets.exercism.org/exercises/resistor-color-duo.svg".into(),
+                    },
+                    track: Track {
+                        name: "javascript".into(),
+                        title: "JavaScript".into(),
+                        icon_url: "https://assets.exercism.org/tracks/javascript.svg".into(),
+                    },
+                }],
+                meta: ResponseMeta {
+                    current_page: 1,
+                    total_count: 1,
+                    total_pages: 1,
+                },
+            };
+            Mock::given(method(Get))
+                .and(path("/solutions"))
+                .and(query_param("criteria", "resistor"))
+                .and(query_param("track_slug", "javascript"))
+                .and(query_param("sync_status", "out_of_date"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(
+                    ResponseTemplate::new(StatusCode::OK).set_body_json(solutions_response),
+                )
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let filters = Filters::builder()
+                .criteria("resistor")
+                .track("javascript")
+                .out_of_date()
+                .build();
+            let solutions_response = client
+                .get_solutions(Some(filters), None, None)
+                .await
+                .unwrap();
+            let solutions = solutions_response.results;
+            let meta = solutions_response.meta;
+            assert_eq!(1, solutions.len());
+            assert_eq!("82f1ce4b47514db29f4831a0d2680ebd", solutions.first().unwrap().uuid);
+            assert_eq!("resistor-color-duo", solutions.first().unwrap().exercise.name);
+            assert_eq!(1, meta.current_page);
+            assert_eq!(1, meta.total_count);
+            assert_eq!(1, meta.total_pages);
+        }
+
+        #[tokio::test]
+        async fn test_get_up_to_date_solutions() {
+            let mock_server = MockServer::start().await;
+
+            let solutions_response = solutions::Response {
+                results: vec![Solution {
+                    uuid: "85bcc0c08a134bde8afcb16d062ad6b0".into(),
+                    private_url: "https://exercism.org/tracks/javascript/exercises/resistor-color".into(),
+                    public_url: "https://exercism.org/tracks/javascript/exercises/resistor-color/solutions/clechasseur".into(),
+                    status: Published,
+                    mentoring_status: MentoringStatus::None,
+                    published_iteration_head_tests_status: Passed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 1,
+                    num_loc: Some(2),
+                    is_out_of_date: false,
+                    published_at: Some("2019-05-25T21:33:35Z".into()),
+                    completed_at: Some("2019-05-25T21:33:32Z".into()),
+                    updated_at: "2023-11-23T07:09:31Z".into(),
+                    last_iterated_at: None,
+                    exercise: Exercise {
+                        name: "resistor-color".into(),
+                        title: "Resistor Color".into(),
+                        icon_url: "https://assets.exercism.org/exercises/resistor-color.svg".into(),
+                    },
+                    track: Track {
+                        name: "javascript".into(),
+                        title: "JavaScript".into(),
+                        icon_url: "https://assets.exercism.org/tracks/javascript.svg".into(),
+                    },
+                }],
+                meta: ResponseMeta {
+                    current_page: 1,
+                    total_count: 1,
+                    total_pages: 1,
+                },
+            };
+            Mock::given(method(Get))
+                .and(path("/solutions"))
+                .and(query_param("criteria", "resistor"))
+                .and(query_param("track_slug", "javascript"))
+                .and(query_param("sync_status", "up_to_date"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(
+                    ResponseTemplate::new(StatusCode::OK).set_body_json(solutions_response),
+                )
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let filters = Filters::builder()
+                .criteria("resistor")
+                .track("javascript")
+                .up_to_date()
+                .build();
+            let solutions_response = client
+                .get_solutions(Some(filters), None, None)
+                .await
+                .unwrap();
+            let solutions = solutions_response.results;
+            let meta = solutions_response.meta;
+            assert_eq!(1, solutions.len());
+            assert_eq!("85bcc0c08a134bde8afcb16d062ad6b0", solutions.first().unwrap().uuid);
+            assert_eq!("resistor-color", solutions.first().unwrap().exercise.name);
+            assert_eq!(1, meta.current_page);
+            assert_eq!(1, meta.total_count);
+            assert_eq!(1, meta.total_pages);
         }
     }
 }
