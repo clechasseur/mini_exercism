@@ -1,4 +1,4 @@
-mod exercise_test {
+mod exercise_tests {
     mod deserialize {
         use mini_exercism::api::v2::exercise::Difficulty::Easy;
         use mini_exercism::api::v2::exercise::Type::Tutorial;
@@ -76,7 +76,7 @@ mod exercise_test {
     }
 }
 
-mod links {
+mod links_tests {
     mod deserialize {
         use mini_exercism::api::v2::exercise::Links;
 

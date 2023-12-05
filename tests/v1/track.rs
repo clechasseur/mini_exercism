@@ -1,4 +1,4 @@
-mod response {
+mod response_tests {
     mod deserialize {
         use mini_exercism::api::v1::track;
         use mini_exercism::api::v1::track::Track;
@@ -20,7 +20,7 @@ mod response {
     }
 }
 
-mod track_test {
+mod track_tests {
     mod deserialize {
         use mini_exercism::api::v1::track::Track;
 

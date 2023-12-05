@@ -1,4 +1,4 @@
-mod track_test {
+mod track_tests {
     mod deserialize {
         use mini_exercism::api::v2::track::{Links, Track};
 
@@ -169,7 +169,7 @@ mod track_test {
     }
 }
 
-mod links {
+mod links_tests {
     mod deserialize {
         use mini_exercism::api::v2::track::Links;
 

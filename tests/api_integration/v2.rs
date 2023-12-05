@@ -1,4 +1,4 @@
-mod get_tracks {
+mod get_tracks_tests {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::tracks::Filters;
@@ -53,7 +53,7 @@ mod get_tracks {
     }
 }
 
-mod get_exercises {
+mod get_exercises_tests {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::exercises::Filters;
@@ -94,7 +94,7 @@ mod get_exercises {
     }
 }
 
-mod get_solutions {
+mod get_solutions_tests {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};

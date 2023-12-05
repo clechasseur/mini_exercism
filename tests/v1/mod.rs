@@ -2,7 +2,7 @@ mod ping;
 mod solution;
 mod track;
 
-mod client {
+mod client_tests {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
     use reqwest::StatusCode;

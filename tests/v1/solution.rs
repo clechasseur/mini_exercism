@@ -1,4 +1,4 @@
-mod response {
+mod response_tests {
     mod deserialize {
         use mini_exercism::api::v1::solution;
         use mini_exercism::api::v1::solution::{Exercise, Solution, Submission, User};
@@ -81,7 +81,7 @@ mod response {
     }
 }
 
-mod solution_test {
+mod solution_tests {
     mod deserialize {
         use mini_exercism::api::v1::solution::{Exercise, Solution, Submission, User};
         use mini_exercism::api::v1::track::Track;
@@ -153,7 +153,7 @@ mod solution_test {
     }
 }
 
-mod user {
+mod user_tests {
     mod deserialize {
         use mini_exercism::api::v1::solution::User;
 
@@ -171,7 +171,7 @@ mod user {
     }
 }
 
-mod exercise {
+mod exercise_tests {
     mod deserialize {
         use mini_exercism::api::v1::solution::Exercise;
         use mini_exercism::api::v1::track::Track;
@@ -198,7 +198,7 @@ mod exercise {
     }
 }
 
-mod submission {
+mod submission_tests {
     mod deserialize {
         use mini_exercism::api::v1::solution::Submission;
 

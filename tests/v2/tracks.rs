@@ -1,4 +1,4 @@
-mod filters {
+mod filters_tests {
     mod builder {
         use assert_matches::assert_matches;
         use mini_exercism::api::v2::tracks::Filters;
@@ -21,7 +21,7 @@ mod filters {
     }
 }
 
-mod response {
+mod response_tests {
     mod deserialize {
         use mini_exercism::api::v2::track::{Links, Track};
         use mini_exercism::api::v2::tracks;
