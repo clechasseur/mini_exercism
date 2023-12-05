@@ -1,4 +1,4 @@
-mod filters {
+mod filters_tests {
     mod builder {
         use mini_exercism::api::v2::solution::{MentoringStatus, Status, TestsStatus};
         use mini_exercism::api::v2::solutions::Filters;
@@ -27,7 +27,7 @@ mod filters {
     }
 }
 
-mod paging {
+mod paging_tests {
     use mini_exercism::api::v2::solutions::Paging;
 
     #[test]
@@ -47,7 +47,7 @@ mod paging {
     }
 }
 
-mod response {
+mod response_tests {
     mod deserialize {
         use mini_exercism::api::v2::solution::Status::Published;
         use mini_exercism::api::v2::solution::TestsStatus::Passed;
@@ -198,7 +198,7 @@ mod response {
     }
 }
 
-mod response_meta {
+mod response_meta_tests {
     mod deserialize {
         use mini_exercism::api::v2::solutions::ResponseMeta;
 

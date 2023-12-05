@@ -1,4 +1,4 @@
-mod solution_test {
+mod solution_tests {
     mod deserialize {
         use mini_exercism::api::v2::solution::MentoringStatus::Finished;
         use mini_exercism::api::v2::solution::Status::Published;
@@ -142,7 +142,7 @@ mod solution_test {
     }
 }
 
-mod exercise {
+mod exercise_tests {
     mod deserialize {
         use mini_exercism::api::v2::solution::Exercise;
 
@@ -165,7 +165,7 @@ mod exercise {
     }
 }
 
-mod track {
+mod track_tests {
     mod deserialize {
         use mini_exercism::api::v2::solution::Track;
 

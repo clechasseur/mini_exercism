@@ -1,4 +1,4 @@
-mod error {
+mod error_tests {
     use std::collections::HashMap;
 
     use assert_matches::assert_matches;
