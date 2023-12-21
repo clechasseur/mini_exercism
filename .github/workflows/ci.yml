@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [ 1.68.2, stable, beta, nightly ]
+        toolchain: [ 1.70.0, stable, beta, nightly ]
         os: [ ubuntu, macos, windows ]
         ignore-lock: [ false, true ]
         all-features: [ true, false ]
