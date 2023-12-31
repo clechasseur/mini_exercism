@@ -310,8 +310,8 @@ mod client_tests {
             let solutions = solutions_response.results;
             let meta = solutions_response.meta;
             assert_eq!(2, solutions.len());
-            assert_eq!("82f1ce4b47514db29f4831a0d2680ebd", solutions.get(0).unwrap().uuid);
-            assert_eq!("resistor-color-duo", solutions.get(0).unwrap().exercise.name);
+            assert_eq!("82f1ce4b47514db29f4831a0d2680ebd", solutions.first().unwrap().uuid);
+            assert_eq!("resistor-color-duo", solutions.first().unwrap().exercise.name);
             assert_eq!("85bcc0c08a134bde8afcb16d062ad6b0", solutions.get(1).unwrap().uuid);
             assert_eq!("resistor-color", solutions.get(1).unwrap().exercise.name);
             assert_eq!(1, meta.current_page);
