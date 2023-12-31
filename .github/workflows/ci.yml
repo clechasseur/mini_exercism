@@ -159,6 +159,9 @@ jobs:
           args: --workspace ${{ matrix.all-features && '--all-features' || '' }}
 
   tarpaulin:
+    # Note: there seems to be an issue in `cargo-tarpaulin` when using Rust 1.75.0 - it reports some missing line coverage.
+    # I've entered an issue: https://github.com/xd009642/tarpaulin/issues/1438
+    # In the meantime, let's pin the Rust version used for code coverage to 1.74.1 until we know what's happening.
     name: Code coverage
     runs-on: ubuntu-latest
     steps:
@@ -166,7 +169,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.74.1
 
       - name: Install cargo-tarpaulin
         uses: taiki-e/install-action@v2
