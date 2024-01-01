@@ -1,9 +1,11 @@
 use std::fmt::Display;
 
 use derive_builder::Builder;
-use reqwest::{Client, Method, RequestBuilder};
+use reqwest::{Client, IntoUrl, Method, RequestBuilder, Response};
+use serde::de::DeserializeOwned;
 
 use crate::core::Credentials;
+use crate::Result;
 
 #[derive(Debug, Builder)]
 #[builder(derive(Debug))]
@@ -29,19 +31,24 @@ impl ApiClient {
         self.api_base_url.as_str()
     }
 
-    pub fn request<U: Display>(&self, method: Method, url: U) -> RequestBuilder {
-        let builder = self.http_client.request(method, self.api_url(url));
-        match &self.credentials {
-            Some(creds) => builder.bearer_auth(creds.api_token()),
-            None => builder,
-        }
+    pub fn request<U>(&self, method: Method, url: U) -> ApiRequestBuilder
+    where
+        U: Display,
+    {
+        ApiRequestBuilder::new(&self.http_client, method, self.api_url(url), &self.credentials)
     }
 
-    pub fn get<U: Display>(&self, url: U) -> RequestBuilder {
+    pub fn get<U>(&self, url: U) -> ApiRequestBuilder
+    where
+        U: Display,
+    {
         self.request(Method::GET, url)
     }
 
-    fn api_url<U: Display>(&self, url: U) -> String {
+    fn api_url<U>(&self, url: U) -> String
+    where
+        U: Display,
+    {
         format!("{}{}", self.api_base_url, url)
     }
 }
@@ -50,6 +57,128 @@ impl ApiClientBuilder {
     pub fn api_base_url(&mut self, url: &str) -> &mut Self {
         self.api_base_url = Some(url.trim_end_matches('/').into());
         self
+    }
+}
+
+pub trait IntoQuery {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder;
+}
+
+impl<'k, V> IntoQuery for (&'k str, Option<V>)
+where
+    V: AsRef<str>,
+{
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+        match self.1 {
+            Some(param) => request.query(&[(self.0, param.as_ref())]),
+            None => request,
+        }
+    }
+}
+
+impl<'k, V> IntoQuery for (&'k str, Vec<V>)
+where
+    V: AsRef<str>,
+{
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+        self.1
+            .into_iter()
+            .fold(request, |request, v| request.query(&[(self.0, v.as_ref())]))
+    }
+}
+
+impl<Q> IntoQuery for Option<Q>
+where
+    Q: IntoQuery,
+{
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+        match self {
+            Some(query) => query.into_query(request),
+            None => request,
+        }
+    }
+}
+
+pub trait QueryBuilder: Sized {
+    fn build_query<Q>(self, query: Q) -> Self
+    where
+        Q: IntoQuery;
+
+    fn build_query_if<Q>(self, cond: bool, query: Q) -> Self
+    where
+        Q: IntoQuery,
+    {
+        if cond {
+            self.build_query(query)
+        } else {
+            self
+        }
+    }
+
+    fn build_joined_query<V>(self, key: &str, values: Vec<V>) -> Self
+    where
+        V: AsRef<str>,
+    {
+        if !values.is_empty() {
+            let values = values
+                .iter()
+                .map(|v| v.as_ref())
+                .collect::<Vec<_>>()
+                .join(" ");
+
+            self.build_query((key, Some(values.as_str())))
+        } else {
+            self
+        }
+    }
+}
+
+impl QueryBuilder for RequestBuilder {
+    fn build_query<Q>(self, query: Q) -> Self
+    where
+        Q: IntoQuery,
+    {
+        query.into_query(self)
+    }
+}
+
+pub struct ApiRequestBuilder {
+    request: RequestBuilder,
+}
+
+impl ApiRequestBuilder {
+    pub fn new<U>(
+        http_client: &Client,
+        method: Method,
+        url: U,
+        credentials: &Option<Credentials>,
+    ) -> Self
+    where
+        U: IntoUrl,
+    {
+        let mut request = http_client.request(method, url);
+        if let Some(credentials) = credentials {
+            request = request.bearer_auth(credentials.api_token());
+        }
+        Self { request }
+    }
+
+    pub fn query<Q>(self, query: Q) -> Self
+    where
+        Q: IntoQuery,
+    {
+        Self { request: query.into_query(self.request) }
+    }
+
+    pub async fn send(self) -> Result<Response> {
+        Ok(self.request.send().await?.error_for_status()?)
+    }
+
+    pub async fn execute<R>(self) -> Result<R>
+    where
+        R: DeserializeOwned,
+    {
+        Ok(self.send().await?.json().await?)
     }
 }
 
@@ -191,117 +320,159 @@ mod tests {
     use super::*;
 
     mod api_client {
+        use assert_matches::assert_matches;
+        use itertools::iproduct;
         use reqwest::header::{HeaderMap, HeaderValue};
         use reqwest::StatusCode;
-        use wiremock::matchers::{bearer_token, header_exists, method, path};
-        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use serde::{Deserialize, Serialize};
+        use strum_macros::{AsRefStr, Display};
+        use wiremock::matchers::{
+            bearer_token, header_exists, method, path, query_param, query_param_is_missing,
+        };
+        use wiremock::{Mock, MockBuilder, MockServer, ResponseTemplate};
         use wiremock_logical_matchers::not;
 
         use super::*;
 
+        const ROUTE: &str = "/";
         const API_TOKEN: &str = "some_api_token";
         const TEST_HEADER: &str = "x-mini_exercism-test";
 
-        const ANONYMOUS_API_PATH: &str = "/anonymous";
-        const AUTHENTICATED_API_PATH: &str = "/authenticated";
-        const TEST_API_PATH: &str = "/test";
-
-        async fn setup_route<T: Into<String>>(
-            mock_server: &MockServer,
-            route: T,
-            anonymous: bool,
-            test: bool,
-        ) {
-            let mut mock = Mock::given(method("GET")).and(path(route));
-
-            if anonymous {
-                mock = mock.and(not(header_exists("authorization")));
-            } else {
-                mock = mock.and(bearer_token(API_TOKEN));
-            }
-
-            if test {
-                mock = mock.and(header_exists(TEST_HEADER));
-            } else {
-                mock = mock.and(not(header_exists(TEST_HEADER)));
-            }
-
-            mock.respond_with(ResponseTemplate::new(StatusCode::OK))
-                .mount(mock_server)
-                .await;
+        #[derive(Debug, Copy, Clone, PartialEq, Eq, Display, AsRefStr)]
+        #[strum(serialize_all = "snake_case")]
+        enum TestEnum {
+            ValueA,
+            ValueB,
+            ValueC,
         }
 
-        async fn setup_mock_server() -> MockServer {
+        #[derive(Debug, Default, Clone, PartialEq, Eq)]
+        struct TestData {
+            pub name: Option<String>,
+            pub test: bool,
+            pub values: Vec<TestEnum>,
+            pub joined: Vec<TestEnum>,
+        }
+
+        impl TestData {
+            fn get(on: bool) -> Self {
+                if on {
+                    Self::on()
+                } else {
+                    Self::off()
+                }
+            }
+
+            fn on() -> Self {
+                Self {
+                    name: Some("clechasseur".into()),
+                    test: true,
+                    values: vec![TestEnum::ValueA, TestEnum::ValueB, TestEnum::ValueC],
+                    joined: vec![TestEnum::ValueA, TestEnum::ValueB, TestEnum::ValueC],
+                }
+            }
+
+            fn off() -> Self {
+                Self::default()
+            }
+
+            #[must_use]
+            fn add_to_mock(&self, mut mock: MockBuilder) -> MockBuilder {
+                mock = match &self.name {
+                    Some(name) => mock.and(query_param("name", name)),
+                    None => mock.and(query_param_is_missing("name")),
+                };
+
+                mock = if self.test {
+                    mock.and(not(query_param_is_missing("test")))
+                } else {
+                    mock.and(query_param_is_missing("test"))
+                };
+
+                if !self.values.is_empty() {
+                    for value in &self.values {
+                        mock = mock.and(query_param("values[]", value.as_ref()));
+                    }
+                } else {
+                    mock = mock.and(query_param_is_missing("values[]"));
+                }
+
+                mock = if !self.joined.is_empty() {
+                    let values = self
+                        .joined
+                        .iter()
+                        .map(|v| v.as_ref())
+                        .collect::<Vec<_>>()
+                        .join(" ");
+
+                    mock.and(query_param("joined", values))
+                } else {
+                    mock.and(query_param_is_missing("joined"))
+                };
+
+                mock
+            }
+        }
+
+        impl IntoQuery for TestData {
+            fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+                request
+                    .build_query(("name", self.name))
+                    .build_query_if(self.test, ("test", Some("1")))
+                    .build_query(("values[]", self.values))
+                    .build_joined_query("joined", self.joined)
+            }
+        }
+
+        #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+        struct TestOutput {
+            pub message: String,
+        }
+
+        impl Default for TestOutput {
+            fn default() -> Self {
+                Self { message: "test message".into() }
+            }
+        }
+
+        fn test_permutations() -> impl Iterator<Item = (bool, bool, bool)> {
+            iproduct!(
+                [false, true], // anonymous
+                [false, true], // test_header
+                [false, true]  // test_data on?
+            )
+        }
+
+        async fn setup_mock_server(
+            anonymous: bool,
+            test_header: bool,
+            test_data_on: bool,
+        ) -> MockServer {
             let mock_server = MockServer::start().await;
 
-            setup_route(&mock_server, ANONYMOUS_API_PATH, true, false).await;
-            setup_route(
-                &mock_server,
-                format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH),
-                true,
-                true,
+            let mut mock = Mock::given(method("GET")).and(path(ROUTE));
+
+            mock = if anonymous {
+                mock.and(not(header_exists("authorization")))
+            } else {
+                mock.and(bearer_token(API_TOKEN))
+            };
+
+            mock = if test_header {
+                mock.and(header_exists(TEST_HEADER))
+            } else {
+                mock.and(not(header_exists(TEST_HEADER)))
+            };
+
+            mock = TestData::get(test_data_on).add_to_mock(mock);
+
+            mock.respond_with(
+                ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
             )
-            .await;
-            setup_route(&mock_server, AUTHENTICATED_API_PATH, false, false).await;
-            setup_route(
-                &mock_server,
-                format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH),
-                false,
-                true,
-            )
+            .mount(&mock_server)
             .await;
 
             mock_server
-        }
-
-        fn expected_status_code(working_uri: &str, actual_uri: &str) -> StatusCode {
-            if working_uri == actual_uri {
-                StatusCode::OK
-            } else {
-                StatusCode::NOT_FOUND
-            }
-        }
-
-        fn get_uri_to_test(anonymous: bool, test: bool) -> String {
-            match (anonymous, test) {
-                (true, false) => ANONYMOUS_API_PATH.to_string(),
-                (true, true) => format!("{}{}", ANONYMOUS_API_PATH, TEST_API_PATH),
-                (false, false) => AUTHENTICATED_API_PATH.to_string(),
-                (false, true) => format!("{}{}", AUTHENTICATED_API_PATH, TEST_API_PATH),
-            }
-        }
-
-        async fn test_routes(client: &ApiClient, anonymous: bool, test: bool) {
-            let working_uri = get_uri_to_test(anonymous, test);
-
-            let uris = vec![
-                get_uri_to_test(true, false),
-                get_uri_to_test(true, true),
-                get_uri_to_test(false, false),
-                get_uri_to_test(false, true),
-            ];
-
-            for uri in &uris {
-                let request_status = client
-                    .request(Method::GET, uri)
-                    .send()
-                    .await
-                    .unwrap()
-                    .status();
-                let get_status = client.get(uri).send().await.unwrap().status();
-
-                let expected_status = expected_status_code(&working_uri, uri);
-                assert_eq!(
-                    request_status, expected_status,
-                    "Tried to request {}, expected {}, got {}",
-                    uri, expected_status, request_status
-                );
-                assert_eq!(
-                    get_status, expected_status,
-                    "Tried to get {}, expected {}, got {}",
-                    uri, expected_status, get_status
-                );
-            }
         }
 
         fn create_test_http_client() -> Client {
@@ -318,68 +489,138 @@ mod tests {
             Credentials::from_api_token(API_TOKEN)
         }
 
-        fn create_anonymous_api_client(mock_server: &MockServer) -> ApiClient {
-            ApiClient::builder()
-                .api_base_url(&mock_server.uri())
-                .build()
-                .unwrap()
+        fn create_api_client<U>(api_base_url: &U, anonymous: bool, test_header: bool) -> ApiClient
+        where
+            U: AsRef<str>,
+        {
+            let mut builder = ApiClient::builder();
+            builder.api_base_url(api_base_url.as_ref());
+
+            if !anonymous {
+                builder.credentials(create_authenticated_credentials());
+            }
+            if test_header {
+                builder.http_client(create_test_http_client());
+            }
+
+            builder.build().unwrap()
         }
 
-        fn create_anonymous_test_api_client(mock_server: &MockServer) -> ApiClient {
-            ApiClient::builder()
-                .http_client(create_test_http_client())
-                .api_base_url(&mock_server.uri())
-                .build()
-                .unwrap()
-        }
+        async fn test_routes<U>(
+            api_base_url: &U,
+            expected_anonymous: bool,
+            expected_test_header: bool,
+            expected_test_data_on: bool,
+        ) where
+            U: AsRef<str>,
+        {
+            let permutations = test_permutations();
 
-        fn create_authenticated_api_client(mock_server: &MockServer) -> ApiClient {
-            ApiClient::builder()
-                .api_base_url(&mock_server.uri())
-                .credentials(create_authenticated_credentials())
-                .build()
-                .unwrap()
-        }
+            for (actual_anonymous, actual_test_header, actual_test_data_on) in permutations {
+                let correct = (actual_anonymous, actual_test_header, actual_test_data_on)
+                    == (expected_anonymous, expected_test_header, expected_test_data_on);
 
-        fn create_authenticated_test_api_client(mock_server: &MockServer) -> ApiClient {
-            ApiClient::builder()
-                .http_client(create_test_http_client())
-                .api_base_url(&mock_server.uri())
-                .credentials(create_authenticated_credentials())
-                .build()
-                .unwrap()
+                let client = create_api_client(api_base_url, actual_anonymous, actual_test_header);
+
+                let actual_test_data = TestData::get(actual_test_data_on);
+                let opt_actual_test_data =
+                    if actual_test_data_on { Some(actual_test_data.clone()) } else { None };
+
+                let from_request = client
+                    .request(Method::GET, ROUTE)
+                    .query(actual_test_data.clone())
+                    .send()
+                    .await;
+                let from_get = client
+                    .get(ROUTE)
+                    .query(opt_actual_test_data.clone())
+                    .send()
+                    .await;
+
+                if correct {
+                    assert_matches!(
+                        from_request,
+                        Ok(response) if response.status() == StatusCode::OK,
+                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
+                        expected_anonymous, expected_test_header, expected_test_data_on,
+                        actual_anonymous, actual_test_header, actual_test_data_on
+                    );
+                    assert_matches!(
+                        from_get,
+                        Ok(response) if response.status() == StatusCode::OK,
+                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
+                        expected_anonymous, expected_test_header, expected_test_data_on,
+                        actual_anonymous, actual_test_header, actual_test_data_on
+                    );
+
+                    let from_request: TestOutput = client
+                        .request(Method::GET, ROUTE)
+                        .query(actual_test_data.clone())
+                        .execute()
+                        .await
+                        .unwrap();
+                    let from_get: TestOutput = client
+                        .get(ROUTE)
+                        .query(actual_test_data.clone())
+                        .execute()
+                        .await
+                        .unwrap();
+
+                    let expected = TestOutput::default();
+                    assert_eq!(
+                        expected,
+                        from_request,
+                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
+                        expected_anonymous,
+                        expected_test_header,
+                        expected_test_data_on,
+                        actual_anonymous,
+                        actual_test_header,
+                        actual_test_data_on
+                    );
+                    assert_eq!(
+                        expected,
+                        from_get,
+                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
+                        expected_anonymous,
+                        expected_test_header,
+                        expected_test_data_on,
+                        actual_anonymous,
+                        actual_test_header,
+                        actual_test_data_on
+                    );
+                } else {
+                    assert_matches!(
+                        from_request,
+                        Err(crate::Error::ApiError(err)) if err.is_status() => {
+                            assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
+                        },
+                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
+                        expected_anonymous, expected_test_header, expected_test_data_on,
+                        actual_anonymous, actual_test_header, actual_test_data_on
+                    );
+                    assert_matches!(
+                        from_get,
+                        Err(crate::Error::ApiError(err)) if err.is_status() => {
+                            assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
+                        },
+                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
+                        expected_anonymous, expected_test_header, expected_test_data_on,
+                        actual_anonymous, actual_test_header, actual_test_data_on
+                    );
+                }
+            }
         }
 
         #[tokio::test]
-        async fn with_default_client_and_no_credentials() {
-            let mock_server = setup_mock_server().await;
-            let client = create_anonymous_api_client(&mock_server);
+        async fn test_all_permutations() {
+            let permutations = test_permutations();
 
-            test_routes(&client, true, false).await;
-        }
+            for (anonymous, test_header, test_data_on) in permutations {
+                let mock_server = setup_mock_server(anonymous, test_header, test_data_on).await;
 
-        #[tokio::test]
-        async fn with_default_client_and_credentials() {
-            let mock_server = setup_mock_server().await;
-            let client = create_authenticated_api_client(&mock_server);
-
-            test_routes(&client, false, false).await;
-        }
-
-        #[tokio::test]
-        async fn with_test_client_and_no_credentials() {
-            let mock_server = setup_mock_server().await;
-            let client = create_anonymous_test_api_client(&mock_server);
-
-            test_routes(&client, true, true).await;
-        }
-
-        #[tokio::test]
-        async fn with_test_client_and_credentials() {
-            let mock_server = setup_mock_server().await;
-            let client = create_authenticated_test_api_client(&mock_server);
-
-            test_routes(&client, false, true).await;
+                test_routes(&mock_server.uri(), anonymous, test_header, test_data_on).await;
+            }
         }
     }
 

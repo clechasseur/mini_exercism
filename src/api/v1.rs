@@ -1,15 +1,15 @@
 //! Types and functions to interact with the [Exercism website](https://exercism.org) v1 API.
 
-use std::fmt::Display;
+pub mod ping;
+pub mod solution;
+pub mod track;
 
 use bytes::Bytes;
 use futures::future::Either;
 use futures::{stream, Stream, StreamExt, TryStreamExt};
 use reqwest::StatusCode;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
 
-use crate::core::Result;
+use crate::{Error, Result};
 
 /// Default base URL for the [Exercism website](https://exercism.org) v1 API.
 pub const DEFAULT_V1_API_BASE_URL: &str = "https://api.exercism.io/v1";
@@ -30,7 +30,7 @@ impl Client {
     /// - `uuid` - UUID of the solution to fetch. This can be provided by the mentoring
     ///            interface, or returned by another API, like
     ///            [`api::v2::Client::get_exercises`](crate::api::v2::Client::get_exercises)
-    ///            (see [`Solution::uuid`](crate::api::v2::Solution::uuid)).
+    ///            (see [`Solution::uuid`](crate::api::v2::solution::Solution::uuid)).
     ///
     /// # Notes
     ///
@@ -51,13 +51,16 @@ impl Client {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     anyhow::Ok(client.get_solution(solution_uuid).await?.solution.url)
+    ///     Ok(client.get_solution(solution_uuid).await?.solution.url)
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error::ApiError
-    pub async fn get_solution(&self, uuid: &str) -> Result<SolutionResponse> {
-        self.get(format!("/solutions/{}", uuid), None).await
+    /// [`ApiError`]: crate::Error::ApiError
+    pub async fn get_solution(&self, uuid: &str) -> Result<solution::Response> {
+        self.api_client
+            .get(format!("/solutions/{}", uuid))
+            .execute()
+            .await
     }
 
     /// Returns information about the latest solution submitted by the user for
@@ -86,32 +89,34 @@ impl Client {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     anyhow::Ok(
-    ///         client
-    ///             .get_latest_solution(track, exercise)
-    ///             .await?
-    ///             .solution
-    ///             .url,
-    ///     )
+    ///     Ok(client
+    ///         .get_latest_solution(track, exercise)
+    ///         .await?
+    ///         .solution
+    ///         .url)
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error::ApiError
+    /// [`ApiError`]: crate::Error::ApiError
     pub async fn get_latest_solution(
         &self,
         track: &str,
         exercise: &str,
-    ) -> Result<SolutionResponse> {
-        let query = [("track_id", track), ("exercise_id", exercise)];
-        self.get("/solutions/latest", Some(&query)).await
+    ) -> Result<solution::Response> {
+        self.api_client
+            .get("/solutions/latest")
+            .query(("track_id", Some(track)))
+            .query(("exercise_id", Some(exercise)))
+            .execute()
+            .await
     }
 
     /// Returns the contents of a specific file that is part of a solution.
     ///
     /// # Arguments
     ///
-    /// - `solution_uuid` - [UUID](Solution::uuid) of the solution containing the file.
-    /// - `file_path` - Path to the file, as returned in [`Solution::files`].
+    /// - `solution_uuid` - [UUID](solution::Solution::uuid) of the solution containing the file.
+    /// - `file_path` - Path to the file, as returned in [`solution::Solution::files`].
     ///
     /// # Notes
     ///
@@ -145,11 +150,11 @@ impl Client {
     ///         file_content.write_all(&bytes?)?;
     ///     }
     ///
-    ///     anyhow::Ok(String::from_utf8(file_content).expect("File should be valid UTF-8"))
+    ///     Ok(String::from_utf8(file_content).expect("File should be valid UTF-8"))
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error::ApiError
+    /// [`ApiError`]: crate::Error::ApiError
     pub async fn get_file(
         &self,
         solution_uuid: &str,
@@ -159,14 +164,13 @@ impl Client {
             .api_client
             .get(format!("/solutions/{}/files/{}", solution_uuid, file_path))
             .send()
-            .await
-            .and_then(|response| response.error_for_status());
+            .await;
 
         // The result of `stream::once` is not `Unpin`, so calling `boxed()` will make sure it's
         // possible for callers to use `next()` on the returned `Stream` without pinning it first.
         match result {
             Ok(response) => Either::Left(response.bytes_stream().map_err(|err| err.into())),
-            Err(error) => Either::Right(stream::once(async { Err(error.into()) }).boxed()),
+            Err(error) => Either::Right(stream::once(async { Err(error) }).boxed()),
         }
     }
 
@@ -185,23 +189,23 @@ impl Client {
     ///
     /// ```no_run
     /// use mini_exercism::api;
-    /// use mini_exercism::api::v1::SolutionTrack;
+    /// use mini_exercism::api::v1::track::Track;
     /// use mini_exercism::core::Credentials;
     ///
-    /// async fn get_language_track_details(
-    ///     api_token: &str,
-    ///     track: &str,
-    /// ) -> anyhow::Result<SolutionTrack> {
+    /// async fn get_language_track_details(api_token: &str, track: &str) -> anyhow::Result<Track> {
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v1::Client::builder().credentials(credentials).build();
     ///
-    ///     anyhow::Ok(client.get_track(track).await?.track)
+    ///     Ok(client.get_track(track).await?.track)
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error::ApiError
-    pub async fn get_track(&self, track: &str) -> Result<TrackResponse> {
-        self.get(format!("/tracks/{}", track), None).await
+    /// [`ApiError`]: crate::Error::ApiError
+    pub async fn get_track(&self, track: &str) -> Result<track::Response> {
+        self.api_client
+            .get(format!("/tracks/{}", track))
+            .execute()
+            .await
     }
 
     /// Validates the token used to perform API requests.
@@ -228,20 +232,18 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error::ApiError
+    /// [`ApiError`]: crate::Error::ApiError
     pub async fn validate_token(&self) -> Result<bool> {
         // This API call returns a payload, but it doesn't really contain useful information:
         // if the token is invalid, 401 will be returned.
-        let response = self
-            .api_client
-            .get("/validate_token")
-            .send()
-            .await
-            .and_then(|r| r.error_for_status());
+        let response = self.api_client.get("/validate_token").send().await;
+
         match response {
             Ok(_) => Ok(true),
-            Err(error) if error.status() == Some(StatusCode::UNAUTHORIZED) => Ok(false),
-            Err(error) => Err(error.into()),
+            Err(Error::ApiError(error)) if error.status() == Some(StatusCode::UNAUTHORIZED) => {
+                Ok(false)
+            },
+            Err(error) => Err(error),
         }
     }
 
@@ -278,152 +280,12 @@ impl Client {
     ///         service_status.website, service_status.database,
     ///     );
     ///
-    ///     anyhow::Ok(())
+    ///     Ok(())
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::core::Error::ApiError
-    pub async fn ping(&self) -> Result<PingResponse> {
-        self.get("/ping", None).await
+    /// [`ApiError`]: crate::Error::ApiError
+    pub async fn ping(&self) -> Result<ping::Response> {
+        self.api_client.get("/ping").execute().await
     }
-
-    async fn get<U, R>(&self, url: U, query: Option<&[(&str, &str)]>) -> Result<R>
-    where
-        U: Display,
-        R: DeserializeOwned,
-    {
-        let mut request = self.api_client.get(url);
-        if let Some(query) = query {
-            request = request.query(query);
-        }
-        Ok(request.send().await?.error_for_status()?.json().await?)
-    }
-}
-
-/// Response to a query for a solution on the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SolutionResponse {
-    /// Solution information.
-    pub solution: Solution,
-}
-
-/// A solution returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Solution {
-    /// Solution unique ID.
-    #[serde(rename = "id")]
-    pub uuid: String,
-
-    /// Solution URL.
-    ///
-    /// This URL's value depends on who performs the query versus who submitted the solution:
-    ///
-    /// | Condition                                                       | URL value used                  |
-    /// |-----------------------------------------------------------------|---------------------------------|
-    /// | Query user submitted the solution                               | Public exercise URL[^1]         |
-    /// | Query user is mentoring the solution's submitter                | URL of the mentoring discussion |
-    /// | Query user is a mentor and solution was submitted for mentoring | URL of the mentoring request    |
-    /// | Solution has been published and is accessible to query user     | Public URL of the solution      |
-    ///
-    /// [^1]: This is not a typo: the URL returned is indeed the public URL of the exercise,
-    /// not the private URL of the solution for the user.
-    pub url: String,
-
-    /// Information about the user that submitted the solution.
-    pub user: SolutionUser,
-
-    /// Information about the solution's exercise.
-    pub exercise: SolutionExercise,
-
-    /// Base URL that can be used to download solution files.
-    ///
-    /// To fetch a specific file, use `{{file_download_base_url}}/{{file path}}`
-    /// (with `{{file path}}` replaced by the path of a file returned in [`files`](Self::files)).
-    pub file_download_base_url: String,
-
-    /// List of files that are part of the solution.
-    ///
-    /// This includes files submitted by the user as well as files that are provided by the
-    /// exercise project. Files can be fetched by pre-pending their path with
-    /// [`file_download_base_url`](Self::file_download_base_url).
-    pub files: Vec<String>,
-
-    /// Information about the submission of the solution.
-    ///
-    /// Only present if the solution has been submitted by the user.
-    #[serde(default)]
-    pub submission: Option<SolutionSubmission>,
-}
-
-/// User who created a solution, as returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SolutionUser {
-    /// [Exercism](https://exercism.org) user handle.
-    pub handle: String,
-
-    /// Whether the user performing the query is the one that created the solution.
-    pub is_requester: bool,
-}
-
-/// Exercise for a solution, as returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SolutionExercise {
-    /// Exercise name.
-    ///
-    /// This is an internal name, like `forth`. Also called `slug`.
-    #[serde(rename = "id")]
-    pub name: String,
-
-    /// URL of the exercise's instructions (e.g., the public exercise URL).
-    pub instructions_url: String,
-
-    /// Information about the track containing the exercise.
-    pub track: SolutionTrack,
-}
-
-/// A language track returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SolutionTrack {
-    /// Name of the language track.
-    ///
-    /// This is an internal name, like `common-lisp`. Also called `slug`.
-    #[serde(rename = "id")]
-    pub name: String,
-
-    /// Language track title.
-    ///
-    /// This is a textual representation of the track name, like `Common Lisp`.
-    #[serde(rename = "language")]
-    pub title: String,
-}
-
-/// Submission of a solution, as returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SolutionSubmission {
-    /// Date/time when the solution has been submitted, in ISO-8601 format.
-    pub submitted_at: String,
-}
-
-/// Response to a track query on the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TrackResponse {
-    /// Information about the language track.
-    pub track: SolutionTrack,
-}
-
-/// Response to a ping request to the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct PingResponse {
-    /// Information about the status of the [Exercism](https://exercism.org) services.
-    pub status: ServiceStatus,
-}
-
-/// Status of services, as returned by the [Exercism website](https://exercism.org) v1 API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ServiceStatus {
-    /// Whether the [Exercism website](https://exercism.org) is up and running.
-    pub website: bool,
-
-    /// Whether the database backing the [Exercism website](https://exercism.org) is working.
-    pub database: bool,
 }
