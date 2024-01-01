@@ -1,9 +1,9 @@
 mod get_tracks {
     use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::v2::TrackFilters;
-    use mini_exercism::api::v2::TrackStatusFilter::Joined;
-    use mini_exercism::core::Error;
+    use mini_exercism::api::v2::tracks::Filters;
+    use mini_exercism::api::v2::tracks::StatusFilter::Joined;
+    use mini_exercism::Error;
     use reqwest::StatusCode;
 
     #[tokio::test]
@@ -20,7 +20,7 @@ mod get_tracks {
     #[tokio::test]
     async fn test_julia_track() {
         let client = api::v2::Client::new();
-        let filters = TrackFilters::builder().criteria("julia").build();
+        let filters = Filters::builder().criteria("julia").build();
         let track_response = client.get_tracks(Some(filters)).await;
         let tracks = track_response.unwrap().tracks;
         assert_eq!(1, tracks.len());
@@ -33,7 +33,7 @@ mod get_tracks {
     #[tokio::test]
     async fn test_tags() {
         let client = api::v2::Client::new();
-        let filters = TrackFilters::builder().tag("Functional").build();
+        let filters = Filters::builder().tag("Functional").build();
         let track_response = client.get_tracks(Some(filters)).await;
 
         // Tags do not currently work.
@@ -43,7 +43,7 @@ mod get_tracks {
     #[tokio::test]
     async fn test_status() {
         let client = api::v2::Client::new();
-        let filters = TrackFilters::builder().status(Joined).build();
+        let filters = Filters::builder().status(Joined).build();
         let track_response = client.get_tracks(Some(filters)).await;
 
         // Asking for a specific status fails when querying anonymously.
@@ -56,7 +56,7 @@ mod get_tracks {
 mod get_exercises {
     use assert_matches::assert_matches;
     use mini_exercism::api;
-    use mini_exercism::api::v2::ExerciseFilters;
+    use mini_exercism::api::v2::exercises::Filters;
 
     #[tokio::test]
     async fn test_all_exercises() {
@@ -76,9 +76,7 @@ mod get_exercises {
     #[tokio::test]
     async fn test_difference_of_squares_exercise() {
         let client = api::v2::Client::new();
-        let filters = ExerciseFilters::builder()
-            .criteria("difference-of-squares")
-            .build();
+        let filters = Filters::builder().criteria("difference-of-squares").build();
         let exercises_response = client.get_exercises("rust", Some(filters)).await;
         let exercises = exercises_response.unwrap().exercises;
         assert_eq!(1, exercises.len());
@@ -88,7 +86,7 @@ mod get_exercises {
     #[tokio::test]
     async fn test_solutions_sideloading() {
         let client = api::v2::Client::new();
-        let filters = ExerciseFilters::builder().include_solutions(true).build();
+        let filters = Filters::builder().include_solutions(true).build();
         let exercises_response = client.get_exercises("rust", Some(filters)).await;
 
         // Sideloading solutions does not work when querying anonymously.

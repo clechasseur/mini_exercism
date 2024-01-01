@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = "1"
+//! mini_exercism = "2"
 //! ```
 //!
 //! or by running:
@@ -105,7 +105,7 @@
 //!         println!("Exercism language track: {}", track.title);
 //!     }
 //!
-//!     anyhow::Ok(())
+//!     Ok(())
 //! }
 //!
 //! async fn print_solutions(track: &str) -> anyhow::Result<()> {
@@ -119,7 +119,7 @@
 //!         );
 //!     }
 //!
-//!     anyhow::Ok(())
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -153,7 +153,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = { version = "1", features = ["cli"] }
+//! mini_exercism = { version = "2", features = ["cli"] }
 //! ```
 //!
 //! Then, you can fetch CLI credentials and use them to perform API requests. Note that it's
@@ -191,7 +191,7 @@
 //!     // ... customize HTTP client with `http_client_builder` here ...
 //!     let http_client = http_client_builder.build()?;
 //!
-//!     anyhow::Ok(api::v2::Client::builder().http_client(http_client).build())
+//!     Ok(api::v2::Client::builder().http_client(http_client).build())
 //! }
 //! ```
 //!
@@ -221,3 +221,6 @@ pub mod api;
 #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
 pub mod cli;
 pub mod core;
+
+pub use crate::core::Error;
+pub use crate::core::Result;

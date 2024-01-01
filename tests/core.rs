@@ -2,7 +2,7 @@ mod error {
     use std::collections::HashMap;
 
     use assert_matches::assert_matches;
-    use mini_exercism::core::Error;
+    use mini_exercism::Error;
 
     #[test]
     #[cfg(feature = "cli")]

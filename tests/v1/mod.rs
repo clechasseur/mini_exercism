@@ -1,3 +1,7 @@
+mod ping;
+mod solution;
+mod track;
+
 mod client {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
@@ -21,10 +25,9 @@ mod client {
     }
 
     mod get_solution {
-        use mini_exercism::api::v1::{
-            Solution, SolutionExercise, SolutionResponse, SolutionSubmission, SolutionTrack,
-            SolutionUser,
-        };
+        use mini_exercism::api::v1::solution;
+        use mini_exercism::api::v1::solution::{Exercise, Solution, Submission, User};
+        use mini_exercism::api::v1::track::Track;
 
         use super::*;
 
@@ -33,15 +36,15 @@ mod client {
             let mock_server = MockServer::start().await;
 
             let solution_uuid = "00c717b68e1b4213b316df82636f5e0f";
-            let solution_response = SolutionResponse {
+            let solution_response = solution::Response {
                 solution: Solution {
                     uuid: solution_uuid.into(),
                     url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                    user: SolutionUser { handle: "clechasseur".into(), is_requester: true },
-                    exercise: SolutionExercise {
+                    user: User { handle: "clechasseur".into(), is_requester: true },
+                    exercise: Exercise {
                         name: "poker".into(),
                         instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                        track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
+                        track: Track { name: "rust".into(), title: "Rust".into() },
                     },
                     file_download_base_url: format!(
                         "https://exercism.org/api/v1/solutions/{}/files/",
@@ -59,7 +62,7 @@ mod client {
                         "src/detail/slice_utils.rs".into(),
                         "src/detail/slice_utils/group_by.rs".into(),
                     ],
-                    submission: Some(SolutionSubmission {
+                    submission: Some(Submission {
                         submitted_at: "2023-05-07T05:35:43.366Z".into(),
                     }),
                 },
@@ -86,10 +89,9 @@ mod client {
     }
 
     mod get_latest_solution {
-        use mini_exercism::api::v1::{
-            Solution, SolutionExercise, SolutionResponse, SolutionSubmission, SolutionTrack,
-            SolutionUser,
-        };
+        use mini_exercism::api::v1::solution;
+        use mini_exercism::api::v1::solution::{Exercise, Solution, Submission, User};
+        use mini_exercism::api::v1::track::Track;
         use wiremock::matchers::query_param;
 
         use super::*;
@@ -99,15 +101,15 @@ mod client {
             let mock_server = MockServer::start().await;
 
             let solution_uuid = "00c717b68e1b4213b316df82636f5e0f";
-            let solution_response = SolutionResponse {
+            let solution_response = solution::Response {
                 solution: Solution {
                     uuid: solution_uuid.into(),
                     url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                    user: SolutionUser { handle: "clechasseur".into(), is_requester: true },
-                    exercise: SolutionExercise {
+                    user: User { handle: "clechasseur".into(), is_requester: true },
+                    exercise: Exercise {
                         name: "poker".into(),
                         instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                        track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
+                        track: Track { name: "rust".into(), title: "Rust".into() },
                     },
                     file_download_base_url: format!(
                         "https://exercism.org/api/v1/solutions/{}/files/",
@@ -125,7 +127,7 @@ mod client {
                         "src/detail/slice_utils.rs".into(),
                         "src/detail/slice_utils/group_by.rs".into(),
                     ],
-                    submission: Some(SolutionSubmission {
+                    submission: Some(Submission {
                         submitted_at: "2023-05-07T05:35:43.366Z".into(),
                     }),
                 },
@@ -158,7 +160,7 @@ mod client {
 
         use assert_matches::assert_matches;
         use futures::StreamExt;
-        use mini_exercism::core::Error;
+        use mini_exercism::Error;
         use wiremock::matchers::path_regex;
 
         use super::*;
@@ -221,7 +223,8 @@ version = "1.1.0"
     }
 
     mod get_track {
-        use mini_exercism::api::v1::{SolutionTrack, TrackResponse};
+        use mini_exercism::api::v1::track;
+        use mini_exercism::api::v1::track::Track;
 
         use super::*;
 
@@ -229,9 +232,8 @@ version = "1.1.0"
         async fn test_all() {
             let mock_server = MockServer::start().await;
 
-            let track_response = TrackResponse {
-                track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
-            };
+            let track_response =
+                track::Response { track: Track { name: "rust".into(), title: "Rust".into() } };
             Mock::given(method(Get))
                 .and(path("/tracks/rust"))
                 .and(bearer_token(API_TOKEN))
@@ -252,7 +254,7 @@ version = "1.1.0"
 
     mod validate_token {
         use assert_matches::assert_matches;
-        use mini_exercism::core::Error;
+        use mini_exercism::Error;
 
         use super::*;
 
@@ -314,7 +316,7 @@ version = "1.1.0"
     }
 
     mod ping {
-        use mini_exercism::api::v1::{PingResponse, ServiceStatus};
+        use mini_exercism::api::v1::ping::ServiceStatus;
 
         use super::*;
 
@@ -323,7 +325,7 @@ version = "1.1.0"
             let mock_server = MockServer::start().await;
 
             let ping_response =
-                PingResponse { status: ServiceStatus { website: true, database: true } };
+                api::v1::ping::Response { status: ServiceStatus { website: true, database: true } };
             Mock::given(method(Get))
                 .and(path("/ping"))
                 .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(ping_response))
@@ -337,303 +339,6 @@ version = "1.1.0"
             let status = ping_response.unwrap().status;
             assert!(status.website);
             assert!(status.database);
-        }
-    }
-}
-
-mod solution_response {
-    mod deserialize {
-        use mini_exercism::api::v1::{
-            Solution, SolutionExercise, SolutionResponse, SolutionSubmission, SolutionTrack,
-            SolutionUser,
-        };
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "solution": {
-                    "id": "00c717b68e1b4213b316df82636f5e0f",
-                    "url": "https://exercism.org/tracks/rust/exercises/poker",
-                    "user": {
-                        "handle": "clechasseur",
-                        "is_requester": true
-                    },
-                    "exercise": {
-                        "id": "poker",
-                        "instructions_url": "https://exercism.org/tracks/rust/exercises/poker",
-                        "track": {
-                            "id": "rust",
-                            "language": "Rust"
-                        }
-                    },
-                    "file_download_base_url": "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/",
-                    "files": [
-                        ".exercism/config.json",
-                        "README.md",
-                        "HELP.md",
-                        ".gitignore",
-                        "Cargo.toml",
-                        "src/lib.rs",
-                        "tests/poker.rs",
-                        "src/detail.rs",
-                        "src/detail/slice_utils.rs",
-                        "src/detail/slice_utils/group_by.rs"
-                    ],
-                    "submission": {
-                        "submitted_at": "2023-05-07T05:35:43.366Z"
-                    }
-                }
-            }"#;
-
-            let expected = SolutionResponse {
-                solution: Solution {
-                    uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
-                    url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                    user: SolutionUser {
-                        handle: "clechasseur".into(),
-                        is_requester: true,
-                    },
-                    exercise: SolutionExercise {
-                        name: "poker".into(),
-                        instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                        track: SolutionTrack {
-                            name: "rust".into(),
-                            title: "Rust".into(),
-                        },
-                    },
-                    file_download_base_url: "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/".into(),
-                    files: vec![
-                        ".exercism/config.json".into(),
-                        "README.md".into(),
-                        "HELP.md".into(),
-                        ".gitignore".into(),
-                        "Cargo.toml".into(),
-                        "src/lib.rs".into(),
-                        "tests/poker.rs".into(),
-                        "src/detail.rs".into(),
-                        "src/detail/slice_utils.rs".into(),
-                        "src/detail/slice_utils/group_by.rs".into(),
-                    ],
-                    submission: Some(SolutionSubmission {
-                        submitted_at: "2023-05-07T05:35:43.366Z".into(),
-                    }),
-                },
-            };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod solution {
-    mod deserialize {
-        use mini_exercism::api::v1::{
-            Solution, SolutionExercise, SolutionSubmission, SolutionTrack, SolutionUser,
-        };
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "id": "00c717b68e1b4213b316df82636f5e0f",
-                "url": "https://exercism.org/tracks/rust/exercises/poker",
-                "user": {
-                    "handle": "clechasseur",
-                    "is_requester": true
-                },
-                "exercise": {
-                    "id": "poker",
-                    "instructions_url": "https://exercism.org/tracks/rust/exercises/poker",
-                    "track": {
-                        "id": "rust",
-                        "language": "Rust"
-                    }
-                },
-                "file_download_base_url": "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/",
-                "files": [
-                    ".exercism/config.json",
-                    "README.md",
-                    "HELP.md",
-                    ".gitignore",
-                    "Cargo.toml",
-                    "src/lib.rs",
-                    "tests/poker.rs",
-                    "src/detail.rs",
-                    "src/detail/slice_utils.rs",
-                    "src/detail/slice_utils/group_by.rs"
-                ],
-                "submission": {
-                    "submitted_at": "2023-05-07T05:35:43.366Z"
-                }
-            }"#;
-
-            let expected = Solution {
-                uuid: "00c717b68e1b4213b316df82636f5e0f".into(),
-                url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                user: SolutionUser { handle: "clechasseur".into(), is_requester: true },
-                exercise: SolutionExercise {
-                    name: "poker".into(),
-                    instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                    track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
-                },
-                file_download_base_url:
-                    "https://exercism.org/api/v1/solutions/00c717b68e1b4213b316df82636f5e0f/files/"
-                        .into(),
-                files: vec![
-                    ".exercism/config.json".into(),
-                    "README.md".into(),
-                    "HELP.md".into(),
-                    ".gitignore".into(),
-                    "Cargo.toml".into(),
-                    "src/lib.rs".into(),
-                    "tests/poker.rs".into(),
-                    "src/detail.rs".into(),
-                    "src/detail/slice_utils.rs".into(),
-                    "src/detail/slice_utils/group_by.rs".into(),
-                ],
-                submission: Some(SolutionSubmission {
-                    submitted_at: "2023-05-07T05:35:43.366Z".into(),
-                }),
-            };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod solution_user {
-    mod deserialize {
-        use mini_exercism::api::v1::SolutionUser;
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "handle": "clechasseur",
-                "is_requester": true
-            }"#;
-
-            let expected = SolutionUser { handle: "clechasseur".into(), is_requester: true };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod solution_exercise {
-    mod deserialize {
-        use mini_exercism::api::v1::{SolutionExercise, SolutionTrack};
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "id": "poker",
-                "instructions_url": "https://exercism.org/tracks/rust/exercises/poker",
-                "track": {
-                    "id": "rust",
-                    "language": "Rust"
-                }
-            }"#;
-
-            let expected = SolutionExercise {
-                name: "poker".into(),
-                instructions_url: "https://exercism.org/tracks/rust/exercises/poker".into(),
-                track: SolutionTrack { name: "rust".into(), title: "Rust".into() },
-            };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod solution_track {
-    mod deserialize {
-        use mini_exercism::api::v1::SolutionTrack;
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "id": "rust",
-                "language": "Rust"
-            }"#;
-
-            let expected = SolutionTrack { name: "rust".into(), title: "Rust".into() };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod solution_submission {
-    mod deserialize {
-        use mini_exercism::api::v1::SolutionSubmission;
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "submitted_at": "2023-05-07T05:35:43.366Z"
-            }"#;
-
-            let expected = SolutionSubmission { submitted_at: "2023-05-07T05:35:43.366Z".into() };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod track_response {
-    mod deserialize {
-        use mini_exercism::api::v1::{SolutionTrack, TrackResponse};
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "track": {
-                    "id": "awk",
-                    "language": "AWK"
-                }
-            }"#;
-
-            let expected =
-                TrackResponse { track: SolutionTrack { name: "awk".into(), title: "AWK".into() } };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod ping_response {
-    mod deserialize {
-        use mini_exercism::api::v1::{PingResponse, ServiceStatus};
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "status": {
-                    "website": true,
-                    "database": true
-                }
-            }"#;
-
-            let expected = PingResponse { status: ServiceStatus { website: true, database: true } };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
-        }
-    }
-}
-
-mod service_status {
-    mod deserialize {
-        use mini_exercism::api::v1::ServiceStatus;
-
-        #[test]
-        fn test_all() {
-            let json = r#"{
-                "website": true,
-                "database": true
-            }"#;
-
-            let expected = ServiceStatus { website: true, database: true };
-            let actual = serde_json::from_str(json).unwrap();
-            assert_eq!(expected, actual);
         }
     }
 }

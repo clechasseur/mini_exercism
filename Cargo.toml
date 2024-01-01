@@ -43,6 +43,7 @@ thiserror = "1.0.2"
 [dev-dependencies]
 anyhow = "1.0.78"
 assert_matches = "1.5.0"
+itertools = "0.12.0"
 mockall = "0.12.1"
 serial_test = "2.0.0"
 tokio = { version = "1.35.1", features = ["rt", "rt-multi-thread", "macros", "test-util"] }

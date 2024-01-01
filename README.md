@@ -14,7 +14,7 @@ Add `mini_exercism` to your dependencies:
 
 ```toml
 [dependencies]
-mini_exercism = "1"
+mini_exercism = "2"
 ```
 
 or by running:
@@ -40,13 +40,11 @@ async fn get_published_solution_uuids(
     let filters = ExerciseFilters::builder().include_solutions(true).build();
     let solutions = client.get_exercises(track, Some(filters)).await?.solutions;
 
-    anyhow::Ok(
-        solutions
-            .into_iter()
-            .filter(|solution| solution.published_at.is_some())
-            .map(|solution| solution.uuid)
-            .collect(),
-    )
+    Ok(solutions
+        .into_iter()
+        .filter(|solution| solution.published_at.is_some())
+        .map(|solution| solution.uuid)
+        .collect())
 }
 ```
 
