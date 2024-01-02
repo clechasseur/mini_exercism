@@ -2,10 +2,14 @@
 
 pub mod exercise;
 pub mod exercises;
+pub mod iteration;
 pub mod solution;
 pub mod solutions;
+pub mod submission;
+pub mod tests;
 pub mod track;
 pub mod tracks;
+pub mod user;
 
 use crate::Result;
 
@@ -192,6 +196,92 @@ impl Client {
             .query(filters)
             .query(paging)
             .query(("order", sort_order))
+            .execute()
+            .await
+    }
+
+    /// Returns information about a specific solution submitted by the user.
+    ///
+    /// This request cannot be performed anonymously; doing so will result in an [`ApiError`].
+    ///
+    /// It's possible to also sideload the solution's iterations.
+    ///
+    /// # Errors
+    ///
+    /// - [`ApiError`]: Error while fetching solution information from API
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::api::v2::iteration::Iteration;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// async fn get_solution_iterations(
+    ///     api_token: &str,
+    ///     solution_uuid: &str,
+    /// ) -> anyhow::Result<Vec<Iteration>> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v2::Client::builder().credentials(credentials).build();
+    ///
+    ///     Ok(client.get_solution(solution_uuid, true).await?.iterations)
+    /// }
+    /// ```
+    ///
+    /// [`ApiError`]: crate::Error::ApiError
+    pub async fn get_solution(
+        &self,
+        uuid: &str,
+        include_iterations: bool,
+    ) -> Result<solution::Response> {
+        self.api_client
+            .get(format!("/solutions/{}", uuid))
+            .query(("sideload", include_iterations.then_some("iterations")))
+            .execute()
+            .await
+    }
+
+    /// Returns information about the files submitted for a solution iteration.
+    ///
+    /// This request cannot be performed anonymously, unless the submission's iteration has been [published](crate::api::v2::iteration::Iteration::is_published).
+    ///
+    /// # Errors
+    ///
+    /// - [`ApiError`]: Error while fetching submitted files information from API
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use mini_exercism::api;
+    /// use mini_exercism::api::v2::submission;
+    /// use mini_exercism::core::Credentials;
+    ///
+    /// async fn get_solution_files(
+    ///     api_token: &str,
+    ///     solution_uuid: &str,
+    /// ) -> anyhow::Result<Vec<submission::files::File>> {
+    ///     let credentials = Credentials::from_api_token(api_token);
+    ///     let client = api::v2::Client::builder().credentials(credentials).build();
+    ///
+    ///     Ok(client
+    ///         .get_solution(solution_uuid, true)
+    ///         .await?
+    ///         .iterations
+    ///         .into_iter()
+    ///         .find(|iteration| iteration.is_latest)
+    ///         .map(|iteration| iteration.files)
+    ///         .unwrap_or_default())
+    /// }
+    /// ```
+    ///
+    /// [`ApiError`]: crate::Error::ApiError
+    pub async fn get_submission_files(
+        &self,
+        solution_uuid: &str,
+        submission_uuid: &str,
+    ) -> Result<submission::files::Response> {
+        self.api_client
+            .get(format!("/solutions/{}/submissions/{}/files", solution_uuid, submission_uuid))
             .execute()
             .await
     }
