@@ -1,13 +1,15 @@
 //! Types related to users returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display};
+use strum_macros::{AsRefStr, Display, IntoStaticStr};
 
 /// Possible values for a user's "flair", which is a kind of special status.
 ///
 /// A user's "flair" is represented next to their name when displayed on the website, for example
 /// in mentoring sessions, on their public profile, etc. Not all users have a "flair".
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr, IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Flair {

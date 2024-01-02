@@ -4,7 +4,7 @@
 //! and/or [representer](https://exercism.org/docs/building/tooling/representers) for the track.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display};
+use strum_macros::{AsRefStr, Display, IntoStaticStr};
 
 use crate::api::v2::user::Flair;
 
@@ -49,6 +49,7 @@ pub struct AnalyzerComment {
     Deserialize,
     Display,
     AsRefStr,
+    IntoStaticStr,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]

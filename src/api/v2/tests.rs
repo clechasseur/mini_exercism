@@ -1,7 +1,7 @@
 //! Types related to test runs submitted to the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display};
+use strum_macros::{AsRefStr, Display, IntoStaticStr};
 
 /// Possible status of a test run on the [Exercism website](https://exercism.org).
 ///
@@ -10,7 +10,19 @@ use strum_macros::{AsRefStr, Display};
 /// Currently, tests status are returned in different places by the v2 API. Technically, they are
 /// all different enums in the website code; however, since they all represent the same statuses,
 /// the same enum will be used on the Rust side, for simplicity.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    AsRefStr,
+    IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Status {
