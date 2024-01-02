@@ -27,7 +27,7 @@ cargo add mini_exercism
 
 ```rust
 use mini_exercism::api;
-use mini_exercism::api::v2::ExerciseFilters;
+use mini_exercism::api::v2::exercises::Filters;
 use mini_exercism::core::Credentials;
 
 async fn get_published_solution_uuids(
@@ -37,7 +37,7 @@ async fn get_published_solution_uuids(
     let credentials = Credentials::from_api_token(api_token);
     let client = api::v2::Client::builder().credentials(credentials).build();
 
-    let filters = ExerciseFilters::builder().include_solutions(true).build();
+    let filters = Filters::builder().include_solutions(true).build();
     let solutions = client.get_exercises(track, Some(filters)).await?.solutions;
 
     Ok(solutions
