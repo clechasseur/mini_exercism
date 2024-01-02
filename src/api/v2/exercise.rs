@@ -1,7 +1,7 @@
 //! Types related to exercises returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display};
+use strum_macros::{AsRefStr, Display, IntoStaticStr};
 
 /// A single exercise returned by the [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -51,7 +51,9 @@ pub struct Exercise {
 }
 
 /// Possible type of exercise on the [Exercism website](https://exercism.org).
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr, IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Type {
@@ -80,7 +82,9 @@ pub enum Type {
 ///
 /// Internally, exercises have a difficulty rating between 1 and 10 (inclusive); however, on the
 /// website, this is only represented by specific, named difficulty ratings.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr, IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Difficulty {

@@ -1,7 +1,7 @@
 //! Types related to solutions returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display};
+use strum_macros::{AsRefStr, Display, IntoStaticStr};
 
 use crate::api::v2::iteration::Iteration;
 use crate::api::v2::tests;
@@ -122,7 +122,19 @@ pub struct Solution {
 }
 
 /// Possible status of a solution to an exercise on the [Exercism website](https://exercism.org).
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    AsRefStr,
+    IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Status {
@@ -149,7 +161,19 @@ pub enum Status {
 }
 
 /// Possible mentoring status of a solution on the [Exercism website](https://exercism.org).
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    AsRefStr,
+    IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum MentoringStatus {

@@ -4,7 +4,7 @@ pub(crate) mod detail;
 
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display};
+use strum_macros::{AsRefStr, Display, IntoStaticStr};
 
 use crate::api::v2::solution::{MentoringStatus, Solution, Status};
 use crate::api::v2::tests;
@@ -127,7 +127,19 @@ impl Paging {
 }
 
 /// Possible ways to sort solutions returned by the [Exercism website](https://exercism.org) v2 API.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    Display,
+    AsRefStr,
+    IntoStaticStr,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum SortOrder {
