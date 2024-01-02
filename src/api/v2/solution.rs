@@ -3,6 +3,22 @@
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, Display};
 
+use crate::api::v2::iteration::Iteration;
+use crate::api::v2::tests;
+
+/// Response to a query for a solution on the [Exercism website](https://exercism.org) v2 API.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Response {
+    /// Solution information.
+    pub solution: Solution,
+
+    /// Solution iterations, in ascending order of [`index`](Iteration::index).
+    ///
+    /// Will only be filled if `include_iterations` is set to `true` when calling [`get_solution`](crate::api::v2::Client::get_solution).
+    #[serde(default)]
+    pub iterations: Vec<Iteration>,
+}
+
 /// A solution to an exercise submitted to the [Exercism website](https://exercism.org).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Solution {
@@ -35,7 +51,7 @@ pub struct Solution {
     pub mentoring_status: MentoringStatus,
 
     /// Status of tests for the solution's published iteration.
-    pub published_iteration_head_tests_status: TestsStatus,
+    pub published_iteration_head_tests_status: tests::Status,
 
     /// Whether user has unread notifications about this solution (from
     /// a mentoring session, for example).
@@ -154,43 +170,6 @@ pub enum MentoringStatus {
     /// Unknown mentoring status.
     ///
     /// Included so that if new mentoring statuses are introduced in the website API later,
-    /// this crate won't break (hopefully).
-    #[serde(skip_serializing, other)]
-    Unknown,
-}
-
-/// Possible status of tests for a solution on the [Exercism website](https://exercism.org).
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Display, AsRefStr)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
-pub enum TestsStatus {
-    /// Tests have not been queued yet for this exerise.
-    #[default]
-    NotQueued,
-
-    /// Tests have been queued for execution, but have not completed yet.
-    Queued,
-
-    /// Test run has completed and all tests passed.
-    Passed,
-
-    /// Test run has completed and one or more test(s) failed.
-    Failed,
-
-    /// Test run has not been executed because an error occurred
-    /// (like a compiler error).
-    Errored,
-
-    /// Test run has not been executed because an exception occurred
-    /// (possibly a bug in the test runner setup).
-    Exceptioned,
-
-    /// Test run has been cancelled.
-    Cancelled,
-
-    /// Unknown tests status.
-    ///
-    /// Included so that if new tests statuses are introduced in the website API later,
     /// this crate won't break (hopefully).
     #[serde(skip_serializing, other)]
     Unknown,

@@ -1,7 +1,8 @@
 mod filters_tests {
     mod builder {
-        use mini_exercism::api::v2::solution::{MentoringStatus, Status, TestsStatus};
+        use mini_exercism::api::v2::solution::{MentoringStatus, Status};
         use mini_exercism::api::v2::solutions::Filters;
+        use mini_exercism::api::v2::tests::Status::Passed;
 
         #[test]
         fn test_build() {
@@ -11,11 +12,11 @@ mod filters_tests {
                 .status(Status::Published)
                 .mentoring_status(MentoringStatus::None)
                 .is_out_of_date(false)
-                .published_iteration_tests_status(TestsStatus::Passed)
-                .published_iteration_head_tests_status(TestsStatus::Passed)
+                .published_iteration_tests_status(Passed)
+                .published_iteration_head_tests_status(Passed)
                 .build();
 
-            let expected_tests_statuses = vec![TestsStatus::Passed];
+            let expected_tests_statuses = vec![Passed];
             assert_eq!(Some("Minesweeper"), filters.criteria);
             assert_eq!(Some("clojure"), filters.track);
             assert_eq!(Some(Status::Published), filters.status);
@@ -50,10 +51,10 @@ mod paging_tests {
 mod response_tests {
     mod deserialize {
         use mini_exercism::api::v2::solution::Status::Published;
-        use mini_exercism::api::v2::solution::TestsStatus::Passed;
         use mini_exercism::api::v2::solution::{Exercise, MentoringStatus, Solution, Track};
         use mini_exercism::api::v2::solutions;
         use mini_exercism::api::v2::solutions::ResponseMeta;
+        use mini_exercism::api::v2::tests::Status::Passed;
 
         #[test]
         fn test_authenticated() {

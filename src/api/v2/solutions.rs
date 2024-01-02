@@ -6,7 +6,8 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, Display};
 
-use crate::api::v2::solution::{MentoringStatus, Solution, Status, TestsStatus};
+use crate::api::v2::solution::{MentoringStatus, Solution, Status};
+use crate::api::v2::tests;
 
 /// Filters that can be applied when fetching solutions from the
 /// [Exercism website](https://exercism.org) v2 API.
@@ -47,7 +48,7 @@ pub struct Filters<'a> {
     /// The difference between a "head test run" and a normal test run is somewhat explained
     /// in the Exercism website source code [here](https://github.com/exercism/website/blob/main/app/models/submission.rb).
     #[builder(setter(into, each(name = "published_iteration_tests_status")))]
-    pub published_iteration_tests_statuses: Vec<TestsStatus>,
+    pub published_iteration_tests_statuses: Vec<tests::Status>,
 
     /// Possible status of the solution's published iteration's head tests.
     ///
@@ -58,7 +59,7 @@ pub struct Filters<'a> {
     /// The difference between a "head test run" and a normal test run is somewhat explained
     /// in the Exercism website source code [here](https://github.com/exercism/website/blob/main/app/models/submission.rb).
     #[builder(setter(into, each(name = "published_iteration_head_tests_status")))]
-    pub published_iteration_head_tests_statuses: Vec<TestsStatus>,
+    pub published_iteration_head_tests_statuses: Vec<tests::Status>,
 }
 
 impl<'a> Filters<'a> {

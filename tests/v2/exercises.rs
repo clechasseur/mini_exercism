@@ -24,7 +24,7 @@ mod response_tests {
         use mini_exercism::api::v2::solution::MentoringStatus::Finished;
         use mini_exercism::api::v2::solution::Solution;
         use mini_exercism::api::v2::solution::Status::Published;
-        use mini_exercism::api::v2::solution::TestsStatus::Passed;
+        use mini_exercism::api::v2::tests::Status::Passed;
         use mini_exercism::api::v2::{exercises, solution};
 
         #[test]

@@ -1,7 +1,9 @@
 mod exercise;
 mod exercises;
+mod iteration;
 mod solution;
 mod solutions;
+mod submission;
 mod track;
 mod tracks;
 
@@ -10,7 +12,7 @@ mod client_tests {
     use mini_exercism::core::Credentials;
     use reqwest::StatusCode;
     use wiremock::http::Method::Get;
-    use wiremock::matchers::{bearer_token, method, path, query_param};
+    use wiremock::matchers::{bearer_token, method, path, query_param, query_param_is_missing};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     const API_TOKEN: &str = "some_api_token";
@@ -113,7 +115,7 @@ mod client_tests {
         use mini_exercism::api::v2::solution::MentoringStatus::Finished;
         use mini_exercism::api::v2::solution::Solution;
         use mini_exercism::api::v2::solution::Status::Published;
-        use mini_exercism::api::v2::solution::TestsStatus::Passed;
+        use mini_exercism::api::v2::tests::Status::Passed;
         use mini_exercism::api::v2::{exercises, solution};
 
         use super::*;
@@ -199,11 +201,11 @@ mod client_tests {
 
     mod get_solutions {
         use mini_exercism::api::v2::solution::Status::Published;
-        use mini_exercism::api::v2::solution::TestsStatus::{Failed, Passed};
         use mini_exercism::api::v2::solution::{Exercise, MentoringStatus, Solution, Track};
         use mini_exercism::api::v2::solutions;
         use mini_exercism::api::v2::solutions::SortOrder::NewestFirst;
         use mini_exercism::api::v2::solutions::{Filters, Paging, ResponseMeta};
+        use mini_exercism::api::v2::tests::Status::{Failed, Passed};
 
         use super::*;
 
@@ -467,6 +469,228 @@ mod client_tests {
             assert_eq!(1, meta.current_page);
             assert_eq!(1, meta.total_count);
             assert_eq!(1, meta.total_pages);
+        }
+    }
+
+    mod get_solution {
+        use mini_exercism::api::v2::iteration::Status::NonActionableAutomatedFeedback;
+        use mini_exercism::api::v2::iteration::{Iteration, Links};
+        use mini_exercism::api::v2::solution;
+        use mini_exercism::api::v2::solution::Status::Published;
+        use mini_exercism::api::v2::solution::{Exercise, MentoringStatus, Solution, Track};
+        use mini_exercism::api::v2::tests::Status::Passed;
+
+        use super::*;
+
+        #[tokio::test]
+        async fn test_get_solution() {
+            let mock_server = MockServer::start().await;
+
+            let solution_response = solution::Response {
+                solution: Solution {
+                    uuid: "a0c9664059d345ac8d677b0154794ff2".into(),
+                    private_url: "https://exercism.org/tracks/rust/exercises/clock".into(),
+                    public_url:
+                        "https://exercism.org/tracks/rust/exercises/clock/solutions/clechasseur"
+                            .into(),
+                    status: Published,
+                    mentoring_status: MentoringStatus::None,
+                    published_iteration_head_tests_status: Passed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 2,
+                    num_loc: Some(28),
+                    is_out_of_date: false,
+                    published_at: Some("2023-03-26T05:22:57Z".into()),
+                    completed_at: Some("2023-03-26T05:22:57Z".into()),
+                    updated_at: "2023-12-06T12:48:07Z".into(),
+                    last_iterated_at: Some("2023-03-26T05:22:23Z".into()),
+                    exercise: Exercise {
+                        name: "clock".into(),
+                        title: "Clock".into(),
+                        icon_url: "https://assets.exercism.org/exercises/clock.svg".into(),
+                    },
+                    track: Track {
+                        name: "rust".into(),
+                        title: "Rust".into(),
+                        icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
+                    },
+                },
+                iterations: vec![],
+            };
+            Mock::given(method(Get))
+                .and(path("/solutions/a0c9664059d345ac8d677b0154794ff2"))
+                .and(query_param_is_missing("sideload"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(
+                    ResponseTemplate::new(StatusCode::OK).set_body_json(solution_response),
+                )
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let solution_response = client
+                .get_solution("a0c9664059d345ac8d677b0154794ff2", false)
+                .await
+                .unwrap();
+            let solution = solution_response.solution;
+            let iterations = solution_response.iterations;
+            assert_eq!("a0c9664059d345ac8d677b0154794ff2", solution.uuid);
+            assert_eq!("clock", solution.exercise.name);
+            assert_eq!("rust", solution.track.name);
+            assert!(iterations.is_empty());
+        }
+
+        #[tokio::test]
+        async fn test_get_iterations() {
+            let mock_server = MockServer::start().await;
+
+            let solution_response = solution::Response {
+                solution: Solution {
+                    uuid: "a0c9664059d345ac8d677b0154794ff2".into(),
+                    private_url: "https://exercism.org/tracks/rust/exercises/clock".into(),
+                    public_url: "https://exercism.org/tracks/rust/exercises/clock/solutions/clechasseur".into(),
+                    status: Published,
+                    mentoring_status: MentoringStatus::None,
+                    published_iteration_head_tests_status: Passed,
+                    has_notifications: false,
+                    num_views: 0,
+                    num_stars: 0,
+                    num_comments: 0,
+                    num_iterations: 2,
+                    num_loc: Some(28),
+                    is_out_of_date: false,
+                    published_at: Some("2023-03-26T05:22:57Z".into()),
+                    completed_at: Some("2023-03-26T05:22:57Z".into()),
+                    updated_at: "2023-12-06T12:48:07Z".into(),
+                    last_iterated_at: Some("2023-03-26T05:22:23Z".into()),
+                    exercise: Exercise {
+                        name: "clock".into(),
+                        title: "Clock".into(),
+                        icon_url: "https://assets.exercism.org/exercises/clock.svg".into(),
+                    },
+                    track: Track {
+                        name: "rust".into(),
+                        title: "Rust".into(),
+                        icon_url: "https://assets.exercism.org/tracks/rust.svg".into(),
+                    }
+                },
+                iterations: vec![
+                    Iteration {
+                        uuid: "98f8b04515a8484ca211edc7c56d2aa2".into(),
+                        submission_uuid: "ab542af6906349ebb37e7cbee4828554".into(),
+                        index: 1,
+                        status: NonActionableAutomatedFeedback,
+                        num_essential_automated_comments: 0,
+                        num_actionable_automated_comments: 0,
+                        num_non_actionable_automated_comments: 3,
+                        num_celebratory_automated_comments: 0,
+                        submission_method: "cli".into(),
+                        created_at: "2023-03-26T05:22:23Z".into(),
+                        tests_status: Passed,
+                        representer_feedback: None,
+                        analyzer_feedback: None,
+                        is_published: true,
+                        is_latest: true,
+                        files: vec![],
+                        links: Links {
+                            self_path: "https://exercism.org/tracks/rust/exercises/clock/iterations?idx=2".into(),
+                            automated_feedback: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/iterations/98f8b04515a8484ca211edc7c56d2aa2/automated_feedback".into(),
+                            delete: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/iterations/98f8b04515a8484ca211edc7c56d2aa2".into(),
+                            solution: "https://exercism.org/tracks/rust/exercises/clock".into(),
+                            test_run: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/submissions/ab542af6906349ebb37e7cbee4828554/test_run".into(),
+                            files: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/submissions/ab542af6906349ebb37e7cbee4828554/files".into()
+                        },
+                    },
+                ],
+            };
+            Mock::given(method(Get))
+                .and(path("/solutions/a0c9664059d345ac8d677b0154794ff2"))
+                .and(query_param("sideload", "iterations"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(
+                    ResponseTemplate::new(StatusCode::OK).set_body_json(solution_response),
+                )
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let solution_response = client
+                .get_solution("a0c9664059d345ac8d677b0154794ff2", true)
+                .await
+                .unwrap();
+            let solution = solution_response.solution;
+            let iterations = solution_response.iterations;
+            assert_eq!("a0c9664059d345ac8d677b0154794ff2", solution.uuid);
+            assert_eq!("clock", solution.exercise.name);
+            assert_eq!("rust", solution.track.name);
+            assert!(!iterations.is_empty());
+            let iteration = iterations.first().unwrap();
+            assert_eq!("98f8b04515a8484ca211edc7c56d2aa2", iteration.uuid);
+            assert_eq!("ab542af6906349ebb37e7cbee4828554", iteration.submission_uuid);
+            assert_eq!(1, iteration.index);
+            assert!(iteration.is_latest);
+        }
+    }
+
+    mod get_submission_files {
+        use mini_exercism::api::v2::submission::files;
+        use mini_exercism::api::v2::submission::files::File;
+
+        use super::*;
+
+        #[tokio::test]
+        async fn test_get_files() {
+            let mock_server = MockServer::start().await;
+
+            let files_response = files::Response {
+                files: vec![
+                    File {
+                        filename: "src/lib.rs".into(),
+                        content: "mod detail;\n\nuse crate::detail::Hand;\n\n/// Given a list of poker hands, return a list of those hands which win.\n///\n/// Note the type signature: this function should return _the same_ reference to\n/// the winning hand(s) as were passed in, not reconstructed strings which happen to be equal.\npub fn winning_hands<'a>(hands: &[&'a str]) -> Vec<&'a str> {\n    let hands: Vec<_> = hands.iter().map(|&h| Hand::new(h).unwrap()).collect();\n    let best = hands.iter().max().unwrap();\n    hands.iter().filter(|&h| h == best).map(|h| h.hand_s()).collect()\n}\n".into(),
+                        digest: "2edfab2886de7d3aadac30d6aee983e3eb965aed".into(),
+                    },
+                    File {
+                        filename: "Cargo.toml".into(),
+                        content: "[package]\nedition = \"2021\"\nname = \"poker\"\nversion = \"1.1.0\"\n\n[dependencies]\nderivative = \"2.2.0\"\nstrum = \"0.24.1\"\nstrum_macros = \"0.24.3\"\nthiserror = \"1.0.40\"\n".into(),
+                        digest: "9ad1c8abd08fcc3111eaf728a9fb1f3717d10ad8".into(),
+                    },
+                ],
+            };
+            Mock::given(method(Get))
+                .and(path("/solutions/00c717b68e1b4213b316df82636f5e0f/submissions/4da3f19906214f678d5aadaea8635250/files"))
+                .and(bearer_token(API_TOKEN))
+                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(files_response))
+                .mount(&mock_server)
+                .await;
+
+            let client = api::v2::Client::builder()
+                .api_base_url(mock_server.uri().as_str())
+                .credentials(Credentials::from_api_token(API_TOKEN))
+                .build();
+            let files_response = client
+                .get_submission_files(
+                    "00c717b68e1b4213b316df82636f5e0f",
+                    "4da3f19906214f678d5aadaea8635250",
+                )
+                .await
+                .unwrap();
+            let files = files_response.files;
+            assert!(!files.is_empty());
+            let cargo_toml = files
+                .iter()
+                .find(|&file| file.filename == "Cargo.toml")
+                .unwrap();
+            assert!(cargo_toml.content.contains("edition = \"2021\""));
+            assert!(cargo_toml.content.contains("thiserror"));
         }
     }
 }
