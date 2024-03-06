@@ -41,7 +41,7 @@ strum_macros = "0.26.1"
 thiserror = "1.0.57"
 
 [dev-dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.80"
 assert_matches = "1.5.0"
 itertools = "0.12.1"
 mockall = "0.12.1"
