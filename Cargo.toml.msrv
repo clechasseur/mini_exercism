@@ -22,7 +22,8 @@ thiserror = "1.0.57"
 
 # Added to fix the MSRV build:
 [target.'cfg(target_os = "linux")'.dependencies]
-openssl = "0.10.62"
+openssl = "0.10.64"
+openssl-macros = "0.1.1"
 
 [build-dependencies]
 rustc_version = "0.4.0"
