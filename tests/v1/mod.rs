@@ -5,8 +5,6 @@ mod track;
 mod client_tests {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
-    use reqwest::StatusCode;
-    use wiremock::http::Method::Get;
     use wiremock::matchers::{bearer_token, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -67,11 +65,11 @@ mod client_tests {
                     }),
                 },
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path(format!("/solutions/{}", solution_uuid)))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solution_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solution_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -132,13 +130,13 @@ mod client_tests {
                     }),
                 },
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions/latest"))
                 .and(query_param("track_id", "rust"))
                 .and(query_param("exercise_id", "poker"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solution_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solution_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -178,10 +176,12 @@ version = "1.1.0"
 
 [dependencies]
 "#;
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path(format!("/solutions/{}/files/{}", solution_uuid, file_path)))
                 .and(bearer_token(API_TOKEN))
-                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_string(file_content))
+                .respond_with(
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_string(file_content),
+                )
                 .mount(&mock_server)
                 .await;
 
@@ -203,10 +203,10 @@ version = "1.1.0"
 
             let solution_uuid = "00c717b68e1b4213b316df82636f5e0f";
             let file_path = "Cargo.toml";
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path_regex(r"^/solutions/[^/]+/files/.+$"))
                 .and(bearer_token(API_TOKEN))
-                .respond_with(ResponseTemplate::new(StatusCode::NOT_FOUND))
+                .respond_with(ResponseTemplate::new(http::StatusCode::NOT_FOUND))
                 .mount(&mock_server)
                 .await;
 
@@ -218,7 +218,7 @@ version = "1.1.0"
 
             let file_result = file_response.next().await.unwrap();
             assert_matches!(file_result,
-                Err(Error::ApiError(api_error)) if api_error.status() == Some(StatusCode::NOT_FOUND));
+                Err(Error::ApiError(api_error)) if api_error.status() == Some(reqwest::StatusCode::NOT_FOUND));
         }
     }
 
@@ -234,10 +234,12 @@ version = "1.1.0"
 
             let track_response =
                 track::Response { track: Track { name: "rust".into(), title: "Rust".into() } };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/tracks/rust"))
                 .and(bearer_token(API_TOKEN))
-                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(track_response))
+                .respond_with(
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(track_response),
+                )
                 .mount(&mock_server)
                 .await;
 
@@ -262,10 +264,10 @@ version = "1.1.0"
         async fn test_valid_token() {
             let mock_server = MockServer::start().await;
 
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/validate_token"))
                 .and(bearer_token(API_TOKEN))
-                .respond_with(ResponseTemplate::new(StatusCode::OK))
+                .respond_with(ResponseTemplate::new(http::StatusCode::OK))
                 .mount(&mock_server)
                 .await;
 
@@ -281,9 +283,9 @@ version = "1.1.0"
         async fn test_invalid_token() {
             let mock_server = MockServer::start().await;
 
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/validate_token"))
-                .respond_with(ResponseTemplate::new(StatusCode::UNAUTHORIZED))
+                .respond_with(ResponseTemplate::new(http::StatusCode::UNAUTHORIZED))
                 .mount(&mock_server)
                 .await;
 
@@ -299,9 +301,9 @@ version = "1.1.0"
         async fn test_internal_server_error() {
             let mock_server = MockServer::start().await;
 
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/validate_token"))
-                .respond_with(ResponseTemplate::new(StatusCode::INTERNAL_SERVER_ERROR))
+                .respond_with(ResponseTemplate::new(http::StatusCode::INTERNAL_SERVER_ERROR))
                 .mount(&mock_server)
                 .await;
 
@@ -311,7 +313,7 @@ version = "1.1.0"
                 .build();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response,
-                Err(Error::ApiError(error)) if error.status() == Some(StatusCode::INTERNAL_SERVER_ERROR));
+                Err(Error::ApiError(error)) if error.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR));
         }
     }
 
@@ -326,9 +328,11 @@ version = "1.1.0"
 
             let ping_response =
                 api::v1::ping::Response { status: ServiceStatus { website: true, database: true } };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/ping"))
-                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(ping_response))
+                .respond_with(
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(ping_response),
+                )
                 .mount(&mock_server)
                 .await;
 

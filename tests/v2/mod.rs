@@ -10,8 +10,6 @@ mod tracks;
 mod client_tests {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
-    use reqwest::StatusCode;
-    use wiremock::http::Method::Get;
     use wiremock::matchers::{bearer_token, method, path, query_param, query_param_is_missing};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -81,13 +79,15 @@ mod client_tests {
                     num_completed_exercises: 1,
                 }],
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/tracks"))
                 .and(query_param("criteria", "cpp"))
                 .and(query_param("tags[]", "Object-oriented"))
                 .and(query_param("status", "joined"))
                 .and(bearer_token(API_TOKEN))
-                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(tracks_response))
+                .respond_with(
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(tracks_response),
+                )
                 .mount(&mock_server)
                 .await;
 
@@ -169,13 +169,13 @@ mod client_tests {
                     },
                 }],
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/tracks/rust/exercises"))
                 .and(query_param("criteria", "poker"))
                 .and(query_param("sideload", "solutions"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(exercises_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(exercises_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -277,7 +277,7 @@ mod client_tests {
                     total_pages: 1,
                 },
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions"))
                 .and(query_param("criteria", "resistor"))
                 .and(query_param("track_slug", "javascript"))
@@ -288,7 +288,7 @@ mod client_tests {
                 .and(query_param("order", "newest_first"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solutions_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solutions_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -361,14 +361,14 @@ mod client_tests {
                     total_pages: 1,
                 },
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions"))
                 .and(query_param("criteria", "resistor"))
                 .and(query_param("track_slug", "javascript"))
                 .and(query_param("sync_status", "out_of_date"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solutions_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solutions_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -436,14 +436,14 @@ mod client_tests {
                     total_pages: 1,
                 },
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions"))
                 .and(query_param("criteria", "resistor"))
                 .and(query_param("track_slug", "javascript"))
                 .and(query_param("sync_status", "up_to_date"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solutions_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solutions_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -520,12 +520,12 @@ mod client_tests {
                 },
                 iterations: vec![],
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions/a0c9664059d345ac8d677b0154794ff2"))
                 .and(query_param_is_missing("sideload"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solution_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solution_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -609,12 +609,12 @@ mod client_tests {
                     },
                 ],
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions/a0c9664059d345ac8d677b0154794ff2"))
                 .and(query_param("sideload", "iterations"))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
-                    ResponseTemplate::new(StatusCode::OK).set_body_json(solution_response),
+                    ResponseTemplate::new(http::StatusCode::OK).set_body_json(solution_response),
                 )
                 .mount(&mock_server)
                 .await;
@@ -665,10 +665,10 @@ mod client_tests {
                     },
                 ],
             };
-            Mock::given(method(Get))
+            Mock::given(method(http::Method::GET))
                 .and(path("/solutions/00c717b68e1b4213b316df82636f5e0f/submissions/4da3f19906214f678d5aadaea8635250/files"))
                 .and(bearer_token(API_TOKEN))
-                .respond_with(ResponseTemplate::new(StatusCode::OK).set_body_json(files_response))
+                .respond_with(ResponseTemplate::new(http::StatusCode::OK).set_body_json(files_response))
                 .mount(&mock_server)
                 .await;
 
