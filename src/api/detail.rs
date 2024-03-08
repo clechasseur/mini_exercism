@@ -467,7 +467,7 @@ mod tests {
             mock = TestData::get(test_data_on).add_to_mock(mock);
 
             mock.respond_with(
-                ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
+                ResponseTemplate::new(http::StatusCode::OK).set_body_json(TestOutput::default()),
             )
             .mount(&mock_server)
             .await;
