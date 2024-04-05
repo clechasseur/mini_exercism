@@ -3,7 +3,7 @@ name = "mini_exercism"
 version = "2.1.0"
 authors = [ "Charles Lechasseur <shiftingbeard@gmx.com>" ]
 edition = "2021"
-rust-version = "1.63.0"
+rust-version = "1.64.0"
 
 readme = "README.md"
 license = "MIT"
