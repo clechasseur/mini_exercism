@@ -3,8 +3,10 @@ mod get_solution {
     use mini_exercism::api;
     use mini_exercism::Error;
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new();
         let solution_response = client
@@ -22,8 +24,10 @@ mod get_latest_solution {
     use mini_exercism::api;
     use mini_exercism::Error;
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new();
         let solution_response = client.get_latest_solution("rust", "poker").await;
@@ -40,8 +44,10 @@ mod get_file {
     use mini_exercism::api;
     use mini_exercism::Error;
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new();
         let mut file_response_stream = client
@@ -60,8 +66,10 @@ mod get_track {
     use mini_exercism::api;
     use mini_exercism::Error;
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new();
         let track_response = client.get_track("rust").await;
@@ -76,8 +84,10 @@ mod get_track {
 mod validate_token {
     use assert_matches::assert_matches;
     use mini_exercism::api;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new();
         let validate_token_response = client.validate_token().await;
@@ -89,8 +99,10 @@ mod validate_token {
 
 mod ping {
     use mini_exercism::api;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_ping() {
         let client = api::v1::Client::new();
         let ping_response = client.ping().await;

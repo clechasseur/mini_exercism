@@ -5,8 +5,10 @@ mod get_tracks {
     use mini_exercism::api::v2::tracks::StatusFilter::Joined;
     use mini_exercism::Error;
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_all_tracks() {
         let client = api::v2::Client::new();
         let tracks_response = client.get_tracks(None).await;
@@ -18,6 +20,7 @@ mod get_tracks {
     }
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_julia_track() {
         let client = api::v2::Client::new();
         let filters = Filters::builder().criteria("julia").build();
@@ -31,6 +34,7 @@ mod get_tracks {
     }
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_tags() {
         let client = api::v2::Client::new();
         let filters = Filters::builder().tag("Functional").build();
@@ -41,6 +45,7 @@ mod get_tracks {
     }
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_status() {
         let client = api::v2::Client::new();
         let filters = Filters::builder().status(Joined).build();
@@ -59,6 +64,7 @@ mod get_tracks {
         use super::*;
 
         #[tokio::test]
+        #[file_serial(real_endpoints)]
         async fn test_joined_tracks() {
             if let Ok(credentials) = get_cli_credentials() {
                 let client = api::v2::Client::builder().credentials(credentials).build();
@@ -79,8 +85,10 @@ mod get_exercises {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::exercises::Filters;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_all_exercises() {
         let client = api::v2::Client::new();
         let exercises_response = client.get_exercises("rust", None).await;
@@ -96,6 +104,7 @@ mod get_exercises {
     }
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_difference_of_squares_exercise() {
         let client = api::v2::Client::new();
         let filters = Filters::builder().criteria("difference-of-squares").build();
@@ -106,6 +115,7 @@ mod get_exercises {
     }
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_solutions_sideloading() {
         let client = api::v2::Client::new();
         let filters = Filters::builder().include_solutions(true).build();
@@ -124,6 +134,7 @@ mod get_exercises {
         use super::*;
 
         #[tokio::test]
+        #[file_serial(real_endpoints)]
         async fn test_solutions_sideloading() {
             if let Ok(credentials) = get_cli_credentials() {
                 let client = api::v2::Client::builder().credentials(credentials).build();
@@ -152,8 +163,10 @@ mod get_solutions {
     use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};
     use mini_exercism::Error;
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_minesweeper() {
         let client = api::v2::Client::new();
         let filters = Filters::builder().criteria("minesweeper").build();
@@ -174,6 +187,7 @@ mod get_solutions {
         use super::*;
 
         #[tokio::test]
+        #[file_serial(real_endpoints)]
         async fn test_minesweeper() {
             if let Ok(credentials) = get_cli_credentials() {
                 let client = api::v2::Client::builder().credentials(credentials).build();
@@ -199,10 +213,12 @@ mod get_solution {
     use assert_matches::assert_matches;
     use mini_exercism::{api, Error};
     use reqwest::StatusCode;
+    use serial_test::file_serial;
 
     const SOLUTION_UUID: &str = "a0c9664059d345ac8d677b0154794ff2";
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_solution() {
         let client = api::v2::Client::new();
         let solution_response = client.get_solution(SOLUTION_UUID, false).await;
@@ -212,6 +228,7 @@ mod get_solution {
     }
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_iterations() {
         let client = api::v2::Client::new();
         let solution_response = client.get_solution(SOLUTION_UUID, true).await;
@@ -229,6 +246,7 @@ mod get_solution {
         use super::*;
 
         #[tokio::test]
+        #[file_serial(real_endpoints)]
         async fn test_iterations() {
             if let Ok(credentials) = get_cli_credentials() {
                 let client = api::v2::Client::builder().credentials(credentials).build();
@@ -253,11 +271,13 @@ mod get_solution {
 mod get_submission_files {
     use assert_matches::assert_matches;
     use mini_exercism::api;
+    use serial_test::file_serial;
 
     const SOLUTION_UUID: &str = "00c717b68e1b4213b316df82636f5e0f";
     const SUBMISSION_UUID: &str = "4da3f19906214f678d5aadaea8635250";
 
     #[tokio::test]
+    #[file_serial(real_endpoints)]
     async fn test_files_content() {
         let client = api::v2::Client::new();
         let files_response = client
