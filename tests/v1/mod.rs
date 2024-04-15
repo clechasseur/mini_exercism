@@ -77,7 +77,8 @@ mod client {
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let solution_response = client.get_solution(solution_uuid).await;
             let solution = solution_response.unwrap().solution;
             assert_eq!(solution_uuid, solution.uuid);
@@ -144,7 +145,8 @@ mod client {
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let solution_response = client.get_latest_solution("rust", "poker").await;
             let solution = solution_response.unwrap().solution;
             assert_eq!(solution_uuid, solution.uuid);
@@ -188,7 +190,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let mut file_response = client.get_file(solution_uuid, file_path).await;
             let mut output: Vec<u8> = Vec::new();
             while let Some(bytes) = file_response.next().await {
@@ -213,7 +216,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let mut file_response = client.get_file(solution_uuid, file_path).await;
 
             let file_result = file_response.next().await.unwrap();
@@ -246,7 +250,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let track_response = client.get_track("rust").await;
             let track = track_response.unwrap().track;
             assert_eq!("rust", track.name);
@@ -274,7 +279,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response, Ok(true));
         }
@@ -292,7 +298,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response, Ok(false));
         }
@@ -310,7 +317,8 @@ version = "1.1.0"
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response,
                 Err(Error::ApiError(error)) if error.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR));
@@ -338,7 +346,8 @@ version = "1.1.0"
 
             let client = api::v1::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
-                .build();
+                .build()
+                .unwrap();
             let ping_response = client.ping().await;
             let status = ping_response.unwrap().status;
             assert!(status.website);

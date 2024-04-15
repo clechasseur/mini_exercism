@@ -94,7 +94,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = Filters::builder()
                 .criteria("cpp")
                 .tag("Object-oriented")
@@ -183,7 +184,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = Filters::builder()
                 .criteria("poker")
                 .include_solutions(true)
@@ -296,7 +298,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = Filters::builder()
                 .criteria("resistor")
                 .track("javascript")
@@ -376,7 +379,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = Filters::builder()
                 .criteria("resistor")
                 .track("javascript")
@@ -451,7 +455,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let filters = Filters::builder()
                 .criteria("resistor")
                 .track("javascript")
@@ -533,7 +538,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let solution_response = client
                 .get_solution("a0c9664059d345ac8d677b0154794ff2", false)
                 .await
@@ -622,7 +628,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let solution_response = client
                 .get_solution("a0c9664059d345ac8d677b0154794ff2", true)
                 .await
@@ -675,7 +682,8 @@ mod client {
             let client = api::v2::Client::builder()
                 .api_base_url(mock_server.uri().as_str())
                 .credentials(Credentials::from_api_token(API_TOKEN))
-                .build();
+                .build()
+                .unwrap();
             let files_response = client
                 .get_submission_files(
                     "00c717b68e1b4213b316df82636f5e0f",

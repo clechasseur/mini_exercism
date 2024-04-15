@@ -49,7 +49,9 @@ impl Client {
     ///
     /// async fn get_solution_url(api_token: &str, solution_uuid: &str) -> anyhow::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder().credentials(credentials).build();
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build()?;
     ///
     ///     Ok(client.get_solution(solution_uuid).await?.solution.url)
     /// }
@@ -87,7 +89,9 @@ impl Client {
     ///     exercise: &str,
     /// ) -> anyhow::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder().credentials(credentials).build();
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build()?;
     ///
     ///     Ok(client
     ///         .get_latest_solution(track, exercise)
@@ -141,7 +145,9 @@ impl Client {
     ///     file: &str,
     /// ) -> anyhow::Result<String> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder().credentials(credentials).build();
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build()?;
     ///
     ///     let solution = client.get_latest_solution(track, exercise).await?.solution;
     ///     let mut file_response = client.get_file(&solution.uuid, file).await;
@@ -194,7 +200,9 @@ impl Client {
     ///
     /// async fn get_language_track_details(api_token: &str, track: &str) -> anyhow::Result<Track> {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder().credentials(credentials).build();
+    ///     let client = api::v1::Client::builder()
+    ///         .credentials(credentials)
+    ///         .build()?;
     ///
     ///     Ok(client.get_track(track).await?.track)
     /// }
@@ -226,9 +234,10 @@ impl Client {
     ///
     /// async fn is_api_token_valid(api_token: &str) -> bool {
     ///     let credentials = Credentials::from_api_token(api_token);
-    ///     let client = api::v1::Client::builder().credentials(credentials).build();
-    ///
-    ///     client.validate_token().await.unwrap_or(false)
+    ///     match api::v1::Client::builder().credentials(credentials).build() {
+    ///         Ok(client) => client.validate_token().await.unwrap_or(false),
+    ///         Err(_) => false,
+    ///     }
     /// }
     /// ```
     ///
@@ -272,7 +281,7 @@ impl Client {
     /// use mini_exercism::core::Credentials;
     ///
     /// async fn report_service_status() -> anyhow::Result<()> {
-    ///     let client = api::v1::Client::new();
+    ///     let client = api::v1::Client::new()?;
     ///
     ///     let service_status = client.ping().await?.status;
     ///     println!(

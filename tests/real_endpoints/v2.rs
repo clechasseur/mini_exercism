@@ -10,7 +10,7 @@ mod get_tracks {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_all_tracks() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let tracks_response = client.get_tracks(None).await;
         let tracks = tracks_response.unwrap().tracks;
         assert!(!tracks.is_empty());
@@ -22,7 +22,7 @@ mod get_tracks {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_julia_track() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let filters = Filters::builder().criteria("julia").build();
         let tracks_response = client.get_tracks(Some(filters)).await;
         let tracks = tracks_response.unwrap().tracks;
@@ -36,7 +36,7 @@ mod get_tracks {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_tags() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let filters = Filters::builder().tag("Functional").build();
         let tracks_response = client.get_tracks(Some(filters)).await;
 
@@ -47,7 +47,7 @@ mod get_tracks {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_status() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let filters = Filters::builder().status(Joined).build();
         let tracks_response = client.get_tracks(Some(filters)).await;
 
@@ -67,7 +67,10 @@ mod get_tracks {
         #[file_serial(real_endpoints)]
         async fn test_joined_tracks() {
             if let Ok(credentials) = get_cli_credentials() {
-                let client = api::v2::Client::builder().credentials(credentials).build();
+                let client = api::v2::Client::builder()
+                    .credentials(credentials)
+                    .build()
+                    .unwrap();
                 let filters = Filters::builder().status(Joined).build();
                 let tracks_response = client.get_tracks(Some(filters)).await;
 
@@ -90,7 +93,7 @@ mod get_exercises {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_all_exercises() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let exercises_response = client.get_exercises("rust", None).await;
         let exercises_response = exercises_response.unwrap();
         assert!(!exercises_response.exercises.is_empty());
@@ -106,7 +109,7 @@ mod get_exercises {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_difference_of_squares_exercise() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let filters = Filters::builder().criteria("difference-of-squares").build();
         let exercises_response = client.get_exercises("rust", Some(filters)).await;
         let exercises = exercises_response.unwrap().exercises;
@@ -117,7 +120,7 @@ mod get_exercises {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_solutions_sideloading() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let filters = Filters::builder().include_solutions(true).build();
         let exercises_response = client.get_exercises("rust", Some(filters)).await;
 
@@ -137,7 +140,10 @@ mod get_exercises {
         #[file_serial(real_endpoints)]
         async fn test_solutions_sideloading() {
             if let Ok(credentials) = get_cli_credentials() {
-                let client = api::v2::Client::builder().credentials(credentials).build();
+                let client = api::v2::Client::builder()
+                    .credentials(credentials)
+                    .build()
+                    .unwrap();
                 let filters = Filters::builder().include_solutions(true).build();
                 let exercises_response = client.get_exercises("rust", Some(filters)).await;
 
@@ -168,7 +174,7 @@ mod get_solutions {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_minesweeper() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let filters = Filters::builder().criteria("minesweeper").build();
         let paging = Paging::for_page(1).and_per_page(10);
         let sort_order = SortOrder::NewestFirst;
@@ -190,7 +196,10 @@ mod get_solutions {
         #[file_serial(real_endpoints)]
         async fn test_minesweeper() {
             if let Ok(credentials) = get_cli_credentials() {
-                let client = api::v2::Client::builder().credentials(credentials).build();
+                let client = api::v2::Client::builder()
+                    .credentials(credentials)
+                    .build()
+                    .unwrap();
                 let filters = Filters::builder().criteria("minesweeper").build();
                 let paging = Paging::for_page(1).and_per_page(50);
                 let solutions_response = client
@@ -220,7 +229,7 @@ mod get_solution {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_solution() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let solution_response = client.get_solution(SOLUTION_UUID, false).await;
 
         // Fetching a solution doesn't work anonymously.
@@ -230,7 +239,7 @@ mod get_solution {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_iterations() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let solution_response = client.get_solution(SOLUTION_UUID, true).await;
 
         // Fetching iterations for a solution doesn't work anonymously.
@@ -249,7 +258,10 @@ mod get_solution {
         #[file_serial(real_endpoints)]
         async fn test_iterations() {
             if let Ok(credentials) = get_cli_credentials() {
-                let client = api::v2::Client::builder().credentials(credentials).build();
+                let client = api::v2::Client::builder()
+                    .credentials(credentials)
+                    .build()
+                    .unwrap();
                 let solution_response = client.get_solution(SOLUTION_UUID, true).await;
 
                 assert_matches!(solution_response, Ok(response) => {
@@ -279,7 +291,7 @@ mod get_submission_files {
     #[tokio::test]
     #[file_serial(real_endpoints)]
     async fn test_files_content() {
-        let client = api::v2::Client::new();
+        let client = api::v2::Client::new().unwrap();
         let files_response = client
             .get_submission_files(SOLUTION_UUID, SUBMISSION_UUID)
             .await;

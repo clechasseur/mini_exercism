@@ -1,5 +1,6 @@
 //! Core types used across the [mini_exercism](crate) library.
 
+use derive_builder::UninitializedFieldError;
 use thiserror::Error;
 
 /// Credentials used to access the [Exercism](https://exercism.org) APIs.
@@ -32,7 +33,7 @@ impl Credentials {
 }
 
 /// Result type used by the [mini_exercism](crate) library when an error can occur.
-pub type Result<T> = core::result::Result<T, Error>;
+pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// Error type used by the [mini_exercism](crate) library.
 #[derive(Debug, Error)]
@@ -47,13 +48,13 @@ pub enum Error {
     /// I/O error reading CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
     #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
-    #[error("Could not read Exercism CLI config file: {0:?}")]
+    #[error("could not read Exercism CLI config file: {0:?}")]
     ConfigReadError(#[from] std::io::Error),
 
     /// JSON error parsing CLI config file (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
     #[cfg(feature = "cli")]
     #[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
-    #[error("Failed to parse Exercism CLI config file: {0:?}")]
+    #[error("failed to parse Exercism CLI config file: {0:?}")]
     ConfigParseError(#[from] serde_json::Error),
 
     /// CLI config file did not contain an API token (see [`get_cli_credentials`](crate::cli::get_cli_credentials))
@@ -62,7 +63,27 @@ pub enum Error {
     #[error("Exercism CLI config file did not contain an API token")]
     ApiTokenNotFoundInConfig,
 
+    /// A call to a builder's `build` method failed.
+    #[error(transparent)]
+    BuildFailed(#[from] BuildError),
+
     /// Error encountered while performing a request to an [Exercism](https://exercism.org) API
-    #[error("Error while performing API request: {0:?}")]
+    #[error("error while performing API request: {0:?}")]
     ApiError(#[from] reqwest::Error),
+}
+
+impl From<UninitializedFieldError> for Error {
+    fn from(_value: UninitializedFieldError) -> Self {
+        // This cannot occur in the crate's current code.
+        unreachable!("all fields should have had default values")
+    }
+}
+
+/// Type used when a builder error occurs.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum BuildError {
+    /// Creation of an [HTTP client](reqwest::Client) failed.
+    #[error("http client creation failed: {0:?}")]
+    HttpClientCreationFailed(#[from] reqwest::Error),
 }
