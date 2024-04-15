@@ -1,4 +1,4 @@
-mod get_solution_tests {
+mod get_solution {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::Error;
@@ -17,7 +17,7 @@ mod get_solution_tests {
     }
 }
 
-mod get_latest_solution_tests {
+mod get_latest_solution {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::Error;
@@ -34,7 +34,7 @@ mod get_latest_solution_tests {
     }
 }
 
-mod get_file_tests {
+mod get_file {
     use assert_matches::assert_matches;
     use futures::StreamExt;
     use mini_exercism::api;
@@ -55,7 +55,7 @@ mod get_file_tests {
     }
 }
 
-mod get_track_tests {
+mod get_track {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::Error;
@@ -73,7 +73,7 @@ mod get_track_tests {
     }
 }
 
-mod validate_token_tests {
+mod validate_token {
     use assert_matches::assert_matches;
     use mini_exercism::api;
 
@@ -87,7 +87,7 @@ mod validate_token_tests {
     }
 }
 
-mod ping_tests {
+mod ping {
     use mini_exercism::api;
 
     #[tokio::test]

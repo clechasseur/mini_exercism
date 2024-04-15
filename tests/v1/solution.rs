@@ -1,4 +1,4 @@
-mod response_tests {
+mod response {
     mod deserialize {
         use mini_exercism::api::v1::solution;
         use mini_exercism::api::v1::solution::{Exercise, Solution, Submission, User};
@@ -81,7 +81,8 @@ mod response_tests {
     }
 }
 
-mod solution_tests {
+#[allow(clippy::module_inception)]
+mod solution {
     mod deserialize {
         use mini_exercism::api::v1::solution::{Exercise, Solution, Submission, User};
         use mini_exercism::api::v1::track::Track;
@@ -153,7 +154,7 @@ mod solution_tests {
     }
 }
 
-mod user_tests {
+mod user {
     mod deserialize {
         use mini_exercism::api::v1::solution::User;
 
@@ -171,7 +172,7 @@ mod user_tests {
     }
 }
 
-mod exercise_tests {
+mod exercise {
     mod deserialize {
         use mini_exercism::api::v1::solution::Exercise;
         use mini_exercism::api::v1::track::Track;
@@ -198,7 +199,7 @@ mod exercise_tests {
     }
 }
 
-mod submission_tests {
+mod submission {
     mod deserialize {
         use mini_exercism::api::v1::solution::Submission;
 

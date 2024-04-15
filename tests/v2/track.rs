@@ -1,4 +1,5 @@
-mod track_tests {
+#[allow(clippy::module_inception)]
+mod track {
     mod deserialize {
         use mini_exercism::api::v2::track::{Links, Track};
 
@@ -169,7 +170,7 @@ mod track_tests {
     }
 }
 
-mod links_tests {
+mod links {
     mod deserialize {
         use mini_exercism::api::v2::track::Links;
 

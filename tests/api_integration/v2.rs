@@ -1,4 +1,4 @@
-mod get_tracks_tests {
+mod get_tracks {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::tracks::Filters;
@@ -75,7 +75,7 @@ mod get_tracks_tests {
     }
 }
 
-mod get_exercises_tests {
+mod get_exercises {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::exercises::Filters;
@@ -146,7 +146,7 @@ mod get_exercises_tests {
     }
 }
 
-mod get_solutions_tests {
+mod get_solutions {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};
@@ -195,7 +195,7 @@ mod get_solutions_tests {
     }
 }
 
-mod get_solution_tests {
+mod get_solution {
     use assert_matches::assert_matches;
     use mini_exercism::{api, Error};
     use reqwest::StatusCode;
@@ -250,7 +250,7 @@ mod get_solution_tests {
     }
 }
 
-mod get_submission_files_tests {
+mod get_submission_files {
     use assert_matches::assert_matches;
     use mini_exercism::api;
 

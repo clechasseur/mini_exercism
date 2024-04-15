@@ -1,4 +1,4 @@
-mod filters_tests {
+mod filters {
     mod builder {
         use assert_matches::assert_matches;
         use mini_exercism::api::v2::exercises::Filters;
@@ -16,7 +16,7 @@ mod filters_tests {
     }
 }
 
-mod response_tests {
+mod response {
     mod deserialize {
         use mini_exercism::api::v2::exercise::Difficulty::{Easy, Hard};
         use mini_exercism::api::v2::exercise::Type::{Practice, Tutorial};

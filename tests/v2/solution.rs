@@ -1,4 +1,4 @@
-mod response_tests {
+mod response {
     mod deserialize {
         use mini_exercism::api::v2::iteration::Status::NonActionableAutomatedFeedback;
         use mini_exercism::api::v2::iteration::{Iteration, Links};
@@ -131,7 +131,8 @@ mod response_tests {
     }
 }
 
-mod solution_tests {
+#[allow(clippy::module_inception)]
+mod solution {
     mod deserialize {
         use mini_exercism::api::v2::solution::MentoringStatus::Finished;
         use mini_exercism::api::v2::solution::Status::Published;
@@ -276,7 +277,7 @@ mod solution_tests {
     }
 }
 
-mod exercise_tests {
+mod exercise {
     mod deserialize {
         use mini_exercism::api::v2::solution::Exercise;
 
@@ -299,7 +300,7 @@ mod exercise_tests {
     }
 }
 
-mod track_tests {
+mod track {
     mod deserialize {
         use mini_exercism::api::v2::solution::Track;
 
