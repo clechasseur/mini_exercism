@@ -1,4 +1,4 @@
-mod response_tests {
+mod response {
     mod deserialize {
         use mini_exercism::api::v1::track;
         use mini_exercism::api::v1::track::Track;
@@ -20,7 +20,8 @@ mod response_tests {
     }
 }
 
-mod track_tests {
+#[allow(clippy::module_inception)]
+mod track {
     mod deserialize {
         use mini_exercism::api::v1::track::Track;
 

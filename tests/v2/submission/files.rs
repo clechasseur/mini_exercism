@@ -1,4 +1,4 @@
-mod response_tests {
+mod response {
     mod deserialize {
         use mini_exercism::api::v2::submission::files;
         use mini_exercism::api::v2::submission::files::File;
@@ -70,7 +70,7 @@ mod response_tests {
     }
 }
 
-mod file_tests {
+mod file {
     mod deserialize {
         use mini_exercism::api::v2::submission::files::File;
 

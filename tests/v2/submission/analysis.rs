@@ -1,4 +1,4 @@
-mod analyzer_feedback_tests {
+mod analyzer_feedback {
     mod deserialize {
         use mini_exercism::api::v2::submission::analysis::AnalyzerCommentType::Informative;
         use mini_exercism::api::v2::submission::analysis::{AnalyzerComment, AnalyzerFeedback};
@@ -46,7 +46,7 @@ mod analyzer_feedback_tests {
     }
 }
 
-mod analyzer_comment_tests {
+mod analyzer_comment {
     mod deserialize {
         use mini_exercism::api::v2::submission::analysis::AnalyzerCommentType::Celebratory;
         use mini_exercism::api::v2::submission::analysis::{AnalyzerComment, AnalyzerCommentType};
@@ -83,7 +83,7 @@ mod analyzer_comment_tests {
     }
 }
 
-mod representer_feedback_tests {
+mod representer_feedback {
     mod deserialize {
         use mini_exercism::api::v2::submission::analysis::{FeedbackAuthor, RepresenterFeedback};
         use mini_exercism::api::v2::user::Flair::LifetimeInsider;
@@ -119,7 +119,7 @@ mod representer_feedback_tests {
     }
 }
 
-mod feedback_author_tests {
+mod feedback_author {
     mod deserialize {
         use mini_exercism::api::v2::submission::analysis::FeedbackAuthor;
         use mini_exercism::api::v2::user::Flair::LifetimeInsider;

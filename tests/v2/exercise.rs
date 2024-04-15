@@ -1,4 +1,5 @@
-mod exercise_tests {
+#[allow(clippy::module_inception)]
+mod exercise {
     mod deserialize {
         use mini_exercism::api::v2::exercise::Difficulty::Easy;
         use mini_exercism::api::v2::exercise::Type::Tutorial;
@@ -76,7 +77,7 @@ mod exercise_tests {
     }
 }
 
-mod links_tests {
+mod links {
     mod deserialize {
         use mini_exercism::api::v2::exercise::Links;
 

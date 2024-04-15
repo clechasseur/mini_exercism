@@ -2,7 +2,7 @@ mod ping;
 mod solution;
 mod track;
 
-mod client_tests {
+mod client {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
     use wiremock::matchers::{bearer_token, method, path};

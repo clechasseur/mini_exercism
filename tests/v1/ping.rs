@@ -1,4 +1,4 @@
-mod response_tests {
+mod response {
     mod deserialize {
         use mini_exercism::api::v1::ping;
         use mini_exercism::api::v1::ping::ServiceStatus;
@@ -20,7 +20,7 @@ mod response_tests {
     }
 }
 
-mod service_status_tests {
+mod service_status {
     mod deserialize {
         use mini_exercism::api::v1::ping::ServiceStatus;
 

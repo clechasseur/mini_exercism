@@ -1,4 +1,5 @@
-mod iteration_tests {
+#[allow(clippy::module_inception)]
+mod iteration {
     mod deserialize {
         use mini_exercism::api::v2::iteration::Status::NonActionableAutomatedFeedback;
         use mini_exercism::api::v2::iteration::{Iteration, Links};
@@ -119,7 +120,7 @@ mod iteration_tests {
     }
 }
 
-mod links_tests {
+mod links {
     mod deserialize {
         use mini_exercism::api::v2::iteration::Links;
 
