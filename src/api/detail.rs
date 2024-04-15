@@ -4,13 +4,13 @@ use derive_builder::Builder;
 use reqwest::{Client, IntoUrl, Method, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 
-use crate::core::Credentials;
+use crate::core::{BuildError, Credentials};
 use crate::Result;
 
 #[derive(Debug, Builder)]
-#[builder(derive(Debug))]
+#[builder(derive(Debug), build_fn(error = "crate::Error"))]
 pub struct ApiClient {
-    #[builder(default)]
+    #[builder(default = "self.default_http_client()?")]
     http_client: Client,
 
     #[builder(setter(custom))]
@@ -57,6 +57,10 @@ impl ApiClientBuilder {
     pub fn api_base_url(&mut self, url: &str) -> &mut Self {
         self.api_base_url = Some(url.trim_end_matches('/').into());
         self
+    }
+
+    fn default_http_client(&self) -> Result<Client> {
+        Ok(Client::builder().build().map_err(BuildError::from)?)
     }
 }
 
@@ -191,7 +195,7 @@ macro_rules! define_api_client {
             $(#[$attr])*
             #[derive(Debug, Clone)]
             $vis struct $api_name {
-                api_client: std::sync::Arc<$crate::api::detail::ApiClient>,
+                api_client: ::std::sync::Arc<$crate::api::detail::ApiClient>,
             }
 
             impl $api_name {
@@ -199,15 +203,9 @@ macro_rules! define_api_client {
                     Creates a new [`" $api_name r"`] with default values.
 
                     This is the same as calling `" $api_name r"::builder().build()`.
-
-                    # Panics
-
-                    This method can panic when building a default HTTP client. To handle this
-                    type of error gracefully, use a [`builder`](Self::builder). (See
-                    [crate documentation](crate#custom-http-client) for details.)
                 "]
-                pub fn new() -> Self {
-                    Self::default()
+                pub fn new() -> $crate::Result<Self> {
+                    Self::builder().build()
                 }
 
                 #[doc = r"
@@ -216,23 +214,6 @@ macro_rules! define_api_client {
                 "]
                 pub fn builder() -> [<$api_name Builder>] {
                     [<$api_name Builder>]::default()
-                }
-            }
-
-            impl Default for $api_name {
-                #[doc = r"
-                    Creates a new [`" $api_name r"`] with default values.
-
-                    This is the same as calling `" $api_name r"::builder().build()`.
-
-                    # Panics
-
-                    This method can panic when building a default HTTP client. To handle this
-                    type of error gracefully, use a [`builder`](Self::builder). (See
-                    [crate documentation](crate#custom-http-client) for details.)
-                "]
-                fn default() -> Self {
-                    Self::builder().build()
                 }
             }
 
@@ -264,7 +245,7 @@ macro_rules! define_api_client {
                     Sets the [HTTP client](reqwest::Client) to use to perform requests
                     to the API. If not specified, a default client will be created.
                 "]
-                pub fn http_client(&mut self, value: reqwest::Client) -> &mut Self {
+                pub fn http_client(&mut self, value: ::reqwest::Client) -> &mut Self {
                     self.api_client_builder.http_client(value);
                     self
                 }
@@ -292,10 +273,10 @@ macro_rules! define_api_client {
                 }
 
                 #[doc = "Builds a new [`" $api_name "`] instance using the parameters of this builder."]
-                pub fn build(&self) -> $api_name {
-                    $api_name {
-                        api_client: std::sync::Arc::new(self.api_client_builder.build().expect("All fields should have had default values")),
-                    }
+                pub fn build(&self) -> $crate::Result<$api_name> {
+                    Ok($api_name {
+                        api_client: ::std::sync::Arc::new(self.api_client_builder.build()?),
+                    })
                 }
             }
 
@@ -648,7 +629,8 @@ mod tests {
                 let test_api_client = TestApiClient::builder()
                     .http_client(Client::default())
                     .credentials(Credentials::from_api_token(TEST_API_TOKEN))
-                    .build();
+                    .build()
+                    .unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
             }
@@ -658,21 +640,22 @@ mod tests {
                 let custom_api_base_url = "https://custom.api.client/api";
                 let test_api_client = TestApiClient::builder()
                     .api_base_url(custom_api_base_url)
-                    .build();
+                    .build()
+                    .unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
             }
 
             #[test]
             fn test_new() {
-                let test_api_client = TestApiClientBuilder::new().build();
+                let test_api_client = TestApiClientBuilder::new().build().unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
             }
 
             #[test]
             fn test_default() {
-                let test_api_client = TestApiClientBuilder::default().build();
+                let test_api_client = TestApiClientBuilder::default().build().unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
             }
@@ -694,15 +677,8 @@ mod tests {
             use super::*;
 
             #[test]
-            fn test_default() {
-                let test_api_client = TestApiClient::default();
-
-                assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
-            }
-
-            #[test]
             fn test_new() {
-                let test_api_client = TestApiClient::new();
+                let test_api_client = TestApiClient::new().unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), TEST_API_CLIENT_BASE_URL);
             }

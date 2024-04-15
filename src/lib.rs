@@ -42,28 +42,23 @@
 //! - [`api::v1::Client`]
 //! - [`api::v2::Client`]
 //!
-//! To create a client, either use its `new` or `default` methods to create a default instance, or
-//! use its `builder` method to construct one:
+//! To create a client, either use its `new` method to create a default instance, or use its
+//! `builder` method to construct one:
 //!
 //! ```no_run
 //! use mini_exercism::api;
 //!
-//! fn get_default_client() -> api::v2::Client {
-//!     api::v2::Client::new()
+//! fn get_default_client() -> anyhow::Result<api::v2::Client> {
+//!     Ok(api::v2::Client::new()?)
 //! }
 //!
-//! fn get_custom_client() -> api::v2::Client {
+//! fn get_custom_client() -> anyhow::Result<api::v2::Client> {
 //!     let mut builder = api::v2::Client::builder();
 //!     // ... customize API client with builder ...
 //!
-//!     builder.build()
+//!     Ok(builder.build()?)
 //! }
 //! ```
-//!
-//! Note that the creation of a default client results in the creation of a default internal
-//! HTTP client, which can result in a [panic in the `reqwest crate`](https://docs.rs/reqwest/latest/reqwest/struct.Client.html#method.new).
-//! This is a rare occurrence, but if you need to handle these errors, you can build the HTTP
-//! client manually - see [`Custom HTTP client`](#custom-http-client).
 //!
 //! ## Async methods
 //!
@@ -82,10 +77,12 @@
 //! use mini_exercism::api;
 //!
 //! #[tokio::main]
-//! async fn main() {
-//!     let client = api::v2::Client::new();
-//!     let tracks = client.get_tracks(None).await;
+//! async fn main() -> anyhow::Result<()> {
+//!     let client = api::v2::Client::new()?;
+//!     let tracks = client.get_tracks(None).await?;
 //!     // ...
+//!
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -98,7 +95,7 @@
 //! use mini_exercism::api;
 //!
 //! async fn print_language_tracks() -> anyhow::Result<()> {
-//!     let client = api::v2::Client::new();
+//!     let client = api::v2::Client::new()?;
 //!
 //!     let tracks = client.get_tracks(None).await?.tracks;
 //!     for track in &tracks {
@@ -109,7 +106,7 @@
 //! }
 //!
 //! async fn print_solutions(track: &str) -> anyhow::Result<()> {
-//!     let client = api::v2::Client::new();
+//!     let client = api::v2::Client::new()?;
 //!
 //!     let solutions = client.get_exercises(track, None).await?.solutions;
 //!     for solution in &solutions {
@@ -139,9 +136,11 @@
 //! use mini_exercism::api;
 //! use mini_exercism::core::Credentials;
 //!
-//! fn get_api_client() -> api::v2::Client {
+//! fn get_api_client() -> anyhow::Result<api::v2::Client> {
 //!     let credentials = Credentials::from_api_token("SOME_API_TOKEN");
-//!     api::v2::Client::builder().credentials(credentials).build()
+//!     Ok(api::v2::Client::builder()
+//!         .credentials(credentials)
+//!         .build()?)
 //! }
 //! ```
 //!
@@ -162,7 +161,7 @@
 //! ```no_run
 //! use mini_exercism::api;
 //!
-//! fn get_api_client() -> api::v2::Client {
+//! fn get_api_client() -> anyhow::Result<api::v2::Client> {
 //!     let mut client_builder = api::v2::Client::builder();
 //!
 //!     #[cfg(feature = "cli")]
@@ -172,7 +171,7 @@
 //!         // Find some other way to fetch credentials, or perform queries anonymously
 //!     }
 //!
-//!     client_builder.build()
+//!     Ok(client_builder.build()?)
 //! }
 //! ```
 //!
@@ -191,12 +190,11 @@
 //!     // ... customize HTTP client with `http_client_builder` here ...
 //!     let http_client = http_client_builder.build()?;
 //!
-//!     Ok(api::v2::Client::builder().http_client(http_client).build())
+//!     Ok(api::v2::Client::builder()
+//!         .http_client(http_client)
+//!         .build()?)
 //! }
 //! ```
-//!
-//! Creating the HTTP client via its `builder` also has the advantage of being able to handle
-//! errors that may arise when doing so instead of [panicking](https://docs.rs/reqwest/latest/reqwest/struct.Client.html#method.new).
 //!
 //! ## Crate status
 //!
