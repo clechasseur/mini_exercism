@@ -228,6 +228,7 @@ macro_rules! define_api_client {
             #[derive(Debug)]
             $vis struct [<$api_name Builder>] {
                 api_client_builder: $crate::api::detail::ApiClientBuilder,
+                error: Option<$crate::Error>,
             }
 
             impl [<$api_name Builder>] {
@@ -246,7 +247,51 @@ macro_rules! define_api_client {
                     to the API. If not specified, a default client will be created.
                 "]
                 pub fn http_client(&mut self, value: ::reqwest::Client) -> &mut Self {
-                    self.api_client_builder.http_client(value);
+                    if self.error.is_none() {
+                        self.api_client_builder.http_client(value);
+                    }
+                    self
+                }
+
+                #[doc = r#"
+                    Builds the [HTTP client](reqwest::Client) to use to perform requests
+                    to the API using a [builder](reqwest::ClientBuilder).
+
+                    # Examples
+
+                    ```no_run
+                    use http::{HeaderMap, HeaderValue};
+                    use mini_exercism::api;
+
+                    async fn get_client() -> anyhow::Result<api::v2::Client> {
+                        Ok(api::v2::Client::builder()
+                            .build_http_client(|builder| {
+                                let mut default_headers = HeaderMap::new();
+                                default_headers.insert(
+                                    "x-some-header",
+                                    HeaderValue::from_static("some-header-value"),
+                                );
+
+                                builder.default_headers(default_headers)
+                            })
+                            .build()?)
+                    }
+                    ```
+                "#]
+                pub fn build_http_client<F>(&mut self, value_f: F) -> &mut Self
+                where
+                    F: FnOnce(::reqwest::ClientBuilder) -> ::reqwest::ClientBuilder
+                {
+                    if self.error.is_none() {
+                        match value_f(::reqwest::Client::builder()).build() {
+                            Ok(client) => {
+                                self.api_client_builder.http_client(client);
+                            },
+                            Err(err) => {
+                                self.error = Some($crate::core::BuildError::from(err).into());
+                            },
+                        }
+                    }
                     self
                 }
 
@@ -257,7 +302,9 @@ macro_rules! define_api_client {
                     when the builder is created and should not be changed.
                 "]
                 pub fn api_base_url(&mut self, value: &str) -> &mut Self {
-                    self.api_client_builder.api_base_url(value);
+                    if self.error.is_none() {
+                        self.api_client_builder.api_base_url(value);
+                    }
                     self
                 }
 
@@ -268,15 +315,20 @@ macro_rules! define_api_client {
                     If not specified, requests will be performed anonymously.
                 "]
                 pub fn credentials(&mut self, value: $crate::core::Credentials) -> &mut Self {
-                    self.api_client_builder.credentials(value);
+                    if self.error.is_none() {
+                        self.api_client_builder.credentials(value);
+                    }
                     self
                 }
 
                 #[doc = "Builds a new [`" $api_name "`] instance using the parameters of this builder."]
-                pub fn build(&self) -> $crate::Result<$api_name> {
-                    Ok($api_name {
-                        api_client: ::std::sync::Arc::new(self.api_client_builder.build()?),
-                    })
+                pub fn build(&mut self) -> $crate::Result<$api_name> {
+                    match self.error.take() {
+                        None => Ok($api_name {
+                            api_client: ::std::sync::Arc::new(self.api_client_builder.build()?),
+                        }),
+                        Some(err) => Err(err),
+                    }
                 }
             }
 
@@ -289,7 +341,7 @@ macro_rules! define_api_client {
                 fn default() -> Self {
                     let mut api_client_builder = $crate::api::detail::ApiClient::builder();
                     api_client_builder.api_base_url($base_url);
-                    Self { api_client_builder }
+                    Self { api_client_builder, error: None }
                 }
             }
         }
@@ -606,6 +658,10 @@ mod tests {
     }
 
     mod define_api_client {
+        use assert_matches::assert_matches;
+        use http::header::InvalidHeaderValue;
+        use http::{HeaderMap, HeaderValue};
+
         use super::*;
 
         const TEST_API_TOKEN: &str = "some_token";
@@ -618,6 +674,16 @@ mod tests {
         impl TestApiClient {
             pub fn api_base_url(&self) -> &str {
                 self.api_client.api_base_url()
+            }
+        }
+
+        struct CannotBeAHeaderValue;
+
+        impl TryInto<HeaderValue> for CannotBeAHeaderValue {
+            type Error = InvalidHeaderValue;
+
+            fn try_into(self) -> std::result::Result<HeaderValue, Self::Error> {
+                HeaderValue::from_bytes(&[20])
             }
         }
 
@@ -636,6 +702,20 @@ mod tests {
             }
 
             #[test]
+            fn test_build_http_client() {
+                let result = TestApiClient::builder()
+                    .build_http_client(|builder| {
+                        let mut default_headers = HeaderMap::new();
+                        default_headers.insert("x-life", HeaderValue::from_static("42"));
+
+                        builder.default_headers(default_headers)
+                    })
+                    .build();
+
+                assert!(result.is_ok());
+            }
+
+            #[test]
             fn test_custom_base_url() {
                 let custom_api_base_url = "https://custom.api.client/api";
                 let test_api_client = TestApiClient::builder()
@@ -644,6 +724,22 @@ mod tests {
                     .unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
+            }
+
+            #[test]
+            fn test_build_error() {
+                // This test might be a little brittle because it relies on the fact that setting
+                // a user agent with invalid characters will cause a builder error. On one hand
+                // it's documented as such, but on the other hand maybe they might break it some day?
+                // In any case, if this test fails one day we'll need to revisit.
+                let result = TestApiClient::builder()
+                    .build_http_client(|builder| builder.user_agent(CannotBeAHeaderValue))
+                    .build();
+
+                assert_matches!(
+                    result,
+                    Err(crate::Error::BuildFailed(BuildError::HttpClientCreationFailed(_)))
+                );
             }
 
             #[test]
