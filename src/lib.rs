@@ -152,7 +152,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = { version = "2", features = ["cli"] }
+//! mini_exercism = { version = "3.0.0", features = ["cli"] }
 //! ```
 //!
 //! Then, you can fetch CLI credentials and use them to perform API requests. Note that it's
@@ -192,6 +192,16 @@
 //!
 //!     Ok(api::v2::Client::builder()
 //!         .http_client(http_client)
+//!         .build()?)
+//! }
+//!
+//! // Another possible way:
+//! fn get_api_client_too() -> anyhow::Result<api::v2::Client> {
+//!     Ok(api::v2::Client::builder()
+//!         .build_http_client(|builder| {
+//!             // ... customize HTTP client with `builder` here ...
+//!             builder
+//!         })
 //!         .build()?)
 //! }
 //! ```

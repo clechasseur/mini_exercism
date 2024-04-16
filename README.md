@@ -6,7 +6,9 @@ Minimalistic Rust library to interact with the [Exercism.org](https://exercism.o
 
 ## Exerci-what?
 
-[Exercism](https://exercism.org) is a free, not-for-profit platform to learn new programming languages. It supports a web editor for solving exercises, mentoring with real humans and a lot more. For more information, see [its about page](https://exercism.org/about).
+[Exercism](https://exercism.org) is a free, not-for-profit platform to learn new programming languages.
+It supports a web editor for solving exercises, mentoring with real humans and a lot more.
+For more information, see [its about page](https://exercism.org/about).
 
 ## Installing
 
@@ -35,7 +37,9 @@ async fn get_published_solution_uuids(
     track: &str,
 ) -> anyhow::Result<Vec<String>> {
     let credentials = Credentials::from_api_token(api_token);
-    let client = api::v2::Client::builder().credentials(credentials).build();
+    let client = api::v2::Client::builder()
+        .credentials(credentials)
+        .build()?;
 
     let filters = Filters::builder().include_solutions(true).build();
     let solutions = client.get_exercises(track, Some(filters)).await?.solutions;
