@@ -46,7 +46,7 @@ assert_matches = "1.5.0"
 http = "1.1.0"
 itertools = "0.12.1"
 mockall = "0.12.1"
-serial_test = { version = "3.1.0", features = ["file_locks"] }
+serial_test = { version = "3.1.1", features = ["file_locks"] }
 tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros", "test-util"] }
 wiremock = "0.6.0"
 wiremock_logical_matchers = "0.6.0"
