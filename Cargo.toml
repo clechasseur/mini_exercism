@@ -32,7 +32,7 @@ check-cfg = [ "cfg(tarpaulin)", "cfg(tarpaulin_include)" ]
 cli = []
 
 [dependencies]
-bytes = "1.6.0"
+bytes = "1.7.1"
 derive_builder = "0.20.0"
 futures = "0.3.30"
 mockall_double = "0.3.1"
