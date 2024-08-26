@@ -1,6 +1,6 @@
 [package]
 name = "mini_exercism"
-version = "3.0.0"
+version = "3.1.0"
 authors = [ "Charles Lechasseur <shiftingbeard@outlook.com>" ]
 edition = "2021"
 rust-version = "1.64.0"
