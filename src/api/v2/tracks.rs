@@ -4,7 +4,7 @@ pub(crate) mod detail;
 
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 
 use crate::api::v2::track::Track;
 
@@ -59,7 +59,19 @@ impl<'a> FiltersBuilder<'a> {
 }
 
 /// Possible status filter of [Exercism](https://exercism.org) language tracks.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Display, AsRefStr, IntoStaticStr)]
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    AsRefStr,
+    Display,
+    EnumString,
+    IntoStaticStr,
+    VariantNames,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum StatusFilter {
     /// Return all language tracks.

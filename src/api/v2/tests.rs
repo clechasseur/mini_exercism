@@ -1,7 +1,7 @@
 //! Types related to test runs submitted to the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 
 /// Possible status of a test run on the [Exercism website](https://exercism.org).
 ///
@@ -19,9 +19,11 @@ use strum::{AsRefStr, Display, IntoStaticStr};
     Eq,
     Serialize,
     Deserialize,
-    Display,
     AsRefStr,
+    Display,
+    EnumString,
     IntoStaticStr,
+    VariantNames,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
