@@ -1,7 +1,7 @@
 //! Types related to solutions returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 
 use crate::api::v2::iteration::Iteration;
 use crate::api::v2::tests;
@@ -131,9 +131,11 @@ pub struct Solution {
     Eq,
     Serialize,
     Deserialize,
-    Display,
     AsRefStr,
+    Display,
+    EnumString,
     IntoStaticStr,
+    VariantNames,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -170,9 +172,11 @@ pub enum Status {
     Eq,
     Serialize,
     Deserialize,
-    Display,
     AsRefStr,
+    Display,
+    EnumString,
     IntoStaticStr,
+    VariantNames,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]

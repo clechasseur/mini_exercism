@@ -4,7 +4,7 @@ pub(crate) mod detail;
 
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 
 use crate::api::v2::solution::{MentoringStatus, Solution, Status};
 use crate::api::v2::tests;
@@ -136,9 +136,11 @@ impl Paging {
     Eq,
     Serialize,
     Deserialize,
-    Display,
     AsRefStr,
+    Display,
+    EnumString,
     IntoStaticStr,
+    VariantNames,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
