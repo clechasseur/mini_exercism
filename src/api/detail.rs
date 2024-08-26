@@ -358,7 +358,7 @@ mod tests {
         use reqwest::header::{HeaderMap, HeaderValue};
         use reqwest::StatusCode;
         use serde::{Deserialize, Serialize};
-        use strum_macros::{AsRefStr, Display};
+        use strum::{AsRefStr, Display};
         use wiremock::matchers::{
             bearer_token, header_exists, method, path, query_param, query_param_is_missing,
         };

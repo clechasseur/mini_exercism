@@ -4,7 +4,7 @@
 //! and/or [representer](https://exercism.org/docs/building/tooling/representers) for the track.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, IntoStaticStr};
 
 use crate::api::v2::user::Flair;
 

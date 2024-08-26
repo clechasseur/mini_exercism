@@ -1,7 +1,7 @@
 //! Types related to test runs submitted to the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, IntoStaticStr};
 
 /// Possible status of a test run on the [Exercism website](https://exercism.org).
 ///

@@ -1,7 +1,7 @@
 //! Types related to users returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, IntoStaticStr};
 
 /// Possible values for a user's "flair", which is a kind of special status.
 ///
