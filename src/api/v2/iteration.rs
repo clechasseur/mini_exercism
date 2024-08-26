@@ -3,7 +3,7 @@
 //! Solutions to exercises can have multiple iterations.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, IntoStaticStr};
 
 use crate::api::v2::submission::analysis::{AnalyzerFeedback, RepresenterFeedback};
 use crate::api::v2::{submission, tests};

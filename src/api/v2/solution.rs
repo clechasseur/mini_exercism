@@ -1,7 +1,7 @@
 //! Types related to solutions returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, IntoStaticStr};
 
 use crate::api::v2::iteration::Iteration;
 use crate::api::v2::tests;

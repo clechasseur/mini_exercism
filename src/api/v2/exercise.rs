@@ -1,7 +1,7 @@
 //! Types related to exercises returned by the [Exercism website](https://exercism.org) v2 API.
 
 use serde::{Deserialize, Serialize};
-use strum_macros::{AsRefStr, Display, IntoStaticStr};
+use strum::{AsRefStr, Display, IntoStaticStr};
 
 /// A single exercise returned by the [Exercism website](https://exercism.org) v2 API.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

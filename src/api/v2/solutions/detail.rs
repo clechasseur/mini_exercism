@@ -1,5 +1,5 @@
 use reqwest::RequestBuilder;
-use strum_macros::AsRefStr;
+use strum::AsRefStr;
 
 use crate::api::detail::{IntoQuery, QueryBuilder};
 use crate::api::v2::solutions::detail::SyncStatus::{OutOfDate, UpToDate};
