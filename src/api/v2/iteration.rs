@@ -2,6 +2,8 @@
 //!
 //! Solutions to exercises can have multiple iterations.
 
+pub(crate) mod detail;
+
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, IntoStaticStr};
 
@@ -18,7 +20,10 @@ pub struct Iteration {
     /// Unique ID of the iteration's submission.
     ///
     /// An iteration's submission is tied to the actual data sent for the iteration.
-    pub submission_uuid: String,
+    ///
+    /// Will be `None` for deleted iterations.
+    #[serde(default)]
+    pub submission_uuid: Option<String>,
 
     /// 1-based index of the iteration.
     ///
@@ -77,7 +82,7 @@ pub struct Iteration {
     ///
     /// This field is only filled if automated feedback is sideloaded, which is not currently possible with the
     /// v2 API [`Client`](crate::api::v2::Client).
-    #[serde(default)]
+    #[serde(default, deserialize_with = "detail::deserialize_optional_feedback")]
     pub representer_feedback: Option<RepresenterFeedback>,
 
     /// Feedback provided by the track's [analyzer](https://exercism.org/docs/building/tooling/analyzers) for
@@ -89,7 +94,7 @@ pub struct Iteration {
     ///
     /// This field is only filled if automated feedback is sideloaded, which is not currently possible with the
     /// v2 API [`Client`](crate::api::v2::Client).
-    #[serde(default)]
+    #[serde(default, deserialize_with = "detail::deserialize_optional_feedback")]
     pub analyzer_feedback: Option<AnalyzerFeedback>,
 
     /// Whether this iteration has been published.
@@ -98,6 +103,13 @@ pub struct Iteration {
     pub is_published: bool,
 
     /// Whether this is the solution's latest iteration.
+    ///
+    /// # Notes
+    ///
+    /// This field is not sent by the v2 API for deleted iterations. Presumably, if the
+    /// last iteration of a solution is deleted, then the next-to-last will have `is_latest`
+    /// set to `true` in its stead.
+    #[serde(default)]
     pub is_latest: bool,
 
     /// Information about the iteration's submitted files, including their content.
@@ -194,10 +206,16 @@ pub struct Links {
     pub self_path: String,
 
     /// API URL that can be used to fetch the iteration's submission's automated feedback.
-    pub automated_feedback: String,
+    ///
+    /// Will be `None` if the iteration has no automated feedback (if it is deleted, for example).
+    #[serde(default)]
+    pub automated_feedback: Option<String>,
 
     /// API URL of the iteration. Performing an HTTP `DELETE` on this URL will delete the iteration.
-    pub delete: String,
+    ///
+    /// Will be `None` if the iteration is already deleted.
+    #[serde(default)]
+    pub delete: Option<String>,
 
     /// URL of the exercise on the [Exercism website](https://exercism.org).
     ///
@@ -205,8 +223,14 @@ pub struct Links {
     pub solution: String,
 
     /// API URL of the iteration's submission's test run.
-    pub test_run: String,
+    ///
+    /// Will be `None` if the iteration has no test run (if it is deleted, for example).
+    #[serde(default)]
+    pub test_run: Option<String>,
 
     /// API URL of the iteration's submission's files (with content).
-    pub files: String,
+    ///
+    /// Will be `None` for deleted iterations.
+    #[serde(default)]
+    pub files: Option<String>,
 }

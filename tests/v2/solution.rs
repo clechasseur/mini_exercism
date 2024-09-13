@@ -99,7 +99,7 @@ mod response {
                 iterations: vec![
                     Iteration {
                         uuid: "98f8b04515a8484ca211edc7c56d2aa2".into(),
-                        submission_uuid: "ab542af6906349ebb37e7cbee4828554".into(),
+                        submission_uuid: Some("ab542af6906349ebb37e7cbee4828554".into()),
                         index: 1,
                         status: NonActionableAutomatedFeedback,
                         num_essential_automated_comments: 0,
@@ -116,11 +116,11 @@ mod response {
                         files: vec![],
                         links: Links {
                             self_path: "https://exercism.org/tracks/rust/exercises/clock/iterations?idx=2".into(),
-                            automated_feedback: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/iterations/98f8b04515a8484ca211edc7c56d2aa2/automated_feedback".into(),
-                            delete: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/iterations/98f8b04515a8484ca211edc7c56d2aa2".into(),
+                            automated_feedback: Some("https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/iterations/98f8b04515a8484ca211edc7c56d2aa2/automated_feedback".into()),
+                            delete: Some("https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/iterations/98f8b04515a8484ca211edc7c56d2aa2".into()),
                             solution: "https://exercism.org/tracks/rust/exercises/clock".into(),
-                            test_run: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/submissions/ab542af6906349ebb37e7cbee4828554/test_run".into(),
-                            files: "https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/submissions/ab542af6906349ebb37e7cbee4828554/files".into()
+                            test_run: Some("https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/submissions/ab542af6906349ebb37e7cbee4828554/test_run".into()),
+                            files: Some("https://exercism.org/api/v2/solutions/a0c9664059d345ac8d677b0154794ff2/submissions/ab542af6906349ebb37e7cbee4828554/files".into()),
                         },
                     },
                 ],
