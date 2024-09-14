@@ -273,14 +273,19 @@ impl Client {
     ///         .credentials(credentials)
     ///         .build()?;
     ///
-    ///     Ok(client
+    ///     let submission_uuid = client
     ///         .get_solution(solution_uuid, true)
     ///         .await?
     ///         .iterations
     ///         .into_iter()
     ///         .find(|iteration| iteration.is_latest)
-    ///         .map(|iteration| iteration.files)
-    ///         .unwrap_or_default())
+    ///         .and_then(|iteration| iteration.submission_uuid)
+    ///         .ok_or_else(|| anyhow::anyhow!("could not find submission uuid"))?;
+    ///
+    ///     Ok(client
+    ///         .get_submission_files(solution_uuid, &submission_uuid)
+    ///         .await?
+    ///         .files)
     /// }
     /// ```
     ///
