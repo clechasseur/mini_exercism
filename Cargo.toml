@@ -1,6 +1,6 @@
 [package]
 name = "mini_exercism"
-version = "4.0.0"
+version = "4.1.0"
 authors = [ "Charles Lechasseur <shiftingbeard@outlook.com>" ]
 edition = "2021"
 rust-version = "1.64.0"
@@ -30,6 +30,7 @@ check-cfg = [ "cfg(tarpaulin)", "cfg(tarpaulin_include)" ]
 
 [features]
 cli = []
+cookies = ["reqwest/cookies"]
 
 [dependencies]
 bytes = "1.7.1"

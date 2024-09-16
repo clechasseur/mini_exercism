@@ -1,17 +1,18 @@
 use std::fmt::Display;
 
 use derive_builder::Builder;
-use reqwest::{Client, IntoUrl, Method, RequestBuilder, Response};
 use serde::de::DeserializeOwned;
 
 use crate::core::{BuildError, Credentials};
+use crate::http;
+use crate::http::IntoUrl;
 use crate::Result;
 
 #[derive(Debug, Builder)]
 #[builder(derive(Debug), build_fn(error = "crate::Error"))]
 pub struct ApiClient {
     #[builder(default = "self.default_http_client()?")]
-    http_client: Client,
+    http_client: http::Client,
 
     #[builder(setter(custom))]
     api_base_url: String,
@@ -31,7 +32,7 @@ impl ApiClient {
         self.api_base_url.as_str()
     }
 
-    pub fn request<U>(&self, method: Method, url: U) -> ApiRequestBuilder
+    pub fn request<U>(&self, method: http::Method, url: U) -> ApiRequestBuilder
     where
         U: Display,
     {
@@ -42,7 +43,7 @@ impl ApiClient {
     where
         U: Display,
     {
-        self.request(Method::GET, url)
+        self.request(http::Method::GET, url)
     }
 
     fn api_url<U>(&self, url: U) -> String
@@ -59,20 +60,20 @@ impl ApiClientBuilder {
         self
     }
 
-    fn default_http_client(&self) -> Result<Client> {
-        Ok(Client::builder().build().map_err(BuildError::from)?)
+    fn default_http_client(&self) -> Result<http::Client> {
+        Ok(http::Client::builder().build().map_err(BuildError::from)?)
     }
 }
 
 pub trait IntoQuery {
-    fn into_query(self, request: RequestBuilder) -> RequestBuilder;
+    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder;
 }
 
 impl<'k, V> IntoQuery for (&'k str, Option<V>)
 where
     V: AsRef<str>,
 {
-    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
         match self.1 {
             Some(param) => request.query(&[(self.0, param.as_ref())]),
             None => request,
@@ -84,7 +85,7 @@ impl<'k, V> IntoQuery for (&'k str, Vec<V>)
 where
     V: AsRef<str>,
 {
-    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
         self.1
             .into_iter()
             .fold(request, |request, v| request.query(&[(self.0, v.as_ref())]))
@@ -95,7 +96,7 @@ impl<Q> IntoQuery for Option<Q>
 where
     Q: IntoQuery,
 {
-    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
         match self {
             Some(query) => query.into_query(request),
             None => request,
@@ -137,7 +138,7 @@ pub trait QueryBuilder: Sized {
     }
 }
 
-impl QueryBuilder for RequestBuilder {
+impl QueryBuilder for http::RequestBuilder {
     fn build_query<Q>(self, query: Q) -> Self
     where
         Q: IntoQuery,
@@ -147,13 +148,13 @@ impl QueryBuilder for RequestBuilder {
 }
 
 pub struct ApiRequestBuilder {
-    request: RequestBuilder,
+    request: http::RequestBuilder,
 }
 
 impl ApiRequestBuilder {
     pub fn new<U>(
-        http_client: &Client,
-        method: Method,
+        http_client: &http::Client,
+        method: http::Method,
         url: U,
         credentials: &Option<Credentials>,
     ) -> Self
@@ -174,7 +175,7 @@ impl ApiRequestBuilder {
         Self { request: query.into_query(self.request) }
     }
 
-    pub async fn send(self) -> Result<Response> {
+    pub async fn send(self) -> Result<http::Response> {
         Ok(self.request.send().await?.error_for_status()?)
     }
 
@@ -243,10 +244,10 @@ macro_rules! define_api_client {
                 }
 
                 #[doc = r"
-                    Sets the [HTTP client](reqwest::Client) to use to perform requests
+                    Sets the [HTTP client](crate::http::Client) to use to perform requests
                     to the API. If not specified, a default client will be created.
                 "]
-                pub fn http_client(&mut self, value: ::reqwest::Client) -> &mut Self {
+                pub fn http_client(&mut self, value: $crate::http::Client) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.http_client(value);
                     }
@@ -254,8 +255,8 @@ macro_rules! define_api_client {
                 }
 
                 #[doc = r#"
-                    Builds the [HTTP client](reqwest::Client) to use to perform requests
-                    to the API using a [builder](reqwest::ClientBuilder).
+                    Builds the [HTTP client](crate::http::Client) to use to perform requests
+                    to the API using a [builder](crate::http::ClientBuilder).
 
                     # Examples
 
@@ -280,10 +281,10 @@ macro_rules! define_api_client {
                 "#]
                 pub fn build_http_client<F>(&mut self, value_f: F) -> &mut Self
                 where
-                    F: FnOnce(::reqwest::ClientBuilder) -> ::reqwest::ClientBuilder
+                    F: FnOnce($crate::http::ClientBuilder) -> $crate::http::ClientBuilder
                 {
                     if self.error.is_none() {
-                        match value_f(::reqwest::Client::builder()).build() {
+                        match value_f($crate::http::Client::builder()).build() {
                             Ok(client) => {
                                 self.api_client_builder.http_client(client);
                             },
@@ -355,8 +356,6 @@ mod tests {
     mod api_client {
         use assert_matches::assert_matches;
         use itertools::iproduct;
-        use reqwest::header::{HeaderMap, HeaderValue};
-        use reqwest::StatusCode;
         use serde::{Deserialize, Serialize};
         use strum::{AsRefStr, Display};
         use wiremock::matchers::{
@@ -366,6 +365,8 @@ mod tests {
         use wiremock_logical_matchers::not;
 
         use super::*;
+        use crate::http::header::{HeaderMap, HeaderValue};
+        use crate::http::StatusCode;
 
         const ROUTE: &str = "/";
         const API_TOKEN: &str = "some_api_token";
@@ -448,7 +449,7 @@ mod tests {
         }
 
         impl IntoQuery for TestData {
-            fn into_query(self, request: RequestBuilder) -> RequestBuilder {
+            fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
                 request
                     .build_query(("name", self.name))
                     .build_query_if(self.test, ("test", Some("1")))
@@ -508,11 +509,11 @@ mod tests {
             mock_server
         }
 
-        fn create_test_http_client() -> Client {
+        fn create_test_http_client() -> http::Client {
             let mut default_headers = HeaderMap::new();
             default_headers.insert(TEST_HEADER, HeaderValue::from_static("any_value_will_do"));
 
-            Client::builder()
+            http::Client::builder()
                 .default_headers(default_headers)
                 .build()
                 .unwrap()
@@ -560,7 +561,7 @@ mod tests {
                     if actual_test_data_on { Some(actual_test_data.clone()) } else { None };
 
                 let from_request = client
-                    .request(Method::GET, ROUTE)
+                    .request(http::Method::GET, ROUTE)
                     .query(actual_test_data.clone())
                     .send()
                     .await;
@@ -587,7 +588,7 @@ mod tests {
                     );
 
                     let from_request: TestOutput = client
-                        .request(Method::GET, ROUTE)
+                        .request(http::Method::GET, ROUTE)
                         .query(actual_test_data.clone())
                         .execute()
                         .await
@@ -658,9 +659,9 @@ mod tests {
     }
 
     mod define_api_client {
+        use ::http::header::InvalidHeaderValue;
+        use ::http::{HeaderMap, HeaderValue};
         use assert_matches::assert_matches;
-        use http::header::InvalidHeaderValue;
-        use http::{HeaderMap, HeaderValue};
 
         use super::*;
 
@@ -693,7 +694,7 @@ mod tests {
             #[test]
             fn test_default_base_url() {
                 let test_api_client = TestApiClient::builder()
-                    .http_client(Client::default())
+                    .http_client(http::Client::default())
                     .credentials(Credentials::from_api_token(TEST_API_TOKEN))
                     .build()
                     .unwrap();

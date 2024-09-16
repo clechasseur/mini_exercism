@@ -2,6 +2,7 @@ mod error {
     use std::collections::HashMap;
 
     use assert_matches::assert_matches;
+    use mini_exercism::http;
     use mini_exercism::Error;
 
     #[test]
@@ -30,13 +31,13 @@ mod error {
         // There's no way to create a reqwest::Error outside of the reqwest crate, so we'll
         // have to trigger an actual error to test this.
         let map_with_non_string_keys: HashMap<_, _> = [(true, "hello"), (false, "world")].into();
-        let client = reqwest::Client::new();
-        let reqwest_error = client
+        let client = http::Client::new();
+        let http_error = client
             .get("/test")
             .json(&map_with_non_string_keys)
             .build()
             .unwrap_err();
-        let error: Error = reqwest_error.into();
+        let error: Error = http_error.into();
 
         assert_matches!(error, Error::ApiError(error) if error.is_builder());
     }
