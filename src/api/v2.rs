@@ -251,7 +251,23 @@ impl Client {
 
     /// Returns information about the files submitted for a solution iteration.
     ///
-    /// This request cannot be performed anonymously, unless the submission's iteration has been [published](crate::api::v2::iteration::Iteration::is_published).
+    /// This request cannot be performed anonymously, unless the submission's iteration has been [published](crate::api::v2::iteration::Iteration::is_published)
+    /// (also see below).
+    ///
+    /// # Notes
+    ///
+    /// The [Exercism website](https://exercism.org) v2 API does not authenticate the user when
+    /// querying for submission files (see [here](https://github.com/exercism/website/blob/bf5e32c0bc2eef3a36573cc0405c610398d2a5ea/app/controllers/api/solutions/submission_files_controller.rb#L2)).
+    /// Because of this, performing a query for the files of a submission of which the iteration
+    /// is not published will fail unless the user is authenticated first through _another_ query.
+    /// Furthermore, in order for authentication information to be saved between requests, the
+    /// [cookie store](crate::http::ClientBuilder::cookie_store) needs to be enabled in the
+    /// [HTTP client](crate::http::Client) used by this API client.
+    ///
+    /// The sample code below has an example of how to enable the cookie store so that the
+    /// query for submission files will work even if the iteration is private.
+    ///
+    /// Note that enabling the cookie store requires the use of the `cookies` feature.
     ///
     /// # Errors
     ///
@@ -260,17 +276,27 @@ impl Client {
     /// # Examples
     ///
     /// ```no_run
+    /// # #[cfg(feature = "cookies")]
     /// use mini_exercism::api;
+    /// # #[cfg(feature = "cookies")]
     /// use mini_exercism::api::v2::submission;
+    /// # #[cfg(feature = "cookies")]
     /// use mini_exercism::core::Credentials;
+    /// # #[cfg(feature = "cookies")]
+    /// use mini_exercism::http;
     ///
+    /// # #[cfg(feature = "cookies")]
     /// async fn get_solution_files(
     ///     api_token: &str,
     ///     solution_uuid: &str,
     /// ) -> anyhow::Result<Vec<submission::files::File>> {
+    ///     // Enable cookie store so that authentication persists for submission files query
+    ///     let http_client = http::Client::builder().cookie_store(true).build()?;
+    ///
     ///     let credentials = Credentials::from_api_token(api_token);
     ///     let client = api::v2::Client::builder()
     ///         .credentials(credentials)
+    ///         .http_client(http_client)
     ///         .build()?;
     ///
     ///     let submission_uuid = client

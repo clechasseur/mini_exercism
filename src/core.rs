@@ -3,6 +3,8 @@
 use derive_builder::UninitializedFieldError;
 use thiserror::Error;
 
+use crate::http;
+
 /// Credentials used to access the [Exercism](https://exercism.org) APIs.
 ///
 /// # Examples
@@ -69,7 +71,7 @@ pub enum Error {
 
     /// Error encountered while performing a request to an [Exercism](https://exercism.org) API
     #[error("error while performing API request: {0:?}")]
-    ApiError(#[from] reqwest::Error),
+    ApiError(#[from] http::Error),
 }
 
 impl From<UninitializedFieldError> for Error {
@@ -83,7 +85,7 @@ impl From<UninitializedFieldError> for Error {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum BuildError {
-    /// Creation of an [HTTP client](reqwest::Client) failed.
+    /// Creation of an [HTTP client](http::Client) failed.
     #[error("http client creation failed: {0:?}")]
-    HttpClientCreationFailed(#[from] reqwest::Error),
+    HttpClientCreationFailed(#[from] http::Error),
 }

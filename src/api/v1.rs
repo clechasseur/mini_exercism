@@ -7,8 +7,8 @@ pub mod track;
 use bytes::Bytes;
 use futures::future::Either;
 use futures::{stream, Stream, StreamExt, TryStreamExt};
-use reqwest::StatusCode;
 
+use crate::http::StatusCode;
 use crate::{Error, Result};
 
 /// Default base URL for the [Exercism website](https://exercism.org) v1 API.
@@ -101,7 +101,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::Error::ApiError
+    /// [`ApiError`]: Error::ApiError
     pub async fn get_latest_solution(
         &self,
         track: &str,
@@ -160,7 +160,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::Error::ApiError
+    /// [`ApiError`]: Error::ApiError
     pub async fn get_file(
         &self,
         solution_uuid: &str,
@@ -208,7 +208,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::Error::ApiError
+    /// [`ApiError`]: Error::ApiError
     pub async fn get_track(&self, track: &str) -> Result<track::Response> {
         self.api_client
             .get(format!("/tracks/{}", track))
@@ -241,7 +241,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::Error::ApiError
+    /// [`ApiError`]: Error::ApiError
     pub async fn validate_token(&self) -> Result<bool> {
         // This API call returns a payload, but it doesn't really contain useful information:
         // if the token is invalid, 401 will be returned.
@@ -293,7 +293,7 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::Error::ApiError
+    /// [`ApiError`]: Error::ApiError
     pub async fn ping(&self) -> Result<ping::Response> {
         self.api_client.get("/ping").execute().await
     }

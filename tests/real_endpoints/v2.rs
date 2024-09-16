@@ -3,8 +3,8 @@ mod get_tracks {
     use mini_exercism::api;
     use mini_exercism::api::v2::tracks::Filters;
     use mini_exercism::api::v2::tracks::StatusFilter::Joined;
+    use mini_exercism::http::StatusCode;
     use mini_exercism::Error;
-    use reqwest::StatusCode;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -167,8 +167,8 @@ mod get_solutions {
     use assert_matches::assert_matches;
     use mini_exercism::api;
     use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};
+    use mini_exercism::http::StatusCode;
     use mini_exercism::Error;
-    use reqwest::StatusCode;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -220,8 +220,8 @@ mod get_solutions {
 
 mod get_solution {
     use assert_matches::assert_matches;
+    use mini_exercism::http::StatusCode;
     use mini_exercism::{api, Error};
-    use reqwest::StatusCode;
     use serial_test::file_serial;
 
     const SOLUTION_UUID: &str = "a0c9664059d345ac8d677b0154794ff2";
@@ -306,5 +306,52 @@ mod get_submission_files {
                 assert!(cargo_toml.content.contains("thiserror"));
             });
         });
+    }
+
+    #[cfg(all(feature = "cli", feature = "cookies"))]
+    mod authenticated_with_cli {
+        use mini_exercism::cli::get_cli_credentials;
+        use mini_exercism::http;
+
+        use super::*;
+
+        const PRIVATE_SOLUTION_UUID: &str = "1ee9ddb205b04ab8a442bb38faa5aff6";
+        const PRIVATE_SUBMISSION_UUID: &str = "7c190886-08cc-11ec-81c5-853579c25f94";
+
+        #[tokio::test]
+        #[file_serial(real_endpoints)]
+        async fn test_private_iteration() {
+            if let Ok(credentials) = get_cli_credentials() {
+                // The Exercism v2 API to fetch submission files doesn't perform authentication,
+                // so in order to test it we need to first perform a query that will authenticate
+                // the user properly. And in order for the authentication information to then be
+                // sent when we query for submission files, we need to enable the cookie store
+                // in the HTTP client we use. (whew)
+
+                let http_client = http::Client::builder().cookie_store(true).build().unwrap();
+                let client = api::v2::Client::builder()
+                    .http_client(http_client)
+                    .credentials(credentials)
+                    .build()
+                    .unwrap();
+
+                let solution_response = client.get_solution(PRIVATE_SOLUTION_UUID, false).await;
+                assert!(solution_response.is_ok());
+
+                let files_response = client
+                    .get_submission_files(PRIVATE_SOLUTION_UUID, PRIVATE_SUBMISSION_UUID)
+                    .await;
+
+                assert_matches!(files_response, Ok(response) => {
+                    let files = response.files;
+                    assert!(!files.is_empty());
+
+                    let change_calculator = files.iter().find(|&file| file.filename.ends_with("ChangeCalculator.kt"));
+                    assert_matches!(change_calculator, Some(change_calculator) => {
+                        assert!(change_calculator.content.contains("class ChangeCalculator"));
+                    });
+                });
+            }
+        }
     }
 }

@@ -160,6 +160,7 @@ mod client {
 
         use assert_matches::assert_matches;
         use futures::StreamExt;
+        use mini_exercism::http::StatusCode;
         use mini_exercism::Error;
         use wiremock::matchers::path_regex;
 
@@ -222,7 +223,7 @@ version = "1.1.0"
 
             let file_result = file_response.next().await.unwrap();
             assert_matches!(file_result,
-                Err(Error::ApiError(api_error)) if api_error.status() == Some(reqwest::StatusCode::NOT_FOUND));
+                Err(Error::ApiError(api_error)) if api_error.status() == Some(StatusCode::NOT_FOUND));
         }
     }
 
@@ -261,6 +262,7 @@ version = "1.1.0"
 
     mod validate_token {
         use assert_matches::assert_matches;
+        use mini_exercism::http::StatusCode;
         use mini_exercism::Error;
 
         use super::*;
@@ -321,7 +323,7 @@ version = "1.1.0"
                 .unwrap();
             let validate_token_response = client.validate_token().await;
             assert_matches!(validate_token_response,
-                Err(Error::ApiError(error)) if error.status() == Some(reqwest::StatusCode::INTERNAL_SERVER_ERROR));
+                Err(Error::ApiError(error)) if error.status() == Some(StatusCode::INTERNAL_SERVER_ERROR));
         }
     }
 

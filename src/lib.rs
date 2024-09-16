@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = "4.0.0"
+//! mini_exercism = "4.1.0"
 //! ```
 //!
 //! or by running:
@@ -152,7 +152,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = { version = "4.0.0", features = ["cli"] }
+//! mini_exercism = { version = "4.1.0", features = ["cli"] }
 //! ```
 //!
 //! Then, you can fetch CLI credentials and use them to perform API requests. Note that it's
@@ -177,16 +177,17 @@
 //!
 //! ## Custom HTTP client
 //!
-//! Internally, [`mini_exercism`](crate) uses the [`reqwest`](https://crates.io/crates/reqwest)
-//! library to perform HTTP calls. Unless overridden, API clients will create a default HTTP client.
-//! If you need to customize the behavior of the HTTP client, you can use the API client's `builder`
-//! to specify a different HTTP client:
+//! Internally, [mini_exercism](crate) uses the [reqwest](https://crates.io/crates/reqwest)
+//! library to perform HTTP calls (whose types are re-exported through the [`mini_exercism::http`](http)
+//! module). Unless overridden, API clients will create a default HTTP client.  If you need to customize the
+//! behavior of the HTTP client, you can use the API client's `builder` to specify a different HTTP client:
 //!
 //! ```no_run
 //! use mini_exercism::api;
+//! use mini_exercism::http;
 //!
 //! fn get_api_client() -> anyhow::Result<api::v2::Client> {
-//!     let http_client_builder = reqwest::Client::builder();
+//!     let http_client_builder = http::Client::builder();
 //!     // ... customize HTTP client with `http_client_builder` here ...
 //!     let http_client = http_client_builder.build()?;
 //!
@@ -223,6 +224,9 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
 #![cfg_attr(any(nightly_rustc, docsrs), feature(doc_cfg))]
+
+// Re-export `reqwest` types in a `http` module
+pub use reqwest as http;
 
 pub mod api;
 #[cfg(feature = "cli")]
