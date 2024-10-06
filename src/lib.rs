@@ -226,7 +226,15 @@
 #![cfg_attr(any(nightly_rustc, docsrs), feature(doc_cfg))]
 
 // Re-export `reqwest` types in a `http` module
+#[doc(hidden)]
 pub use reqwest as http;
+
+// Re-export `Bytes` and some `futures` types in a `stream` module
+#[doc(hidden)]
+pub mod stream {
+    pub use bytes::Bytes;
+    pub use futures::{Stream, StreamExt, TryStreamExt};
+}
 
 pub mod api;
 #[cfg(feature = "cli")]
