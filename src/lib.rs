@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = "4.1.0"
+//! mini_exercism = "4.2.0"
 //! ```
 //!
 //! or by running:
@@ -152,7 +152,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = { version = "4.1.0", features = ["cli"] }
+//! mini_exercism = { version = "4.2.0", features = ["cli"] }
 //! ```
 //!
 //! Then, you can fetch CLI credentials and use them to perform API requests. Note that it's
