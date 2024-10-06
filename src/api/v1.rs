@@ -4,11 +4,11 @@ pub mod ping;
 pub mod solution;
 pub mod track;
 
-use bytes::Bytes;
 use futures::future::Either;
-use futures::{stream, Stream, StreamExt, TryStreamExt};
+use futures::stream;
 
 use crate::http::StatusCode;
+use crate::stream::{Bytes, Stream, StreamExt, TryStreamExt};
 use crate::{Error, Result};
 
 /// Default base URL for the [Exercism website](https://exercism.org) v1 API.
@@ -134,9 +134,9 @@ impl Client {
     /// ```no_run
     /// use std::io::Write;
     ///
-    /// use futures::StreamExt;
     /// use mini_exercism::api;
     /// use mini_exercism::core::Credentials;
+    /// use mini_exercism::stream::StreamExt;
     ///
     /// async fn get_file_content(
     ///     api_token: &str,
