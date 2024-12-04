@@ -5,7 +5,7 @@ use crate::http;
 #[derive(Debug)]
 pub struct FiltersBuilderError;
 
-impl<'a> IntoQuery for Filters<'a> {
+impl IntoQuery for Filters<'_> {
     fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
         request
             .build_query(("criteria", self.criteria))
