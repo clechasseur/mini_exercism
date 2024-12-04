@@ -69,7 +69,7 @@ pub trait IntoQuery {
     fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder;
 }
 
-impl<'k, V> IntoQuery for (&'k str, Option<V>)
+impl<V> IntoQuery for (&str, Option<V>)
 where
     V: AsRef<str>,
 {
@@ -81,7 +81,7 @@ where
     }
 }
 
-impl<'k, V> IntoQuery for (&'k str, Vec<V>)
+impl<V> IntoQuery for (&str, Vec<V>)
 where
     V: AsRef<str>,
 {
@@ -501,7 +501,7 @@ mod tests {
             mock = TestData::get(test_data_on).add_to_mock(mock);
 
             mock.respond_with(
-                ResponseTemplate::new(http::StatusCode::OK).set_body_json(TestOutput::default()),
+                ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
             )
             .mount(&mock_server)
             .await;
