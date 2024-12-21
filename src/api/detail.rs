@@ -261,8 +261,8 @@ macro_rules! define_api_client {
                     # Examples
 
                     ```no_run
-                    use http::{HeaderMap, HeaderValue};
                     use mini_exercism::api;
+                    use mini_exercism::http::header::{HeaderMap, HeaderValue};
 
                     async fn get_client() -> anyhow::Result<api::v2::Client> {
                         Ok(api::v2::Client::builder()
