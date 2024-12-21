@@ -659,11 +659,10 @@ mod tests {
     }
 
     mod define_api_client {
-        use ::http::header::InvalidHeaderValue;
-        use ::http::{HeaderMap, HeaderValue};
         use assert_matches::assert_matches;
 
         use super::*;
+        use crate::http::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
 
         const TEST_API_TOKEN: &str = "some_token";
         const TEST_API_CLIENT_BASE_URL: &str = "https://test.api.client/api";

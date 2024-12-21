@@ -5,6 +5,7 @@ mod track;
 mod client {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
+    use mini_exercism::http;
     use wiremock::matchers::{bearer_token, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
