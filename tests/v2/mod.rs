@@ -10,6 +10,7 @@ mod tracks;
 mod client {
     use mini_exercism::api;
     use mini_exercism::core::Credentials;
+    use mini_exercism::http;
     use wiremock::matchers::{bearer_token, method, path, query_param, query_param_is_missing};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
