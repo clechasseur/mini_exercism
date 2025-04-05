@@ -52,7 +52,7 @@ mockall = "0.13.1"
 serial_test = { version = "3.2.0", features = ["file_locks"] }
 tokio = { version = "1.44.1", features = ["rt", "rt-multi-thread", "macros", "test-util"] }
 wiremock = "0.6.3"
-wiremock_logical_matchers = "0.6.0"
+wiremock_logical_matchers = "0.6.1"
 
 [build-dependencies]
 rustc_version = "0.4.1"
