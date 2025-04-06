@@ -59,7 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macos-14, windows-2022 ]
-        toolchain: [ 1.64.0 ]
+        toolchain: [ 1.79.0 ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -93,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [ 1.75.0, stable, beta, nightly ]
+        toolchain: [ 1.81.0, stable, beta, nightly ]
         os: [ ubuntu-24.04, macos-14, windows-2022 ]
         ignore-lock: [ false, true ]
         include:
@@ -103,7 +103,7 @@ jobs:
           - toolchain: nightly
             experimental: true
         exclude:
-          - toolchain: 1.75.0
+          - toolchain: 1.81.0
             ignore-lock: true
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
