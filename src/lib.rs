@@ -224,6 +224,7 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
 #![cfg_attr(any(nightly_rustc, docsrs), feature(doc_cfg))]
+#![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 // Re-export `reqwest` types in a `http` module
 #[doc(hidden)]
