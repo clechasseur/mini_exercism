@@ -25,17 +25,14 @@ define_api_client! {
 impl Client {
     /// Returns information about a specific solution submitted by the user.
     ///
-    /// # Arguments
-    ///
-    /// - `uuid` - UUID of the solution to fetch. This can be provided by the mentoring
-    ///            interface, or returned by another API, like
-    ///            [`api::v2::Client::get_exercises`](crate::api::v2::Client::get_exercises)
-    ///            (see [`Solution::uuid`](crate::api::v2::solution::Solution::uuid)).
+    /// The `solution_uuid` can be obtained from the mentoring interface, or
+    /// returned by another API, like [`api::v2::Client::get_exercises`]
+    /// (see [`Solution::uuid`]).
     ///
     /// # Notes
     ///
-    /// Performing this request requires [`credentials`](ClientBuilder::credentials),
-    /// otherwise a `401 Unauthorized` error will be returned.
+    /// Performing this request requires [`credentials`], otherwise a
+    /// `401 Unauthorized` error will be returned.
     ///
     /// # Errors
     ///
@@ -57,7 +54,10 @@ impl Client {
     /// }
     /// ```
     ///
-    /// [`ApiError`]: crate::Error::ApiError
+    /// [`api::v2::Client::get_exercises`]: crate::api::v2::Client::get_exercises
+    /// [`Solution::uuid`]: crate::api::v2::solution::Solution::uuid
+    /// [`credentials`]: ClientBuilder::credentials
+    /// [`ApiError`]: Error::ApiError
     pub async fn get_solution(&self, uuid: &str) -> Result<solution::Response> {
         self.api_client
             .get(format!("/solutions/{}", uuid))
@@ -218,9 +218,9 @@ impl Client {
 
     /// Validates the token used to perform API requests.
     ///
-    /// If the API token is invalid or if the query is performed without [`credentials`](ClientBuilder::credentials),
-    /// the API will return `401 Unauthorized` and this method will return `false`. If another HTTP
-    /// error is returned by the API, this method will return an [`ApiError`].
+    /// If the API token is invalid or if the query is performed without [`credentials`],
+    /// the API will return `401 Unauthorized` and this method will return `false`.
+    /// If another HTTP, error is returned by the API, this method will return an [`ApiError`].
     ///
     /// # Errors
     ///
@@ -241,6 +241,7 @@ impl Client {
     /// }
     /// ```
     ///
+    /// [`credentials`]: ClientBuilder::credentials
     /// [`ApiError`]: Error::ApiError
     pub async fn validate_token(&self) -> Result<bool> {
         // This API call returns a payload, but it doesn't really contain useful information:
@@ -262,13 +263,11 @@ impl Client {
     ///
     /// # Notes
     ///
-    /// - This call does not require [`credentials`](ClientBuilder::credentials), but works
-    ///   anyway if they are provided.
-    /// - As of this writing, the [current implementation](https://github.com/exercism/website/blob/2580b8fa2b13cad7aa7e8a877551bbd8552bee8b/app/controllers/api/v1/ping_controller.rb)
-    ///   of this endpoint always return `true` as status for all components. It makes sense
-    ///   if you think about it: if the database or the Rails server misbehave, then the API
-    ///   would be inaccessible anyway 😅 It also means that if the service is actually down,
-    ///   this method will simply return an [`ApiError`].
+    /// - This call does not require [`credentials`], but works anyway if they are provided.
+    /// - As of this writing, the [current implementation] of this endpoint always return `true`
+    ///   as status for all components. It makes sense if you think about it: if the database
+    ///   or the Rails server misbehave, then the API would be inaccessible anyway 😅 It also
+    ///   means that if the service is actually down, this method will simply return an [`ApiError`].
     ///
     /// # Errors
     ///
@@ -293,6 +292,8 @@ impl Client {
     /// }
     /// ```
     ///
+    /// [`credentials`]: ClientBuilder::credentials
+    /// [current implementation]: https://github.com/exercism/website/blob/2580b8fa2b13cad7aa7e8a877551bbd8552bee8b/app/controllers/api/v1/ping_controller.rb
     /// [`ApiError`]: Error::ApiError
     pub async fn ping(&self) -> Result<ping::Response> {
         self.api_client.get("/ping").execute().await
