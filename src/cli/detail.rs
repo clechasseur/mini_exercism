@@ -1,14 +1,12 @@
 mod os;
 
-#[cfg(test)]
-use mockall::automock;
-
 use crate::core::{Error, Result};
 
-#[cfg_attr(test, automock)]
+#[cfg_attr(test, mockall::automock)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 pub mod helpers {
     use std::path::{Path, PathBuf};
-    use std::{fs, io};
+    use std::{env, fs, io};
 
     use super::os;
 
@@ -18,6 +16,11 @@ pub mod helpers {
     #[allow(dead_code)]
     pub fn get_cli_config_dir() -> Option<PathBuf> {
         os::get_cli_config_dir()
+    }
+
+    #[allow(dead_code)]
+    pub fn current_dir() -> io::Result<PathBuf> {
+        env::current_dir()
     }
 
     #[allow(dead_code)]

@@ -2,7 +2,7 @@
 
 mod detail;
 
-use std::{env, io};
+use std::io;
 
 use mockall_double::double;
 
@@ -15,19 +15,14 @@ use crate::core::{Credentials, Error, Result};
 ///
 /// # Errors
 ///
-/// - [`ConfigNotFound`]: CLI config file cannot be found, maybe CLI is not installed
-/// - [`ConfigReadError`]: I/O error reading the config file
-/// - [`ConfigParseError`]: Config file JSON could not be parsed
-/// - [`ApiTokenNotFoundInConfig`]: Config file did not contain an API token
-///
-/// [`ConfigNotFound`]: crate::Error::ConfigNotFound
-/// [`ConfigReadError`]: crate::Error::ConfigReadError
-/// [`ConfigParseError`]: crate::Error::ConfigParseError
-/// [`ApiTokenNotFoundInConfig`]: crate::Error::ApiTokenNotFoundInConfig
+/// - [`Error::ConfigNotFound`]: CLI config file cannot be found, maybe CLI is not installed
+/// - [`Error::ConfigReadError`]: I/O error reading the config file
+/// - [`Error::ConfigParseError`]: Config file JSON could not be parsed
+/// - [`Error::ApiTokenNotFoundInConfig`]: Config file did not contain an API token
 pub fn get_cli_credentials() -> Result<Credentials> {
     let mut config_file_path = helpers::get_cli_config_dir()
         .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))
-        .or_else(|_| env::current_dir())?;
+        .or_else(|_| helpers::current_dir())?;
     config_file_path.push("user.json");
 
     match helpers::read_to_string(&config_file_path) {
@@ -46,6 +41,7 @@ mod tests {
     use super::*;
 
     mod get_cli_credentials {
+        use std::env;
         use std::path::PathBuf;
 
         use assert_matches::assert_matches;
@@ -80,6 +76,8 @@ mod tests {
         fn test_no_config_dir() {
             let gccd_ctx = helpers::get_cli_config_dir_context();
             gccd_ctx.expect().return_once(|| None);
+            let cd_ctx = helpers::current_dir_context();
+            cd_ctx.expect().return_once(env::current_dir);
 
             let expected_config_path: PathBuf = [env::current_dir().unwrap(), "user.json".into()]
                 .iter()
@@ -93,6 +91,23 @@ mod tests {
 
             assert_matches!(get_cli_credentials(),
                 Ok(creds) if creds == Credentials::from_api_token("some_token"));
+        }
+
+        #[test]
+        #[serial(cli_rs_get_cli_credentials)]
+        fn test_config_dir_error() {
+            let gccd_ctx = helpers::get_cli_config_dir_context();
+            gccd_ctx.expect().return_once(|| None);
+            let cd_ctx = helpers::current_dir_context();
+            cd_ctx
+                .expect()
+                .return_once(|| Err(io::Error::from(io::ErrorKind::NotFound)));
+
+            let actual = get_cli_credentials();
+            assert_matches!(
+                actual,
+                Err(Error::ConfigReadError(io_err)) if io_err.kind() == io::ErrorKind::NotFound
+            );
         }
 
         #[test]
