@@ -75,6 +75,7 @@ pub enum Error {
 }
 
 impl From<UninitializedFieldError> for Error {
+    #[cfg_attr(coverage_nightly, coverage(off))]
     fn from(_value: UninitializedFieldError) -> Self {
         // This cannot occur in the crate's current code.
         unreachable!("all fields should have had default values")
