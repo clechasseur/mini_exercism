@@ -350,6 +350,7 @@ macro_rules! define_api_client {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;
 

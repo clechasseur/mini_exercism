@@ -16,13 +16,11 @@ pub mod helpers {
     // but apparently rustc gets confused because of the automock shenanigans.
 
     #[allow(dead_code)]
-    #[cfg(not(tarpaulin_include))]
     pub fn get_cli_config_dir() -> Option<PathBuf> {
         os::get_cli_config_dir()
     }
 
     #[allow(dead_code)]
-    #[cfg(not(tarpaulin_include))]
     pub fn read_to_string(path: &Path) -> io::Result<String> {
         fs::read_to_string(path)
     }
@@ -46,6 +44,7 @@ impl CliConfig {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;
 

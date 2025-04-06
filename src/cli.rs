@@ -41,6 +41,7 @@ pub fn get_cli_credentials() -> Result<Credentials> {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;
 

@@ -11,6 +11,7 @@ pub fn get_cli_config_dir() -> Option<PathBuf> {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;
 
