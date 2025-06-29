@@ -131,7 +131,7 @@ impl Client {
         filters: Option<exercises::Filters<'_>>,
     ) -> Result<exercises::Response> {
         self.api_client
-            .get(format!("/tracks/{}/exercises", track))
+            .get(format!("/tracks/{track}/exercises"))
             .query(filters)
             .execute()
             .await
@@ -243,7 +243,7 @@ impl Client {
         include_iterations: bool,
     ) -> Result<solution::Response> {
         self.api_client
-            .get(format!("/solutions/{}", uuid))
+            .get(format!("/solutions/{uuid}"))
             .query(("sideload", include_iterations.then_some("iterations")))
             .execute()
             .await
@@ -322,7 +322,7 @@ impl Client {
         submission_uuid: &str,
     ) -> Result<submission::files::Response> {
         self.api_client
-            .get(format!("/solutions/{}/submissions/{}/files", solution_uuid, submission_uuid))
+            .get(format!("/solutions/{solution_uuid}/submissions/{submission_uuid}/files"))
             .execute()
             .await
     }

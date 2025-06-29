@@ -24,7 +24,7 @@ mod client {
             // Note: this test is necessary because of a bug in cargo-tarpaulin, see
             // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
             let client = api::v2::Client::new();
-            assert!(!format!("{:?}", client).is_empty());
+            assert!(!format!("{client:?}").is_empty());
         }
     }
 

@@ -605,24 +605,12 @@ mod tests {
                     assert_eq!(
                         expected,
                         from_request,
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous,
-                        expected_test_header,
-                        expected_test_data_on,
-                        actual_anonymous,
-                        actual_test_header,
-                        actual_test_data_on
+                        "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
                     );
                     assert_eq!(
                         expected,
                         from_get,
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous,
-                        expected_test_header,
-                        expected_test_data_on,
-                        actual_anonymous,
-                        actual_test_header,
-                        actual_test_data_on
+                        "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
                     );
                 } else {
                     assert_matches!(
@@ -765,7 +753,7 @@ mod tests {
                     // Note: this test is necessary because of a bug in cargo-tarpaulin, see
                     // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
                     let builder = TestApiClient::builder();
-                    assert!(!format!("{:?}", builder).is_empty());
+                    assert!(!format!("{builder:?}").is_empty());
                 }
             }
         }
@@ -788,7 +776,7 @@ mod tests {
                     // Note: this test is necessary because of a bug in cargo-tarpaulin, see
                     // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
                     let client = TestApiClient::new();
-                    assert!(!format!("{:?}", client).is_empty());
+                    assert!(!format!("{client:?}").is_empty());
                 }
             }
         }

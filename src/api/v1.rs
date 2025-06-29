@@ -60,7 +60,7 @@ impl Client {
     /// [`ApiError`]: Error::ApiError
     pub async fn get_solution(&self, uuid: &str) -> Result<solution::Response> {
         self.api_client
-            .get(format!("/solutions/{}", uuid))
+            .get(format!("/solutions/{uuid}"))
             .execute()
             .await
     }
@@ -168,7 +168,7 @@ impl Client {
     ) -> impl Stream<Item = Result<Bytes>> {
         let result = self
             .api_client
-            .get(format!("/solutions/{}/files/{}", solution_uuid, file_path))
+            .get(format!("/solutions/{solution_uuid}/files/{file_path}"))
             .send()
             .await;
 
@@ -211,7 +211,7 @@ impl Client {
     /// [`ApiError`]: Error::ApiError
     pub async fn get_track(&self, track: &str) -> Result<track::Response> {
         self.api_client
-            .get(format!("/tracks/{}", track))
+            .get(format!("/tracks/{track}"))
             .execute()
             .await
     }
