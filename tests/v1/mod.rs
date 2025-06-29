@@ -19,7 +19,7 @@ mod client {
             // Note: this test is necessary because of a bug in cargo-tarpaulin, see
             // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
             let client = api::v1::Client::new();
-            assert!(!format!("{:?}", client).is_empty());
+            assert!(!format!("{client:?}").is_empty());
         }
     }
 
@@ -46,8 +46,7 @@ mod client {
                         track: Track { name: "rust".into(), title: "Rust".into() },
                     },
                     file_download_base_url: format!(
-                        "https://exercism.org/api/v1/solutions/{}/files/",
-                        solution_uuid
+                        "https://exercism.org/api/v1/solutions/{solution_uuid}/files/"
                     ),
                     files: vec![
                         ".exercism/config.json".into(),
@@ -67,7 +66,7 @@ mod client {
                 },
             };
             Mock::given(method(http::Method::GET))
-                .and(path(format!("/solutions/{}", solution_uuid)))
+                .and(path(format!("/solutions/{solution_uuid}")))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
                     ResponseTemplate::new(http::StatusCode::OK).set_body_json(solution_response),
@@ -112,8 +111,7 @@ mod client {
                         track: Track { name: "rust".into(), title: "Rust".into() },
                     },
                     file_download_base_url: format!(
-                        "https://exercism.org/api/v1/solutions/{}/files/",
-                        solution_uuid
+                        "https://exercism.org/api/v1/solutions/{solution_uuid}/files/"
                     ),
                     files: vec![
                         ".exercism/config.json".into(),
@@ -181,7 +179,7 @@ version = "1.1.0"
 [dependencies]
 "#;
             Mock::given(method(http::Method::GET))
-                .and(path(format!("/solutions/{}/files/{}", solution_uuid, file_path)))
+                .and(path(format!("/solutions/{solution_uuid}/files/{file_path}")))
                 .and(bearer_token(API_TOKEN))
                 .respond_with(
                     ResponseTemplate::new(http::StatusCode::OK).set_body_string(file_content),
