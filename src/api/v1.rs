@@ -165,7 +165,7 @@ impl Client {
         &self,
         solution_uuid: &str,
         file_path: &str,
-    ) -> impl Stream<Item = Result<Bytes>> {
+    ) -> impl Stream<Item = Result<Bytes>> + use<> {
         let result = self
             .api_client
             .get(format!("/solutions/{solution_uuid}/files/{file_path}"))
