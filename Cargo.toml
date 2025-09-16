@@ -17,7 +17,7 @@ description = "Minimalistic Rust library to interact with the Exercism.org APIs"
 keywords = [ "api", "rest", "http", "exercism" ]
 categories = [ "api-bindings", "asynchronous" ]
 
-include = [ "src/**/*", "tests/**/*", "build.rs", "LICENSE", "README.md" ]
+include = [ "src/**/*", "tests/**/*", "LICENSE", "README.md" ]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -26,7 +26,13 @@ rustc-args = [ "--cfg", "docsrs" ]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
-check-cfg = [ "cfg(tarpaulin)", "cfg(tarpaulin_include)", "cfg(coverage)", "cfg(coverage_nightly)" ]
+check-cfg = [
+    "cfg(tarpaulin)",
+    "cfg(tarpaulin_include)",
+    "cfg(coverage)",
+    "cfg(coverage_nightly)",
+    "cfg(mini_exercism_enable_tests_with_real_endpoints)",
+]
 
 [features]
 cli = []
@@ -53,6 +59,3 @@ serial_test = { version = "3.2.0", features = ["file_locks"] }
 tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread", "macros", "test-util"] }
 wiremock = "0.6.5"
 wiremock_logical_matchers = "0.6.1"
-
-[build-dependencies]
-rustc_version = "0.4.1"
