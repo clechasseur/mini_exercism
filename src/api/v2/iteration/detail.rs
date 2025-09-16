@@ -50,11 +50,7 @@ where
         // to handle this case by considering it like it was not specified (e.g. `null`).
         //
         // See https://github.com/clechasseur/exercism-website/blob/0b598e464de39f6cfc53c15ed80879f2e1a4aade/app/serializers/serialize_iteration.rb#L57-L58
-        if v == "not_queued" {
-            Ok(None)
-        } else {
-            Err(E::invalid_value(Unexpected::Str(v), &self))
-        }
+        if v == "not_queued" { Ok(None) } else { Err(E::invalid_value(Unexpected::Str(v), &self)) }
     }
 
     fn visit_none<E>(self) -> Result<Self::Value, E>

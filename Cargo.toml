@@ -2,8 +2,8 @@
 name = "mini_exercism"
 version = "5.0.0"
 authors = [ "Charles Lechasseur <shiftingbeard@outlook.com>" ]
-edition = "2021"
-rust-version = "1.79.0"
+edition = "2024"
+rust-version = "1.85.1"
 
 readme = "README.md"
 license = "MIT"
@@ -17,7 +17,7 @@ description = "Minimalistic Rust library to interact with the Exercism.org APIs"
 keywords = [ "api", "rest", "http", "exercism" ]
 categories = [ "api-bindings", "asynchronous" ]
 
-include = [ "src/**/*", "tests/**/*", "build.rs", "LICENSE", "README.md" ]
+include = [ "src/**/*", "tests/**/*", "LICENSE", "README.md" ]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -26,7 +26,13 @@ rustc-args = [ "--cfg", "docsrs" ]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
-check-cfg = [ "cfg(tarpaulin)", "cfg(tarpaulin_include)", "cfg(coverage)", "cfg(coverage_nightly)" ]
+check-cfg = [
+    "cfg(tarpaulin)",
+    "cfg(tarpaulin_include)",
+    "cfg(coverage)",
+    "cfg(coverage_nightly)",
+    "cfg(mini_exercism_enable_tests_with_real_endpoints)",
+]
 
 [features]
 cli = []
@@ -39,8 +45,8 @@ futures = "0.3.31"
 mockall_double = "0.3.1"
 paste = "1.0.15"
 reqwest = { version = "0.12.23", features = ["json", "stream"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.143"
+serde = { version = "1.0.224", features = ["derive"] }
+serde_json = "1.0.145"
 strum = { version = "0.27.2", features = ["derive"] }
 thiserror = "2.0.16"
 
@@ -51,8 +57,5 @@ itertools = "0.14.0"
 mockall = "0.13.1"
 serial_test = { version = "3.2.0", features = ["file_locks"] }
 tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread", "macros", "test-util"] }
-wiremock = "0.6.4"
+wiremock = "0.6.5"
 wiremock_logical_matchers = "0.6.1"
-
-[build-dependencies]
-rustc_version = "0.4.1"

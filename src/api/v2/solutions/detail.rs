@@ -38,10 +38,6 @@ enum SyncStatus {
 
 impl SyncStatus {
     fn for_out_of_date(is_out_of_date: bool) -> Self {
-        if is_out_of_date {
-            OutOfDate
-        } else {
-            UpToDate
-        }
+        if is_out_of_date { OutOfDate } else { UpToDate }
     }
 }

@@ -1,10 +1,10 @@
 mod get_tracks {
     use assert_matches::assert_matches;
+    use mini_exercism::Error;
     use mini_exercism::api;
     use mini_exercism::api::v2::tracks::Filters;
     use mini_exercism::api::v2::tracks::StatusFilter::Joined;
     use mini_exercism::http::StatusCode;
-    use mini_exercism::Error;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -165,10 +165,10 @@ mod get_exercises {
 
 mod get_solutions {
     use assert_matches::assert_matches;
+    use mini_exercism::Error;
     use mini_exercism::api;
     use mini_exercism::api::v2::solutions::{Filters, Paging, SortOrder};
     use mini_exercism::http::StatusCode;
-    use mini_exercism::Error;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -221,7 +221,7 @@ mod get_solutions {
 mod get_solution {
     use assert_matches::assert_matches;
     use mini_exercism::http::StatusCode;
-    use mini_exercism::{api, Error};
+    use mini_exercism::{Error, api};
     use serial_test::file_serial;
 
     const SOLUTION_UUID: &str = "a0c9664059d345ac8d677b0154794ff2";

@@ -6,9 +6,9 @@ use std::io;
 
 use mockall_double::double;
 
+use crate::cli::detail::CliConfig;
 #[double]
 use crate::cli::detail::helpers;
-use crate::cli::detail::CliConfig;
 use crate::core::{Credentials, Error, Result};
 
 /// Reads API credentials from the CLI config file and returns them.

@@ -35,21 +35,25 @@ mod tests {
         use super::*;
 
         #[test]
-        #[serial(nix_rs_get_cli_config_dir)]
+        #[serial(env_tests)]
         fn test_from_exercism_config_home() {
             let exercism_config_home = "/some/config/home";
-            env::set_var("EXERCISM_CONFIG_HOME", exercism_config_home);
+            unsafe {
+                env::set_var("EXERCISM_CONFIG_HOME", exercism_config_home);
+            }
             let config_dir = get_cli_config_dir();
 
             assert_eq!(config_dir, Some(exercism_config_home.into()));
         }
 
         #[test]
-        #[serial(nix_rs_get_cli_config_dir)]
+        #[serial(env_tests)]
         fn test_from_xdg_config_home() {
             let xdg_config_home = "/some/config/home";
-            env::remove_var("EXERCISM_CONFIG_HOME");
-            env::set_var("XDG_CONFIG_HOME", xdg_config_home);
+            unsafe {
+                env::remove_var("EXERCISM_CONFIG_HOME");
+                env::set_var("XDG_CONFIG_HOME", xdg_config_home);
+            }
             let config_dir = get_cli_config_dir();
 
             assert_eq!(
@@ -59,12 +63,14 @@ mod tests {
         }
 
         #[test]
-        #[serial(nix_rs_get_cli_config_dir)]
+        #[serial(env_tests)]
         fn test_from_home() {
             let home = "/some/home";
-            env::remove_var("EXERCISM_CONFIG_HOME");
-            env::remove_var("XDG_CONFIG_HOME");
-            env::set_var("HOME", home);
+            unsafe {
+                env::remove_var("EXERCISM_CONFIG_HOME");
+                env::remove_var("XDG_CONFIG_HOME");
+                env::set_var("HOME", home);
+            }
             let config_dir = get_cli_config_dir();
 
             assert_eq!(
@@ -80,11 +86,13 @@ mod tests {
         }
 
         #[test]
-        #[serial(nix_rs_get_cli_config_dir)]
+        #[serial(env_tests)]
         fn test_invalid() {
-            env::remove_var("EXERCISM_CONFIG_HOME");
-            env::remove_var("XDG_CONFIG_HOME");
-            env::remove_var("HOME");
+            unsafe {
+                env::remove_var("EXERCISM_CONFIG_HOME");
+                env::remove_var("XDG_CONFIG_HOME");
+                env::remove_var("HOME");
+            }
             let config_dir = get_cli_config_dir();
 
             assert!(config_dir.is_none());
