@@ -159,8 +159,8 @@ mod client {
 
         use assert_matches::assert_matches;
         use futures::StreamExt;
-        use mini_exercism::http::StatusCode;
         use mini_exercism::Error;
+        use mini_exercism::http::StatusCode;
         use wiremock::matchers::path_regex;
 
         use super::*;
@@ -261,8 +261,8 @@ version = "1.1.0"
 
     mod validate_token {
         use assert_matches::assert_matches;
-        use mini_exercism::http::StatusCode;
         use mini_exercism::Error;
+        use mini_exercism::http::StatusCode;
 
         use super::*;
 

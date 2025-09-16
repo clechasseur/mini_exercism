@@ -2,8 +2,8 @@ mod error {
     use std::collections::HashMap;
 
     use assert_matches::assert_matches;
-    use mini_exercism::http;
     use mini_exercism::Error;
+    use mini_exercism::http;
 
     #[test]
     #[cfg(feature = "cli")]

@@ -1,8 +1,8 @@
 mod get_solution {
     use assert_matches::assert_matches;
+    use mini_exercism::Error;
     use mini_exercism::api;
     use mini_exercism::http::StatusCode;
-    use mini_exercism::Error;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -21,9 +21,9 @@ mod get_solution {
 
 mod get_latest_solution {
     use assert_matches::assert_matches;
+    use mini_exercism::Error;
     use mini_exercism::api;
     use mini_exercism::http::StatusCode;
-    use mini_exercism::Error;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -41,9 +41,9 @@ mod get_latest_solution {
 mod get_file {
     use assert_matches::assert_matches;
     use futures::StreamExt;
+    use mini_exercism::Error;
     use mini_exercism::api;
     use mini_exercism::http::StatusCode;
-    use mini_exercism::Error;
     use serial_test::file_serial;
 
     #[tokio::test]
@@ -63,9 +63,9 @@ mod get_file {
 
 mod get_track {
     use assert_matches::assert_matches;
+    use mini_exercism::Error;
     use mini_exercism::api;
     use mini_exercism::http::StatusCode;
-    use mini_exercism::Error;
     use serial_test::file_serial;
 
     #[tokio::test]

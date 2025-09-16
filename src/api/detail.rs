@@ -3,10 +3,10 @@ use std::fmt::Display;
 use derive_builder::Builder;
 use serde::de::DeserializeOwned;
 
+use crate::Result;
 use crate::core::{BuildError, Credentials};
 use crate::http;
 use crate::http::IntoUrl;
-use crate::Result;
 
 #[derive(Debug, Builder)]
 #[builder(derive(Debug), build_fn(error = "crate::Error"))]
@@ -113,11 +113,7 @@ pub trait QueryBuilder: Sized {
     where
         Q: IntoQuery,
     {
-        if cond {
-            self.build_query(query)
-        } else {
-            self
-        }
+        if cond { self.build_query(query) } else { self }
     }
 
     fn build_joined_query<V>(self, key: &str, values: Vec<V>) -> Self
@@ -366,8 +362,8 @@ mod tests {
         use wiremock_logical_matchers::not;
 
         use super::*;
-        use crate::http::header::{HeaderMap, HeaderValue};
         use crate::http::StatusCode;
+        use crate::http::header::{HeaderMap, HeaderValue};
 
         const ROUTE: &str = "/";
         const API_TOKEN: &str = "some_api_token";
@@ -391,11 +387,7 @@ mod tests {
 
         impl TestData {
             fn get(on: bool) -> Self {
-                if on {
-                    Self::on()
-                } else {
-                    Self::off()
-                }
+                if on { Self::on() } else { Self::off() }
             }
 
             fn on() -> Self {
@@ -603,13 +595,11 @@ mod tests {
 
                     let expected = TestOutput::default();
                     assert_eq!(
-                        expected,
-                        from_request,
+                        expected, from_request,
                         "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
                     );
                     assert_eq!(
-                        expected,
-                        from_get,
+                        expected, from_get,
                         "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
                     );
                 } else {

@@ -1,7 +1,7 @@
 use std::env;
 
-use rustc_version::version_meta;
 use rustc_version::Channel::Nightly;
+use rustc_version::version_meta;
 
 fn main() {
     println!("cargo:rerun-if-env-changed=CI");

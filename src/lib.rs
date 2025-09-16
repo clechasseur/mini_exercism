@@ -223,7 +223,7 @@
 #![deny(rustdoc::missing_crate_level_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
-#![cfg_attr(any(nightly_rustc, docsrs), feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg_hide))]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 // Re-export `reqwest` types in a `http` module
@@ -239,7 +239,6 @@ pub mod stream {
 
 pub mod api;
 #[cfg(feature = "cli")]
-#[cfg_attr(any(nightly_rustc, docsrs), doc(cfg(feature = "cli")))]
 pub mod cli;
 pub mod core;
 

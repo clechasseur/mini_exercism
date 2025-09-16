@@ -23,10 +23,12 @@ mod tests {
         use super::*;
 
         #[test]
-        #[serial(windows_rs_get_cli_config_dir)]
+        #[serial(env_tests)]
         fn test_valid() {
             let app_data = r"C:\Users\some_user\AppData\Roaming";
-            env::set_var("APPDATA", app_data);
+            unsafe {
+                env::set_var("APPDATA", app_data);
+            }
             let config_dir = get_cli_config_dir();
 
             assert_eq!(
@@ -36,9 +38,11 @@ mod tests {
         }
 
         #[test]
-        #[serial(windows_rs_get_cli_config_dir)]
+        #[serial(env_tests)]
         fn test_invalid() {
-            env::remove_var("APPDATA");
+            unsafe {
+                env::remove_var("APPDATA");
+            }
             let config_dir = get_cli_config_dir();
 
             assert!(config_dir.is_none());
