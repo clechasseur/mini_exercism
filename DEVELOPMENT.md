@@ -65,6 +65,10 @@ just test
 
 Any new feature or bug fix would need new tests to validate. Make sure all tests pass before submitting a PR.
 
+Note: some tests connect to real Exercism endpoints and they are not run by default.
+To have them executed when running tests, you have to define a specific `cfg` flag to pass to `cargo`.
+For more information, see [this test file](./tests/real_endpoints/mod.rs).
+
 ### Linting
 
 Before submitting a PR, make sure `rustfmt` and `clippy` are happy. To tidy up your code before committing, simply run
