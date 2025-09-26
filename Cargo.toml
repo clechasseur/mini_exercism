@@ -39,19 +39,21 @@ cli = []
 cookies = ["reqwest/cookies"]
 
 [dependencies]
+anyhow = "1.0.100"
 bytes = "1.10.1"
 derive_builder = "0.20.2"
 futures = "0.3.31"
 mockall_double = "0.3.1"
 paste = "1.0.15"
-reqwest = { version = "0.12.23", features = ["json", "stream"] }
+reqwest = { version = "0.12.23", features = ["json", "rustls-tls", "stream"] }
+reqwest-middleware = "0.4.2"
+reqwest-retry = "0.7.0"
 serde = { version = "1.0.226", features = ["derive"] }
 serde_json = "1.0.145"
 strum = { version = "0.27.2", features = ["derive"] }
 thiserror = "2.0.16"
 
 [dev-dependencies]
-anyhow = "1.0.100"
 assert_matches = "1.5.0"
 itertools = "0.14.0"
 mockall = "0.13.1"

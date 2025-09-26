@@ -3,13 +3,13 @@ use strum::AsRefStr;
 use crate::api::detail::{IntoQuery, QueryBuilder};
 use crate::api::v2::solutions::detail::SyncStatus::{OutOfDate, UpToDate};
 use crate::api::v2::solutions::{Filters, Paging};
-use crate::http;
+use crate::http::middleware::RequestBuilder;
 
 #[derive(Debug)]
 pub struct FiltersBuilderError;
 
 impl IntoQuery for Filters<'_> {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         request
             .build_query(("criteria", self.criteria))
             .build_query(("track_slug", self.track))
@@ -22,7 +22,7 @@ impl IntoQuery for Filters<'_> {
 }
 
 impl IntoQuery for Paging {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         request
             .build_query(("page", Some(self.page.to_string())))
             .build_query(("per_page", self.per_page.map(|pp| pp.to_string())))

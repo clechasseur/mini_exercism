@@ -1,23 +1,22 @@
 use std::fmt::Display;
 
-use derive_builder::Builder;
+use derive_builder::UninitializedFieldError;
 use serde::de::DeserializeOwned;
 
 use crate::Result;
 use crate::core::{BuildError, Credentials};
 use crate::http;
-use crate::http::IntoUrl;
+use crate::http::middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
+use crate::http::retry::RetryTransientMiddleware;
+use crate::http::retry::policies::ExponentialBackoff;
+use crate::http::{IntoUrl, Method};
 
-#[derive(Debug, Builder)]
-#[builder(derive(Debug), build_fn(error = "crate::Error"))]
+pub const DEFAULT_MAX_RETRIES: u32 = 5;
+
+#[derive(Debug)]
 pub struct ApiClient {
-    #[builder(default = "self.default_http_client()?")]
-    http_client: http::Client,
-
-    #[builder(setter(custom))]
+    http_client: ClientWithMiddleware,
     api_base_url: String,
-
-    #[builder(default, setter(strip_option))]
     credentials: Option<Credentials>,
 }
 
@@ -32,7 +31,7 @@ impl ApiClient {
         self.api_base_url.as_str()
     }
 
-    pub fn request<U>(&self, method: http::Method, url: U) -> ApiRequestBuilder
+    pub fn request<U>(&self, method: Method, url: U) -> ApiRequestBuilder
     where
         U: Display,
     {
@@ -43,37 +42,88 @@ impl ApiClient {
     where
         U: Display,
     {
-        self.request(http::Method::GET, url)
+        self.request(Method::GET, url)
     }
 
     fn api_url<U>(&self, url: U) -> String
     where
         U: Display,
     {
-        format!("{}{}", self.api_base_url, url)
+        format!("{}{url}", self.api_base_url)
     }
 }
 
+#[derive(Debug, Default)]
+pub struct ApiClientBuilder {
+    http_client: Option<http::Client>,
+    retry_policy: Option<ExponentialBackoff>,
+    api_base_url: Option<String>,
+    credentials: Option<Credentials>,
+}
+
 impl ApiClientBuilder {
+    pub fn http_client(&mut self, client: http::Client) -> &mut Self {
+        self.http_client = Some(client);
+        self
+    }
+
+    pub fn retry_policy(&mut self, policy: ExponentialBackoff) -> &mut Self {
+        self.retry_policy = Some(policy);
+        self
+    }
+
     pub fn api_base_url(&mut self, url: &str) -> &mut Self {
         self.api_base_url = Some(url.trim_end_matches('/').into());
         self
     }
 
-    fn default_http_client(&self) -> Result<http::Client> {
+    pub fn credentials(&mut self, credentials: Credentials) -> &mut Self {
+        self.credentials = Some(credentials);
+        self
+    }
+
+    pub fn build(&mut self) -> Result<ApiClient> {
+        let api_base_url = match self.api_base_url.clone() {
+            Some(url) => url,
+            None => return Err(UninitializedFieldError::new("api_base_url").into()),
+        };
+        let http_client = match self.http_client.clone() {
+            Some(client) => client,
+            None => Self::default_http_client()?,
+        };
+        let retry_policy = self.retry_policy.unwrap_or_else(Self::default_retry_policy);
+        let http_client = Self::build_http_client(http_client, retry_policy);
+
+        Ok(ApiClient { http_client, api_base_url, credentials: self.credentials.clone() })
+    }
+
+    fn default_http_client() -> Result<http::Client> {
         Ok(http::Client::builder().build().map_err(BuildError::from)?)
+    }
+
+    fn default_retry_policy() -> ExponentialBackoff {
+        ExponentialBackoff::builder().build_with_max_retries(DEFAULT_MAX_RETRIES)
+    }
+
+    fn build_http_client(
+        http_client: http::Client,
+        retry_policy: ExponentialBackoff,
+    ) -> ClientWithMiddleware {
+        ClientBuilder::new(http_client)
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build()
     }
 }
 
 pub trait IntoQuery {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder;
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder;
 }
 
 impl<V> IntoQuery for (&str, Option<V>)
 where
     V: AsRef<str>,
 {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         match self.1 {
             Some(param) => request.query(&[(self.0, param.as_ref())]),
             None => request,
@@ -85,7 +135,7 @@ impl<V> IntoQuery for (&str, Vec<V>)
 where
     V: AsRef<str>,
 {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         self.1
             .into_iter()
             .fold(request, |request, v| request.query(&[(self.0, v.as_ref())]))
@@ -96,7 +146,7 @@ impl<Q> IntoQuery for Option<Q>
 where
     Q: IntoQuery,
 {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         match self {
             Some(query) => query.into_query(request),
             None => request,
@@ -134,7 +184,7 @@ pub trait QueryBuilder: Sized {
     }
 }
 
-impl QueryBuilder for http::RequestBuilder {
+impl QueryBuilder for RequestBuilder {
     fn build_query<Q>(self, query: Q) -> Self
     where
         Q: IntoQuery,
@@ -144,13 +194,13 @@ impl QueryBuilder for http::RequestBuilder {
 }
 
 pub struct ApiRequestBuilder {
-    request: http::RequestBuilder,
+    request: RequestBuilder,
 }
 
 impl ApiRequestBuilder {
     pub fn new<U>(
-        http_client: &http::Client,
-        method: http::Method,
+        http_client: &ClientWithMiddleware,
+        method: Method,
         url: U,
         credentials: &Option<Credentials>,
     ) -> Self
@@ -225,7 +275,7 @@ macro_rules! define_api_client {
             #[derive(Debug)]
             $vis struct [<$api_name Builder>] {
                 api_client_builder: $crate::api::detail::ApiClientBuilder,
-                error: Option<$crate::Error>,
+                error: ::std::option::Option<$crate::Error>,
             }
 
             impl [<$api_name Builder>] {
@@ -241,7 +291,9 @@ macro_rules! define_api_client {
 
                 #[doc = r"
                     Sets the [HTTP client](crate::http::Client) to use to perform requests
-                    to the API. If not specified, a default client will be created.
+                    to the API.
+
+                    If not specified, a default client will be created.
                 "]
                 pub fn http_client(&mut self, value: $crate::http::Client) -> &mut Self {
                     if self.error.is_none() {
@@ -277,7 +329,7 @@ macro_rules! define_api_client {
                 "#]
                 pub fn build_http_client<F>(&mut self, value_f: F) -> &mut Self
                 where
-                    F: FnOnce($crate::http::ClientBuilder) -> $crate::http::ClientBuilder
+                    F: ::std::ops::FnOnce($crate::http::ClientBuilder) -> $crate::http::ClientBuilder
                 {
                     if self.error.is_none() {
                         match value_f($crate::http::Client::builder()).build() {
@@ -288,6 +340,39 @@ macro_rules! define_api_client {
                                 self.error = Some($crate::core::BuildError::from(err).into());
                             },
                         }
+                    }
+                    self
+                }
+
+                #[doc = r"
+                    Sets the number of retries to attempt when performing requests to the API.
+
+                    If not specified, the default policy is to retry requests up to five (5) times
+                    if they fail with specific status codes (see
+                    [`default_on_request_success`](crate::http::retry::default_on_request_success)
+                    for details).
+                "]
+                pub fn num_retries(&mut self, value: u32) -> &mut Self {
+                    if self.error.is_none() {
+                        self.api_client_builder.retry_policy(
+                            $crate::http::retry::policies::ExponentialBackoff::builder().build_with_max_retries(value),
+                        );
+                    }
+                    self
+                }
+
+                #[doc = r"
+                    Sets the [retry policy](crate::http::retry::RetryPolicy] to use to perform
+                    requests to the API.
+
+                    If not specified, the default policy is to retry requests up to five (5) times
+                    if they fail with specific status codes (see
+                    [`default_on_request_success`](crate::http::retry::default_on_request_success)
+                    for details).
+                "]
+                pub fn retry_policy(&mut self, value: $crate::http::retry::policies::ExponentialBackoff) -> &mut Self {
+                    if self.error.is_none() {
+                        self.api_client_builder.retry_policy(value);
                     }
                     self
                 }
@@ -442,7 +527,7 @@ mod tests {
         }
 
         impl IntoQuery for TestData {
-            fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+            fn into_query(self, request: RequestBuilder) -> RequestBuilder {
                 request
                     .build_query(("name", self.name))
                     .build_query_if(self.test, ("test", Some("1")))
@@ -703,6 +788,22 @@ mod tests {
                     .unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
+            }
+
+            #[test]
+            fn test_num_retries() {
+                let result = TestApiClient::builder().num_retries(2).build();
+
+                assert!(result.is_ok());
+            }
+
+            #[test]
+            fn test_retry_policy() {
+                let result = TestApiClient::builder()
+                    .retry_policy(ExponentialBackoff::builder().build_with_max_retries(2))
+                    .build();
+
+                assert!(result.is_ok());
             }
 
             #[test]
