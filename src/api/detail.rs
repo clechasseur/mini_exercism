@@ -431,19 +431,20 @@ macro_rules! define_api_client {
 }
 
 #[cfg(test)]
-#[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::too_many_arguments)]
 mod tests {
     use super::*;
 
+    #[cfg_attr(coverage_nightly, coverage(off))]
     mod api_client {
         use assert_matches::assert_matches;
-        use itertools::iproduct;
+        use rstest::{fixture, rstest};
         use serde::{Deserialize, Serialize};
         use strum::{AsRefStr, Display};
         use wiremock::matchers::{
             bearer_token, header_exists, method, path, query_param, query_param_is_missing,
         };
-        use wiremock::{Mock, MockBuilder, MockServer, ResponseTemplate};
+        use wiremock::{Mock, MockBuilder, MockServer, Request, Respond, ResponseTemplate};
         use wiremock_logical_matchers::not;
 
         use super::*;
@@ -547,18 +548,11 @@ mod tests {
             }
         }
 
-        fn test_permutations() -> impl Iterator<Item = (bool, bool, bool)> {
-            iproduct!(
-                [false, true], // anonymous
-                [false, true], // test_header
-                [false, true]  // test_data on?
-            )
-        }
-
-        async fn setup_mock_server(
-            anonymous: bool,
-            test_header: bool,
-            test_data_on: bool,
+        #[fixture]
+        async fn mock_server(
+            #[default(false)] anonymous: bool,
+            #[default(false)] test_header: bool,
+            #[default(false)] test_data_on: bool,
         ) -> MockServer {
             let mock_server = MockServer::start().await;
 
@@ -587,7 +581,8 @@ mod tests {
             mock_server
         }
 
-        fn create_test_http_client() -> http::Client {
+        #[fixture]
+        fn http_client_with_test_header() -> http::Client {
             let mut default_headers = HeaderMap::new();
             default_headers.insert(TEST_HEADER, HeaderValue::from_static("any_value_will_do"));
 
@@ -597,127 +592,214 @@ mod tests {
                 .unwrap()
         }
 
-        fn create_authenticated_credentials() -> Credentials {
+        #[fixture]
+        fn authenticated_credentials() -> Credentials {
             Credentials::from_api_token(API_TOKEN)
         }
 
-        fn create_api_client<U>(api_base_url: &U, anonymous: bool, test_header: bool) -> ApiClient
-        where
-            U: AsRef<str>,
-        {
+        #[fixture]
+        fn api_client(
+            #[default("")] api_base_url: &str,
+            #[default(false)] anonymous: bool,
+            #[default(false)] test_header: bool,
+        ) -> ApiClient {
             let mut builder = ApiClient::builder();
             builder.api_base_url(api_base_url.as_ref());
 
             if !anonymous {
-                builder.credentials(create_authenticated_credentials());
+                builder.credentials(authenticated_credentials());
             }
             if test_header {
-                builder.http_client(create_test_http_client());
+                builder.http_client(http_client_with_test_header());
             }
 
             builder.build().unwrap()
         }
 
-        async fn test_routes<U>(
-            api_base_url: &U,
-            expected_anonymous: bool,
-            expected_test_header: bool,
-            expected_test_data_on: bool,
-        ) where
-            U: AsRef<str>,
-        {
-            let permutations = test_permutations();
+        #[rstest]
+        #[tokio::test]
+        #[awt]
+        async fn test_all(
+            #[values(false, true)] expected_anonymous: bool,
+            #[values(false, true)] expected_test_header: bool,
+            #[values(false, true)] expected_test_data_on: bool,
+            #[values(false, true)] actual_anonymous: bool,
+            #[values(false, true)] actual_test_header: bool,
+            #[values(false, true)] actual_test_data_on: bool,
+            #[future]
+            #[with(expected_anonymous, expected_test_header, expected_test_data_on)]
+            mock_server: MockServer,
+        ) {
+            let correct = (actual_anonymous, actual_test_header, actual_test_data_on)
+                == (expected_anonymous, expected_test_header, expected_test_data_on);
 
-            for (actual_anonymous, actual_test_header, actual_test_data_on) in permutations {
-                let correct = (actual_anonymous, actual_test_header, actual_test_data_on)
-                    == (expected_anonymous, expected_test_header, expected_test_data_on);
+            let client = api_client(&mock_server.uri(), actual_anonymous, actual_test_header);
 
-                let client = create_api_client(api_base_url, actual_anonymous, actual_test_header);
+            let actual_test_data = TestData::get(actual_test_data_on);
+            let opt_actual_test_data =
+                if actual_test_data_on { Some(actual_test_data.clone()) } else { None };
 
-                let actual_test_data = TestData::get(actual_test_data_on);
-                let opt_actual_test_data =
-                    if actual_test_data_on { Some(actual_test_data.clone()) } else { None };
+            let from_request = client
+                .request(Method::GET, ROUTE)
+                .query(actual_test_data.clone())
+                .send()
+                .await;
+            let from_get = client
+                .get(ROUTE)
+                .query(opt_actual_test_data.clone())
+                .send()
+                .await;
 
-                let from_request = client
-                    .request(http::Method::GET, ROUTE)
+            if correct {
+                assert_matches!(
+                    from_request,
+                    Ok(response) if response.status() == StatusCode::OK,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+                assert_matches!(
+                    from_get,
+                    Ok(response) if response.status() == StatusCode::OK,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+
+                let from_request: TestOutput = client
+                    .request(Method::GET, ROUTE)
                     .query(actual_test_data.clone())
-                    .send()
-                    .await;
-                let from_get = client
+                    .execute()
+                    .await
+                    .unwrap();
+                let from_get: TestOutput = client
                     .get(ROUTE)
-                    .query(opt_actual_test_data.clone())
-                    .send()
-                    .await;
+                    .query(actual_test_data.clone())
+                    .execute()
+                    .await
+                    .unwrap();
 
-                if correct {
-                    assert_matches!(
-                        from_request,
-                        Ok(response) if response.status() == StatusCode::OK,
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-                    assert_matches!(
-                        from_get,
-                        Ok(response) if response.status() == StatusCode::OK,
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-
-                    let from_request: TestOutput = client
-                        .request(http::Method::GET, ROUTE)
-                        .query(actual_test_data.clone())
-                        .execute()
-                        .await
-                        .unwrap();
-                    let from_get: TestOutput = client
-                        .get(ROUTE)
-                        .query(actual_test_data.clone())
-                        .execute()
-                        .await
-                        .unwrap();
-
-                    let expected = TestOutput::default();
-                    assert_eq!(
-                        expected, from_request,
-                        "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
-                    );
-                    assert_eq!(
-                        expected, from_get,
-                        "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
-                    );
-                } else {
-                    assert_matches!(
-                        from_request,
-                        Err(crate::Error::ApiError(err)) if err.is_status() => {
-                            assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
-                        },
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-                    assert_matches!(
-                        from_get,
-                        Err(crate::Error::ApiError(err)) if err.is_status() => {
-                            assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
-                        },
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-                }
+                let expected = TestOutput::default();
+                assert_eq!(
+                    expected, from_request,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+                assert_eq!(
+                    expected, from_get,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+            } else {
+                assert_matches!(
+                    from_request,
+                    Err(crate::Error::ApiError(err)) if err.is_status() => {
+                        assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
+                    },
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+                assert_matches!(
+                    from_get,
+                    Err(crate::Error::ApiError(err)) if err.is_status() => {
+                        assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
+                    },
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
             }
         }
 
-        #[tokio::test]
-        async fn test_all_permutations() {
-            let permutations = test_permutations();
+        #[test]
+        #[should_panic]
+        fn test_without_api_base_url() {
+            let _ = ApiClient::builder().build();
+        }
 
-            for (anonymous, test_header, test_data_on) in permutations {
-                let mock_server = setup_mock_server(anonymous, test_header, test_data_on).await;
+        mod retries {
+            use std::sync::Mutex;
 
-                test_routes(&mock_server.uri(), anonymous, test_header, test_data_on).await;
+            use super::*;
+
+            #[derive(Debug)]
+            struct ThrottledResponse {
+                throttled_count: Mutex<usize>,
+                throttling_status_code: StatusCode,
+                response: ResponseTemplate,
+            }
+
+            impl ThrottledResponse {
+                fn new(
+                    throttled_count: usize,
+                    throttling_status_code: StatusCode,
+                    response: ResponseTemplate,
+                ) -> Self {
+                    Self {
+                        throttled_count: Mutex::new(throttled_count),
+                        throttling_status_code,
+                        response,
+                    }
+                }
+            }
+
+            impl Respond for ThrottledResponse {
+                fn respond(&self, _request: &Request) -> ResponseTemplate {
+                    let mut lock = self.throttled_count.lock().unwrap();
+                    if *lock > 0 {
+                        *lock -= 1;
+                        ResponseTemplate::new(self.throttling_status_code)
+                    } else {
+                        self.response.clone()
+                    }
+                }
+            }
+
+            #[rstest]
+            #[case::request_timeout(StatusCode::REQUEST_TIMEOUT)]
+            #[case::too_many_requests(StatusCode::TOO_MANY_REQUESTS)]
+            #[case::internal_server_error(StatusCode::INTERNAL_SERVER_ERROR)]
+            #[awt]
+            #[tokio::test]
+            async fn for_status(#[case] throttling_status_code: StatusCode) {
+                let mock_server = MockServer::start().await;
+
+                Mock::given(method("GET"))
+                    .and(path(ROUTE))
+                    .and(not(header_exists("authorization")))
+                    .respond_with(ThrottledResponse::new(
+                        2,
+                        throttling_status_code,
+                        ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
+                    ))
+                    .mount(&mock_server)
+                    .await;
+
+                let client = ApiClient::builder()
+                    .api_base_url(&mock_server.uri())
+                    .build()
+                    .unwrap();
+
+                let result = client.get(ROUTE).send().await;
+                assert_matches!(result, Ok(response) if response.status() == StatusCode::OK);
+            }
+
+            #[tokio::test]
+            async fn throttled_too_many_times() {
+                let mock_server = MockServer::start().await;
+
+                Mock::given(method("GET"))
+                    .and(path(ROUTE))
+                    .and(not(header_exists("authorization")))
+                    .respond_with(ThrottledResponse::new(
+                        2,
+                        StatusCode::TOO_MANY_REQUESTS,
+                        ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
+                    ))
+                    .mount(&mock_server)
+                    .await;
+
+                let client = ApiClient::builder()
+                    .api_base_url(&mock_server.uri())
+                    .retry_policy(ExponentialBackoff::builder().build_with_max_retries(1))
+                    .build()
+                    .unwrap();
+
+                let result = client.get(ROUTE).send().await;
+                assert_matches!(result, Err(crate::Error::ApiError(err)) => {
+                    assert_matches!(err.status(), Some(StatusCode::TOO_MANY_REQUESTS));
+                });
             }
         }
     }
@@ -736,6 +818,7 @@ mod tests {
         }
 
         impl TestApiClient {
+            #[cfg_attr(coverage_nightly, coverage(off))]
             pub fn api_base_url(&self) -> &str {
                 self.api_client.api_base_url()
             }
@@ -746,11 +829,13 @@ mod tests {
         impl TryInto<HeaderValue> for CannotBeAHeaderValue {
             type Error = InvalidHeaderValue;
 
+            #[cfg_attr(coverage_nightly, coverage(off))]
             fn try_into(self) -> std::result::Result<HeaderValue, Self::Error> {
                 HeaderValue::from_bytes(&[20])
             }
         }
 
+        #[cfg_attr(coverage_nightly, coverage(off))]
         mod builder {
             use super::*;
 
@@ -849,6 +934,7 @@ mod tests {
             }
         }
 
+        #[cfg_attr(coverage_nightly, coverage(off))]
         mod client {
             use super::*;
 
