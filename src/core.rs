@@ -63,13 +63,18 @@ pub enum Error {
     #[error("Exercism CLI config file did not contain an API token")]
     ApiTokenNotFoundInConfig,
 
-    /// A call to a builder's `build` method failed.
+    /// A call to a builder's `build` method failed
     #[error(transparent)]
     BuildFailed(#[from] BuildError),
 
     /// Error encountered while performing a request to an [Exercism](https://exercism.org) API
     #[error("error while performing API request: {0:?}")]
     ApiError(#[from] http::Error),
+
+    /// Error encountered while performing a request to an [Exercism](https://exercism.org) API
+    /// which persisted even after retried have been exhausted
+    #[error("error while performing API request with retries: {0:?}")]
+    ApiRetryError(anyhow::Error),
 }
 
 impl From<UninitializedFieldError> for Error {
@@ -87,4 +92,13 @@ pub enum BuildError {
     /// Creation of an [HTTP client](http::Client) failed.
     #[error("http client creation failed: {0:?}")]
     HttpClientCreationFailed(#[from] http::Error),
+}
+
+impl From<http::middleware::Error> for Error {
+    fn from(value: http::middleware::Error) -> Self {
+        match value {
+            http::middleware::Error::Middleware(err) => Self::ApiRetryError(err),
+            http::middleware::Error::Reqwest(err) => err.into(),
+        }
+    }
 }

@@ -226,9 +226,13 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg_hide))]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
-// Re-export `reqwest` types in a `http` module
+// Re-export `reqwest`, `reqwest-middleware` and `reqwest-retry` in a `http` module
 #[doc(hidden)]
-pub use reqwest as http;
+pub mod http {
+    pub use reqwest::*;
+    pub use reqwest_middleware as middleware;
+    pub use reqwest_retry as retry;
+}
 
 // Re-export `Bytes` and some `futures` types in a `stream` module
 #[doc(hidden)]

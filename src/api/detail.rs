@@ -1,23 +1,22 @@
 use std::fmt::Display;
 
-use derive_builder::Builder;
+use derive_builder::UninitializedFieldError;
 use serde::de::DeserializeOwned;
 
 use crate::Result;
 use crate::core::{BuildError, Credentials};
 use crate::http;
-use crate::http::IntoUrl;
+use crate::http::middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
+use crate::http::retry::RetryTransientMiddleware;
+use crate::http::retry::policies::ExponentialBackoff;
+use crate::http::{IntoUrl, Method};
 
-#[derive(Debug, Builder)]
-#[builder(derive(Debug), build_fn(error = "crate::Error"))]
+pub const DEFAULT_MAX_RETRIES: u32 = 5;
+
+#[derive(Debug)]
 pub struct ApiClient {
-    #[builder(default = "self.default_http_client()?")]
-    http_client: http::Client,
-
-    #[builder(setter(custom))]
+    http_client: ClientWithMiddleware,
     api_base_url: String,
-
-    #[builder(default, setter(strip_option))]
     credentials: Option<Credentials>,
 }
 
@@ -32,7 +31,7 @@ impl ApiClient {
         self.api_base_url.as_str()
     }
 
-    pub fn request<U>(&self, method: http::Method, url: U) -> ApiRequestBuilder
+    pub fn request<U>(&self, method: Method, url: U) -> ApiRequestBuilder
     where
         U: Display,
     {
@@ -43,37 +42,88 @@ impl ApiClient {
     where
         U: Display,
     {
-        self.request(http::Method::GET, url)
+        self.request(Method::GET, url)
     }
 
     fn api_url<U>(&self, url: U) -> String
     where
         U: Display,
     {
-        format!("{}{}", self.api_base_url, url)
+        format!("{}{url}", self.api_base_url)
     }
 }
 
+#[derive(Debug, Default)]
+pub struct ApiClientBuilder {
+    http_client: Option<http::Client>,
+    retry_policy: Option<ExponentialBackoff>,
+    api_base_url: Option<String>,
+    credentials: Option<Credentials>,
+}
+
 impl ApiClientBuilder {
+    pub fn http_client(&mut self, client: http::Client) -> &mut Self {
+        self.http_client = Some(client);
+        self
+    }
+
+    pub fn retry_policy(&mut self, policy: ExponentialBackoff) -> &mut Self {
+        self.retry_policy = Some(policy);
+        self
+    }
+
     pub fn api_base_url(&mut self, url: &str) -> &mut Self {
         self.api_base_url = Some(url.trim_end_matches('/').into());
         self
     }
 
-    fn default_http_client(&self) -> Result<http::Client> {
+    pub fn credentials(&mut self, credentials: Credentials) -> &mut Self {
+        self.credentials = Some(credentials);
+        self
+    }
+
+    pub fn build(&mut self) -> Result<ApiClient> {
+        let api_base_url = match self.api_base_url.clone() {
+            Some(url) => url,
+            None => return Err(UninitializedFieldError::new("api_base_url").into()),
+        };
+        let http_client = match self.http_client.clone() {
+            Some(client) => client,
+            None => Self::default_http_client()?,
+        };
+        let retry_policy = self.retry_policy.unwrap_or_else(Self::default_retry_policy);
+        let http_client = Self::build_http_client(http_client, retry_policy);
+
+        Ok(ApiClient { http_client, api_base_url, credentials: self.credentials.clone() })
+    }
+
+    fn default_http_client() -> Result<http::Client> {
         Ok(http::Client::builder().build().map_err(BuildError::from)?)
+    }
+
+    fn default_retry_policy() -> ExponentialBackoff {
+        ExponentialBackoff::builder().build_with_max_retries(DEFAULT_MAX_RETRIES)
+    }
+
+    fn build_http_client(
+        http_client: http::Client,
+        retry_policy: ExponentialBackoff,
+    ) -> ClientWithMiddleware {
+        ClientBuilder::new(http_client)
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build()
     }
 }
 
 pub trait IntoQuery {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder;
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder;
 }
 
 impl<V> IntoQuery for (&str, Option<V>)
 where
     V: AsRef<str>,
 {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         match self.1 {
             Some(param) => request.query(&[(self.0, param.as_ref())]),
             None => request,
@@ -85,7 +135,7 @@ impl<V> IntoQuery for (&str, Vec<V>)
 where
     V: AsRef<str>,
 {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         self.1
             .into_iter()
             .fold(request, |request, v| request.query(&[(self.0, v.as_ref())]))
@@ -96,7 +146,7 @@ impl<Q> IntoQuery for Option<Q>
 where
     Q: IntoQuery,
 {
-    fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+    fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         match self {
             Some(query) => query.into_query(request),
             None => request,
@@ -134,7 +184,7 @@ pub trait QueryBuilder: Sized {
     }
 }
 
-impl QueryBuilder for http::RequestBuilder {
+impl QueryBuilder for RequestBuilder {
     fn build_query<Q>(self, query: Q) -> Self
     where
         Q: IntoQuery,
@@ -144,13 +194,13 @@ impl QueryBuilder for http::RequestBuilder {
 }
 
 pub struct ApiRequestBuilder {
-    request: http::RequestBuilder,
+    request: RequestBuilder,
 }
 
 impl ApiRequestBuilder {
     pub fn new<U>(
-        http_client: &http::Client,
-        method: http::Method,
+        http_client: &ClientWithMiddleware,
+        method: Method,
         url: U,
         credentials: &Option<Credentials>,
     ) -> Self
@@ -225,7 +275,7 @@ macro_rules! define_api_client {
             #[derive(Debug)]
             $vis struct [<$api_name Builder>] {
                 api_client_builder: $crate::api::detail::ApiClientBuilder,
-                error: Option<$crate::Error>,
+                error: ::std::option::Option<$crate::Error>,
             }
 
             impl [<$api_name Builder>] {
@@ -241,7 +291,9 @@ macro_rules! define_api_client {
 
                 #[doc = r"
                     Sets the [HTTP client](crate::http::Client) to use to perform requests
-                    to the API. If not specified, a default client will be created.
+                    to the API.
+
+                    If not specified, a default client will be created.
                 "]
                 pub fn http_client(&mut self, value: $crate::http::Client) -> &mut Self {
                     if self.error.is_none() {
@@ -277,7 +329,7 @@ macro_rules! define_api_client {
                 "#]
                 pub fn build_http_client<F>(&mut self, value_f: F) -> &mut Self
                 where
-                    F: FnOnce($crate::http::ClientBuilder) -> $crate::http::ClientBuilder
+                    F: ::std::ops::FnOnce($crate::http::ClientBuilder) -> $crate::http::ClientBuilder
                 {
                     if self.error.is_none() {
                         match value_f($crate::http::Client::builder()).build() {
@@ -288,6 +340,39 @@ macro_rules! define_api_client {
                                 self.error = Some($crate::core::BuildError::from(err).into());
                             },
                         }
+                    }
+                    self
+                }
+
+                #[doc = r"
+                    Sets the number of retries to attempt when performing requests to the API.
+
+                    If not specified, the default policy is to retry requests up to five (5) times
+                    if they fail with specific status codes (see
+                    [`default_on_request_success`](crate::http::retry::default_on_request_success)
+                    for details).
+                "]
+                pub fn num_retries(&mut self, value: u32) -> &mut Self {
+                    if self.error.is_none() {
+                        self.api_client_builder.retry_policy(
+                            $crate::http::retry::policies::ExponentialBackoff::builder().build_with_max_retries(value),
+                        );
+                    }
+                    self
+                }
+
+                #[doc = r"
+                    Sets the [retry policy](crate::http::retry::RetryPolicy] to use to perform
+                    requests to the API.
+
+                    If not specified, the default policy is to retry requests up to five (5) times
+                    if they fail with specific status codes (see
+                    [`default_on_request_success`](crate::http::retry::default_on_request_success)
+                    for details).
+                "]
+                pub fn retry_policy(&mut self, value: $crate::http::retry::policies::ExponentialBackoff) -> &mut Self {
+                    if self.error.is_none() {
+                        self.api_client_builder.retry_policy(value);
                     }
                     self
                 }
@@ -346,19 +431,20 @@ macro_rules! define_api_client {
 }
 
 #[cfg(test)]
-#[cfg_attr(coverage_nightly, coverage(off))]
+#[allow(clippy::too_many_arguments)]
 mod tests {
     use super::*;
 
+    #[cfg_attr(coverage_nightly, coverage(off))]
     mod api_client {
         use assert_matches::assert_matches;
-        use itertools::iproduct;
+        use rstest::{fixture, rstest};
         use serde::{Deserialize, Serialize};
         use strum::{AsRefStr, Display};
         use wiremock::matchers::{
             bearer_token, header_exists, method, path, query_param, query_param_is_missing,
         };
-        use wiremock::{Mock, MockBuilder, MockServer, ResponseTemplate};
+        use wiremock::{Mock, MockBuilder, MockServer, Request, Respond, ResponseTemplate};
         use wiremock_logical_matchers::not;
 
         use super::*;
@@ -442,7 +528,7 @@ mod tests {
         }
 
         impl IntoQuery for TestData {
-            fn into_query(self, request: http::RequestBuilder) -> http::RequestBuilder {
+            fn into_query(self, request: RequestBuilder) -> RequestBuilder {
                 request
                     .build_query(("name", self.name))
                     .build_query_if(self.test, ("test", Some("1")))
@@ -462,18 +548,11 @@ mod tests {
             }
         }
 
-        fn test_permutations() -> impl Iterator<Item = (bool, bool, bool)> {
-            iproduct!(
-                [false, true], // anonymous
-                [false, true], // test_header
-                [false, true]  // test_data on?
-            )
-        }
-
-        async fn setup_mock_server(
-            anonymous: bool,
-            test_header: bool,
-            test_data_on: bool,
+        #[fixture]
+        async fn mock_server(
+            #[default(false)] anonymous: bool,
+            #[default(false)] test_header: bool,
+            #[default(false)] test_data_on: bool,
         ) -> MockServer {
             let mock_server = MockServer::start().await;
 
@@ -502,7 +581,8 @@ mod tests {
             mock_server
         }
 
-        fn create_test_http_client() -> http::Client {
+        #[fixture]
+        fn http_client_with_test_header() -> http::Client {
             let mut default_headers = HeaderMap::new();
             default_headers.insert(TEST_HEADER, HeaderValue::from_static("any_value_will_do"));
 
@@ -512,127 +592,214 @@ mod tests {
                 .unwrap()
         }
 
-        fn create_authenticated_credentials() -> Credentials {
+        #[fixture]
+        fn authenticated_credentials() -> Credentials {
             Credentials::from_api_token(API_TOKEN)
         }
 
-        fn create_api_client<U>(api_base_url: &U, anonymous: bool, test_header: bool) -> ApiClient
-        where
-            U: AsRef<str>,
-        {
+        #[fixture]
+        fn api_client(
+            #[default("")] api_base_url: &str,
+            #[default(false)] anonymous: bool,
+            #[default(false)] test_header: bool,
+        ) -> ApiClient {
             let mut builder = ApiClient::builder();
             builder.api_base_url(api_base_url.as_ref());
 
             if !anonymous {
-                builder.credentials(create_authenticated_credentials());
+                builder.credentials(authenticated_credentials());
             }
             if test_header {
-                builder.http_client(create_test_http_client());
+                builder.http_client(http_client_with_test_header());
             }
 
             builder.build().unwrap()
         }
 
-        async fn test_routes<U>(
-            api_base_url: &U,
-            expected_anonymous: bool,
-            expected_test_header: bool,
-            expected_test_data_on: bool,
-        ) where
-            U: AsRef<str>,
-        {
-            let permutations = test_permutations();
+        #[rstest]
+        #[tokio::test]
+        #[awt]
+        async fn test_all(
+            #[values(false, true)] expected_anonymous: bool,
+            #[values(false, true)] expected_test_header: bool,
+            #[values(false, true)] expected_test_data_on: bool,
+            #[values(false, true)] actual_anonymous: bool,
+            #[values(false, true)] actual_test_header: bool,
+            #[values(false, true)] actual_test_data_on: bool,
+            #[future]
+            #[with(expected_anonymous, expected_test_header, expected_test_data_on)]
+            mock_server: MockServer,
+        ) {
+            let correct = (actual_anonymous, actual_test_header, actual_test_data_on)
+                == (expected_anonymous, expected_test_header, expected_test_data_on);
 
-            for (actual_anonymous, actual_test_header, actual_test_data_on) in permutations {
-                let correct = (actual_anonymous, actual_test_header, actual_test_data_on)
-                    == (expected_anonymous, expected_test_header, expected_test_data_on);
+            let client = api_client(&mock_server.uri(), actual_anonymous, actual_test_header);
 
-                let client = create_api_client(api_base_url, actual_anonymous, actual_test_header);
+            let actual_test_data = TestData::get(actual_test_data_on);
+            let opt_actual_test_data =
+                if actual_test_data_on { Some(actual_test_data.clone()) } else { None };
 
-                let actual_test_data = TestData::get(actual_test_data_on);
-                let opt_actual_test_data =
-                    if actual_test_data_on { Some(actual_test_data.clone()) } else { None };
+            let from_request = client
+                .request(Method::GET, ROUTE)
+                .query(actual_test_data.clone())
+                .send()
+                .await;
+            let from_get = client
+                .get(ROUTE)
+                .query(opt_actual_test_data.clone())
+                .send()
+                .await;
 
-                let from_request = client
-                    .request(http::Method::GET, ROUTE)
+            if correct {
+                assert_matches!(
+                    from_request,
+                    Ok(response) if response.status() == StatusCode::OK,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+                assert_matches!(
+                    from_get,
+                    Ok(response) if response.status() == StatusCode::OK,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+
+                let from_request: TestOutput = client
+                    .request(Method::GET, ROUTE)
                     .query(actual_test_data.clone())
-                    .send()
-                    .await;
-                let from_get = client
+                    .execute()
+                    .await
+                    .unwrap();
+                let from_get: TestOutput = client
                     .get(ROUTE)
-                    .query(opt_actual_test_data.clone())
-                    .send()
-                    .await;
+                    .query(actual_test_data.clone())
+                    .execute()
+                    .await
+                    .unwrap();
 
-                if correct {
-                    assert_matches!(
-                        from_request,
-                        Ok(response) if response.status() == StatusCode::OK,
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-                    assert_matches!(
-                        from_get,
-                        Ok(response) if response.status() == StatusCode::OK,
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-
-                    let from_request: TestOutput = client
-                        .request(http::Method::GET, ROUTE)
-                        .query(actual_test_data.clone())
-                        .execute()
-                        .await
-                        .unwrap();
-                    let from_get: TestOutput = client
-                        .get(ROUTE)
-                        .query(actual_test_data.clone())
-                        .execute()
-                        .await
-                        .unwrap();
-
-                    let expected = TestOutput::default();
-                    assert_eq!(
-                        expected, from_request,
-                        "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
-                    );
-                    assert_eq!(
-                        expected, from_get,
-                        "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
-                    );
-                } else {
-                    assert_matches!(
-                        from_request,
-                        Err(crate::Error::ApiError(err)) if err.is_status() => {
-                            assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
-                        },
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-                    assert_matches!(
-                        from_get,
-                        Err(crate::Error::ApiError(err)) if err.is_status() => {
-                            assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
-                        },
-                        "Test for ({}, {}, {}), permutation ({}, {}, {})",
-                        expected_anonymous, expected_test_header, expected_test_data_on,
-                        actual_anonymous, actual_test_header, actual_test_data_on
-                    );
-                }
+                let expected = TestOutput::default();
+                assert_eq!(
+                    expected, from_request,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+                assert_eq!(
+                    expected, from_get,
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+            } else {
+                assert_matches!(
+                    from_request,
+                    Err(crate::Error::ApiError(err)) if err.is_status() => {
+                        assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
+                    },
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
+                assert_matches!(
+                    from_get,
+                    Err(crate::Error::ApiError(err)) if err.is_status() => {
+                        assert_matches!(err.status(), Some(StatusCode::NOT_FOUND));
+                    },
+                    "Test for ({expected_anonymous}, {expected_test_header}, {expected_test_data_on}), permutation ({actual_anonymous}, {actual_test_header}, {actual_test_data_on})"
+                );
             }
         }
 
-        #[tokio::test]
-        async fn test_all_permutations() {
-            let permutations = test_permutations();
+        #[test]
+        #[should_panic]
+        fn test_without_api_base_url() {
+            let _ = ApiClient::builder().build();
+        }
 
-            for (anonymous, test_header, test_data_on) in permutations {
-                let mock_server = setup_mock_server(anonymous, test_header, test_data_on).await;
+        mod retries {
+            use std::sync::Mutex;
 
-                test_routes(&mock_server.uri(), anonymous, test_header, test_data_on).await;
+            use super::*;
+
+            #[derive(Debug)]
+            struct ThrottledResponse {
+                throttled_count: Mutex<usize>,
+                throttling_status_code: StatusCode,
+                response: ResponseTemplate,
+            }
+
+            impl ThrottledResponse {
+                fn new(
+                    throttled_count: usize,
+                    throttling_status_code: StatusCode,
+                    response: ResponseTemplate,
+                ) -> Self {
+                    Self {
+                        throttled_count: Mutex::new(throttled_count),
+                        throttling_status_code,
+                        response,
+                    }
+                }
+            }
+
+            impl Respond for ThrottledResponse {
+                fn respond(&self, _request: &Request) -> ResponseTemplate {
+                    let mut lock = self.throttled_count.lock().unwrap();
+                    if *lock > 0 {
+                        *lock -= 1;
+                        ResponseTemplate::new(self.throttling_status_code)
+                    } else {
+                        self.response.clone()
+                    }
+                }
+            }
+
+            #[rstest]
+            #[case::request_timeout(StatusCode::REQUEST_TIMEOUT)]
+            #[case::too_many_requests(StatusCode::TOO_MANY_REQUESTS)]
+            #[case::internal_server_error(StatusCode::INTERNAL_SERVER_ERROR)]
+            #[awt]
+            #[tokio::test]
+            async fn for_status(#[case] throttling_status_code: StatusCode) {
+                let mock_server = MockServer::start().await;
+
+                Mock::given(method("GET"))
+                    .and(path(ROUTE))
+                    .and(not(header_exists("authorization")))
+                    .respond_with(ThrottledResponse::new(
+                        2,
+                        throttling_status_code,
+                        ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
+                    ))
+                    .mount(&mock_server)
+                    .await;
+
+                let client = ApiClient::builder()
+                    .api_base_url(&mock_server.uri())
+                    .build()
+                    .unwrap();
+
+                let result = client.get(ROUTE).send().await;
+                assert_matches!(result, Ok(response) if response.status() == StatusCode::OK);
+            }
+
+            #[tokio::test]
+            async fn throttled_too_many_times() {
+                let mock_server = MockServer::start().await;
+
+                Mock::given(method("GET"))
+                    .and(path(ROUTE))
+                    .and(not(header_exists("authorization")))
+                    .respond_with(ThrottledResponse::new(
+                        2,
+                        StatusCode::TOO_MANY_REQUESTS,
+                        ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
+                    ))
+                    .mount(&mock_server)
+                    .await;
+
+                let client = ApiClient::builder()
+                    .api_base_url(&mock_server.uri())
+                    .retry_policy(ExponentialBackoff::builder().build_with_max_retries(1))
+                    .build()
+                    .unwrap();
+
+                let result = client.get(ROUTE).send().await;
+                assert_matches!(result, Err(crate::Error::ApiError(err)) => {
+                    assert_matches!(err.status(), Some(StatusCode::TOO_MANY_REQUESTS));
+                });
             }
         }
     }
@@ -651,6 +818,7 @@ mod tests {
         }
 
         impl TestApiClient {
+            #[cfg_attr(coverage_nightly, coverage(off))]
             pub fn api_base_url(&self) -> &str {
                 self.api_client.api_base_url()
             }
@@ -661,11 +829,13 @@ mod tests {
         impl TryInto<HeaderValue> for CannotBeAHeaderValue {
             type Error = InvalidHeaderValue;
 
+            #[cfg_attr(coverage_nightly, coverage(off))]
             fn try_into(self) -> std::result::Result<HeaderValue, Self::Error> {
                 HeaderValue::from_bytes(&[20])
             }
         }
 
+        #[cfg_attr(coverage_nightly, coverage(off))]
         mod builder {
             use super::*;
 
@@ -703,6 +873,22 @@ mod tests {
                     .unwrap();
 
                 assert_eq!(test_api_client.api_base_url(), custom_api_base_url);
+            }
+
+            #[test]
+            fn test_num_retries() {
+                let result = TestApiClient::builder().num_retries(2).build();
+
+                assert!(result.is_ok());
+            }
+
+            #[test]
+            fn test_retry_policy() {
+                let result = TestApiClient::builder()
+                    .retry_policy(ExponentialBackoff::builder().build_with_max_retries(2))
+                    .build();
+
+                assert!(result.is_ok());
             }
 
             #[test]
@@ -748,6 +934,7 @@ mod tests {
             }
         }
 
+        #[cfg_attr(coverage_nightly, coverage(off))]
         mod client {
             use super::*;
 
