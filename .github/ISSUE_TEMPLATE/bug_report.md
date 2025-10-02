@@ -15,7 +15,7 @@ A clear and concise description of what the bug is.
 
 Include sample code that reproduces the error. If required, attach a sample project that showcases the bug.
 
-**Expected behavior**
+**Expected behaviour**
 
 A clear and concise description of what you expected to happen.
 

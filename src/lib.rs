@@ -180,7 +180,7 @@
 //! Internally, [mini_exercism](crate) uses the [reqwest](https://crates.io/crates/reqwest)
 //! library to perform HTTP calls (whose types are re-exported through the [`mini_exercism::http`](http)
 //! module). Unless overridden, API clients will create a default HTTP client.  If you need to customize the
-//! behavior of the HTTP client, you can use the API client's `builder` to specify a different HTTP client:
+//! behaviour of the HTTP client, you can use the API client's `builder` to specify a different HTTP client:
 //!
 //! ```no_run
 //! use mini_exercism::api;
@@ -203,6 +203,40 @@
 //!             // ... customize HTTP client with `builder` here ...
 //!             builder
 //!         })
+//!         .build()?)
+//! }
+//! ```
+//!
+//! ## Retry support
+//!
+//! Recently (circa 2025), the Exercism API started throttling incoming requests much more
+//! aggressively to fight a bot situation. Because of this, it is now sometimes necessary to
+//! retry API requests should they be throttled.
+//!
+//! By default, API clients will retry API requests up to 5 times (with exponential backoff)
+//! before giving up. To configure this, you can either use the API client's `builder`'s
+//! `num_retries` or `retry_policy` methods:
+//!
+//! ```no_run
+//! use std::time::Duration;
+//!
+//! use mini_exercism::api;
+//! use mini_exercism::http::retry::Jitter;
+//! use mini_exercism::http::retry::policies::ExponentialBackoff;
+//!
+//! fn get_api_client() -> anyhow::Result<api::v2::Client> {
+//!     Ok(api::v2::Client::builder().num_retries(2).build()?)
+//! }
+//!
+//! // Or fully customize the retry policy:
+//! fn get_api_client_too() -> anyhow::Result<api::v2::Client> {
+//!     let retry_policy = ExponentialBackoff::builder()
+//!         .retry_bounds(Duration::from_secs(1), Duration::from_secs(30))
+//!         .jitter(Jitter::Bounded)
+//!         .build_with_max_retries(2);
+//!
+//!     Ok(api::v2::Client::builder()
+//!         .retry_policy(retry_policy)
 //!         .build()?)
 //! }
 //! ```
