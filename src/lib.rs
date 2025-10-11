@@ -264,7 +264,10 @@
 pub mod http {
     pub use reqwest::*;
     pub use reqwest_middleware as middleware;
-    pub use reqwest_retry as retry;
+    pub mod retry {
+        pub use reessaie as after;
+        pub use reqwest_retry::*;
+    }
 }
 
 // Re-export `Bytes` and some `futures` types in a `stream` module
