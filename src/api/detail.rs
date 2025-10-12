@@ -7,7 +7,7 @@ use crate::Result;
 use crate::core::{BuildError, Credentials};
 use crate::http;
 use crate::http::middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
-use crate::http::retry::RetryTransientMiddleware;
+use crate::http::retry::after::{RetryAfterMiddleware, RetryAfterPolicy};
 use crate::http::retry::policies::ExponentialBackoff;
 use crate::http::{IntoUrl, Method};
 
@@ -109,8 +109,9 @@ impl ApiClientBuilder {
         http_client: http::Client,
         retry_policy: ExponentialBackoff,
     ) -> ClientWithMiddleware {
+        let retry_policy = RetryAfterPolicy::with_policy(retry_policy);
         ClientBuilder::new(http_client)
-            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .with(RetryAfterMiddleware::new_with_policy(retry_policy))
             .build()
     }
 }
@@ -710,13 +711,16 @@ mod tests {
 
         mod retries {
             use std::sync::Mutex;
+            use std::time::Duration;
 
             use super::*;
+            use crate::http::header::RETRY_AFTER;
 
             #[derive(Debug)]
             struct ThrottledResponse {
                 throttled_count: Mutex<usize>,
                 throttling_status_code: StatusCode,
+                throttling_retry_after: Option<Duration>,
                 response: ResponseTemplate,
             }
 
@@ -724,11 +728,13 @@ mod tests {
                 fn new(
                     throttled_count: usize,
                     throttling_status_code: StatusCode,
+                    throttling_retry_after: Option<Duration>,
                     response: ResponseTemplate,
                 ) -> Self {
                     Self {
                         throttled_count: Mutex::new(throttled_count),
                         throttling_status_code,
+                        throttling_retry_after,
                         response,
                     }
                 }
@@ -739,7 +745,12 @@ mod tests {
                     let mut lock = self.throttled_count.lock().unwrap();
                     if *lock > 0 {
                         *lock -= 1;
-                        ResponseTemplate::new(self.throttling_status_code)
+                        let mut response = ResponseTemplate::new(self.throttling_status_code);
+                        if let Some(retry_after) = self.throttling_retry_after {
+                            response = response
+                                .append_header(RETRY_AFTER, retry_after.as_secs().to_string());
+                        }
+                        response
                     } else {
                         self.response.clone()
                     }
@@ -747,12 +758,19 @@ mod tests {
             }
 
             #[rstest]
-            #[case::request_timeout(StatusCode::REQUEST_TIMEOUT)]
-            #[case::too_many_requests(StatusCode::TOO_MANY_REQUESTS)]
-            #[case::internal_server_error(StatusCode::INTERNAL_SERVER_ERROR)]
+            #[case::request_timeout(StatusCode::REQUEST_TIMEOUT, None)]
+            #[case::too_many_requests(StatusCode::TOO_MANY_REQUESTS, None)]
+            #[case::internal_server_error(StatusCode::INTERNAL_SERVER_ERROR, None)]
+            #[case::with_retry_after_header(
+                StatusCode::TOO_MANY_REQUESTS,
+                Some(Duration::from_secs(1))
+            )]
             #[awt]
             #[tokio::test]
-            async fn for_status(#[case] throttling_status_code: StatusCode) {
+            async fn for_status(
+                #[case] throttling_status_code: StatusCode,
+                #[case] throttling_retry_after: Option<Duration>,
+            ) {
                 let mock_server = MockServer::start().await;
 
                 Mock::given(method("GET"))
@@ -761,6 +779,7 @@ mod tests {
                     .respond_with(ThrottledResponse::new(
                         2,
                         throttling_status_code,
+                        throttling_retry_after,
                         ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
                     ))
                     .mount(&mock_server)
@@ -785,6 +804,7 @@ mod tests {
                     .respond_with(ThrottledResponse::new(
                         2,
                         StatusCode::TOO_MANY_REQUESTS,
+                        None,
                         ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
                     ))
                     .mount(&mock_server)

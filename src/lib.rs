@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = "6.0.0"
+//! mini_exercism = "7.0.0"
 //! ```
 //!
 //! or by running:
@@ -152,7 +152,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = { version = "6.0.0", features = ["cli"] }
+//! mini_exercism = { version = "7.0.0", features = ["cli"] }
 //! ```
 //!
 //! Then, you can fetch CLI credentials and use them to perform API requests. Note that it's
@@ -257,6 +257,7 @@
 #![deny(rustdoc::missing_crate_level_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 // Re-export `reqwest`, `reqwest-middleware` and `reqwest-retry` in a `http` module
@@ -264,7 +265,10 @@
 pub mod http {
     pub use reqwest::*;
     pub use reqwest_middleware as middleware;
-    pub use reqwest_retry as retry;
+    pub mod retry {
+        pub use reessaie as after;
+        pub use reqwest_retry::*;
+    }
 }
 
 // Re-export `Bytes` and some `futures` types in a `stream` module
