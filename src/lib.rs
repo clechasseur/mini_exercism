@@ -263,8 +263,8 @@
 // Re-export `reqwest`, `reqwest-middleware` and `reqwest-retry` in a `http` module
 #[doc(hidden)]
 pub mod http {
-    pub use reqwest::*;
     pub use reessaie::reqwest_middleware as middleware;
+    pub use reqwest::*;
     pub mod retry {
         pub use reessaie as after;
         pub use reessaie::reqwest_retry::*;
