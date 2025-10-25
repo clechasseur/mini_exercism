@@ -961,8 +961,6 @@ dependencies = [
  "paste",
  "reessaie",
  "reqwest",
- "reqwest-middleware",
- "reqwest-retry",
  "rstest",
  "serde",
  "serde_json",
