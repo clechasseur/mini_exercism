@@ -961,8 +961,6 @@ dependencies = [
  "paste",
  "reessaie",
  "reqwest",
- "reqwest-middleware",
- "reqwest-retry",
  "rstest",
  "serde",
  "serde_json",
@@ -1426,9 +1424,9 @@ dependencies = [
 
 [[package]]
 name = "reessaie"
-version = "1.1.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17980ae50a0ba33debb2a4ed3abe0e64f10b92f78117bc171244cf183a2d1a91"
+checksum = "bbea146e87e5b859f8784179732013aaea5dc163a505467ffe5c832daa651cb7"
 dependencies = [
  "async-trait",
  "chrono",
