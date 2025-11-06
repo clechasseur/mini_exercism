@@ -4,6 +4,7 @@ mod filters {
         use mini_exercism::api::v2::exercises::Filters;
 
         #[test]
+        #[test_log::test]
         fn test_build() {
             let filters = Filters::builder()
                 .criteria("csharp")

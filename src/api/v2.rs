@@ -60,6 +60,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: crate::Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_tracks(
         &self,
         filters: Option<tracks::Filters<'_>>,
@@ -125,6 +126,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: crate::Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_exercises(
         &self,
         track: &str,
@@ -191,6 +193,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: crate::Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_solutions(
         &self,
         filters: Option<solutions::Filters<'_>>,
@@ -237,6 +240,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: crate::Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_solution(
         &self,
         uuid: &str,
@@ -316,6 +320,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: crate::Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_submission_files(
         &self,
         solution_uuid: &str,

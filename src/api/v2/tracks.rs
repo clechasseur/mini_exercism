@@ -43,15 +43,19 @@ pub struct Filters<'a> {
     pub status: Option<StatusFilter>,
 }
 
+// noinspection DuplicatedCode
 impl<'a> Filters<'a> {
     /// Returns a builder for the [`Filters`] type.
+    #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
     pub fn builder() -> FiltersBuilder<'a> {
         FiltersBuilder::default()
     }
 }
 
+// noinspection DuplicatedCode
 impl<'a> FiltersBuilder<'a> {
     /// Builds a new [`Filters`].
+    #[cfg_attr(not(coverage), tracing::instrument(ret, level = "trace"))]
     pub fn build(&self) -> Filters<'a> {
         self.fallible_build()
             .expect("All fields should have had default values")

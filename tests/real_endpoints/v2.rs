@@ -8,6 +8,7 @@ mod get_tracks {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_all_tracks() {
         let client = api::v2::Client::new().unwrap();
@@ -20,6 +21,7 @@ mod get_tracks {
     }
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_julia_track() {
         let client = api::v2::Client::new().unwrap();
@@ -34,6 +36,7 @@ mod get_tracks {
     }
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_tags() {
         let client = api::v2::Client::new().unwrap();
@@ -45,6 +48,7 @@ mod get_tracks {
     }
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_status() {
         let client = api::v2::Client::new().unwrap();
@@ -64,6 +68,7 @@ mod get_tracks {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         #[file_serial(real_endpoints)]
         async fn test_joined_tracks() {
             if let Ok(credentials) = get_cli_credentials() {
@@ -91,6 +96,7 @@ mod get_exercises {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_all_exercises() {
         let client = api::v2::Client::new().unwrap();
@@ -107,6 +113,7 @@ mod get_exercises {
     }
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_difference_of_squares_exercise() {
         let client = api::v2::Client::new().unwrap();
@@ -118,6 +125,7 @@ mod get_exercises {
     }
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_solutions_sideloading() {
         let client = api::v2::Client::new().unwrap();
@@ -137,6 +145,7 @@ mod get_exercises {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         #[file_serial(real_endpoints)]
         async fn test_solutions_sideloading() {
             if let Ok(credentials) = get_cli_credentials() {
@@ -172,6 +181,7 @@ mod get_solutions {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_minesweeper() {
         let client = api::v2::Client::new().unwrap();
@@ -193,6 +203,7 @@ mod get_solutions {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         #[file_serial(real_endpoints)]
         async fn test_minesweeper() {
             if let Ok(credentials) = get_cli_credentials() {
@@ -227,6 +238,7 @@ mod get_solution {
     const SOLUTION_UUID: &str = "a0c9664059d345ac8d677b0154794ff2";
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_solution() {
         let client = api::v2::Client::new().unwrap();
@@ -237,6 +249,7 @@ mod get_solution {
     }
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_iterations() {
         let client = api::v2::Client::new().unwrap();
@@ -255,6 +268,7 @@ mod get_solution {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         #[file_serial(real_endpoints)]
         async fn test_iterations() {
             if let Ok(credentials) = get_cli_credentials() {
@@ -289,6 +303,7 @@ mod get_submission_files {
     const SUBMISSION_UUID: &str = "4da3f19906214f678d5aadaea8635250";
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_files_content() {
         let client = api::v2::Client::new().unwrap();
@@ -319,6 +334,7 @@ mod get_submission_files {
         const PRIVATE_SUBMISSION_UUID: &str = "7c190886-08cc-11ec-81c5-853579c25f94";
 
         #[tokio::test]
+        #[test_log::test]
         #[file_serial(real_endpoints)]
         async fn test_private_iteration() {
             if let Ok(credentials) = get_cli_credentials() {

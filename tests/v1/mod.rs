@@ -15,6 +15,7 @@ mod client {
         use super::*;
 
         #[test]
+        #[test_log::test]
         fn test_derive() {
             // Note: this test is necessary because of a bug in cargo-tarpaulin, see
             // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
@@ -31,6 +32,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_all() {
             let mock_server = MockServer::start().await;
 
@@ -96,6 +98,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_all() {
             let mock_server = MockServer::start().await;
 
@@ -166,6 +169,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_valid_file() {
             let mock_server = MockServer::start().await;
 
@@ -201,6 +205,7 @@ version = "1.1.0"
         }
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_invalid_file() {
             let mock_server = MockServer::start().await;
 
@@ -233,6 +238,7 @@ version = "1.1.0"
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_all() {
             let mock_server = MockServer::start().await;
 
@@ -267,6 +273,7 @@ version = "1.1.0"
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_valid_token() {
             let mock_server = MockServer::start().await;
 
@@ -287,6 +294,7 @@ version = "1.1.0"
         }
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_invalid_token() {
             let mock_server = MockServer::start().await;
 
@@ -306,6 +314,7 @@ version = "1.1.0"
         }
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_internal_server_error() {
             let mock_server = MockServer::start().await;
 
@@ -332,6 +341,7 @@ version = "1.1.0"
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_all() {
             let mock_server = MockServer::start().await;
 
