@@ -62,25 +62,31 @@ pub struct Filters<'a> {
     pub published_iteration_head_tests_statuses: Vec<tests::Status>,
 }
 
+// noinspection DuplicatedCode
 impl<'a> Filters<'a> {
     /// Returns a builder for the [`Filters`] type.
+    #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
     pub fn builder() -> FiltersBuilder<'a> {
         FiltersBuilder::default()
     }
 }
 
+//noinspection DuplicatedCode
 impl<'a> FiltersBuilder<'a> {
     /// Adds a filter to only return out-of-date solutions.
+    #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
     pub fn out_of_date(&mut self) -> &mut Self {
         self.is_out_of_date(true)
     }
 
     /// Adds a filter to only return up-to-date solutions.
+    #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
     pub fn up_to_date(&mut self) -> &mut Self {
         self.is_out_of_date(false)
     }
 
     /// Builds a new [`Filters`].
+    #[cfg_attr(not(coverage), tracing::instrument(ret, level = "trace"))]
     pub fn build(&self) -> Filters<'a> {
         self.fallible_build()
             .expect("All fields should have had default values")
@@ -106,6 +112,7 @@ impl Paging {
     ///
     /// The page size will be left blank, so the default value will be used. The page size
     /// can also be set via [`and_per_page`](Self::and_per_page).
+    #[cfg_attr(not(coverage), tracing::instrument(ret, level = "trace"))]
     pub fn for_page(page: i64) -> Self {
         Self { page, per_page: None }
     }
@@ -121,6 +128,7 @@ impl Paging {
     /// assert_eq!(1, paging.page);
     /// assert_eq!(Some(10), paging.per_page);
     /// ```
+    #[cfg_attr(not(coverage), tracing::instrument(ret, level = "trace"))]
     pub fn and_per_page(self, per_page: i64) -> Self {
         Self { page: self.page, per_page: Some(per_page) }
     }

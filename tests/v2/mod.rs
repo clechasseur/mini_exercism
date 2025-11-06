@@ -20,6 +20,7 @@ mod client {
         use super::*;
 
         #[test]
+        #[test_log::test]
         fn test_derive() {
             // Note: this test is necessary because of a bug in cargo-tarpaulin, see
             // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
@@ -38,6 +39,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_tracks() {
             let mock_server = MockServer::start().await;
 
@@ -123,6 +125,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_exercises() {
             let mock_server = MockServer::start().await;
 
@@ -213,6 +216,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_solutions() {
             let mock_server = MockServer::start().await;
 
@@ -326,6 +330,7 @@ mod client {
         }
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_out_of_date_solutions() {
             let mock_server = MockServer::start().await;
 
@@ -402,6 +407,7 @@ mod client {
         }
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_up_to_date_solutions() {
             let mock_server = MockServer::start().await;
 
@@ -489,6 +495,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_solution() {
             let mock_server = MockServer::start().await;
 
@@ -554,6 +561,7 @@ mod client {
         }
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_iterations() {
             let mock_server = MockServer::start().await;
 
@@ -656,6 +664,7 @@ mod client {
         use super::*;
 
         #[tokio::test]
+        #[test_log::test]
         async fn test_get_files() {
             let mock_server = MockServer::start().await;
 

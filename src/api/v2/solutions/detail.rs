@@ -9,6 +9,7 @@ use crate::http::middleware::RequestBuilder;
 pub struct FiltersBuilderError;
 
 impl IntoQuery for Filters<'_> {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(request), level = "trace"))]
     fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         request
             .build_query(("criteria", self.criteria))
@@ -22,6 +23,7 @@ impl IntoQuery for Filters<'_> {
 }
 
 impl IntoQuery for Paging {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(request), level = "trace"))]
     fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         request
             .build_query(("page", Some(self.page.to_string())))

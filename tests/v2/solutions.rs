@@ -5,6 +5,7 @@ mod filters {
         use mini_exercism::api::v2::tests::Status::Passed;
 
         #[test]
+        #[test_log::test]
         fn test_build() {
             let filters = Filters::builder()
                 .criteria("Minesweeper")
@@ -32,6 +33,7 @@ mod paging {
     use mini_exercism::api::v2::solutions::Paging;
 
     #[test]
+    #[test_log::test]
     fn test_for_page() {
         let paging = Paging::for_page(42);
 
@@ -40,6 +42,7 @@ mod paging {
     }
 
     #[test]
+    #[test_log::test]
     fn test_and_per_page() {
         let paging = Paging::for_page(42).and_per_page(23);
 

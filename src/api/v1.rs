@@ -58,6 +58,7 @@ impl Client {
     /// [`Solution::uuid`]: crate::api::v2::solution::Solution::uuid
     /// [`credentials`]: ClientBuilder::credentials
     /// [`ApiError`]: Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_solution(&self, uuid: &str) -> Result<solution::Response> {
         self.api_client
             .get(format!("/solutions/{uuid}"))
@@ -102,6 +103,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_latest_solution(
         &self,
         track: &str,
@@ -161,6 +163,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self)))]
     pub async fn get_file(
         &self,
         solution_uuid: &str,
@@ -209,6 +212,7 @@ impl Client {
     /// ```
     ///
     /// [`ApiError`]: Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn get_track(&self, track: &str) -> Result<track::Response> {
         self.api_client
             .get(format!("/tracks/{track}"))
@@ -243,6 +247,7 @@ impl Client {
     ///
     /// [`credentials`]: ClientBuilder::credentials
     /// [`ApiError`]: Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn validate_token(&self) -> Result<bool> {
         // This API call returns a payload, but it doesn't really contain useful information:
         // if the token is invalid, 401 will be returned.
@@ -295,6 +300,7 @@ impl Client {
     /// [`credentials`]: ClientBuilder::credentials
     /// [current implementation]: https://github.com/exercism/website/blob/2580b8fa2b13cad7aa7e8a877551bbd8552bee8b/app/controllers/api/v1/ping_controller.rb
     /// [`ApiError`]: Error::ApiError
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err))]
     pub async fn ping(&self) -> Result<ping::Response> {
         self.api_client.get("/ping").execute().await
     }

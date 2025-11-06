@@ -6,6 +6,7 @@ mod get_solution {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new().unwrap();
@@ -27,6 +28,7 @@ mod get_latest_solution {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new().unwrap();
@@ -47,6 +49,7 @@ mod get_file {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new().unwrap();
@@ -69,6 +72,7 @@ mod get_track {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new().unwrap();
@@ -87,6 +91,7 @@ mod validate_token {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_anonymous() {
         let client = api::v1::Client::new().unwrap();
@@ -102,6 +107,7 @@ mod ping {
     use serial_test::file_serial;
 
     #[tokio::test]
+    #[test_log::test]
     #[file_serial(real_endpoints)]
     async fn test_ping() {
         let client = api::v1::Client::new().unwrap();

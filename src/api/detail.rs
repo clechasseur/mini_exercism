@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use derive_builder::UninitializedFieldError;
 use serde::de::DeserializeOwned;
@@ -21,6 +21,7 @@ pub struct ApiClient {
 }
 
 impl ApiClient {
+    #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
     pub fn builder() -> ApiClientBuilder {
         ApiClientBuilder::default()
     }
@@ -31,6 +32,7 @@ impl ApiClient {
         self.api_base_url.as_str()
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self, url), fields(url = %url), level = "debug"))]
     pub fn request<U>(&self, method: Method, url: U) -> ApiRequestBuilder
     where
         U: Display,
@@ -38,6 +40,7 @@ impl ApiClient {
         ApiRequestBuilder::new(&self.http_client, method, self.api_url(url), &self.credentials)
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self, url), fields(url = %url), level = "debug"))]
     pub fn get<U>(&self, url: U) -> ApiRequestBuilder
     where
         U: Display,
@@ -45,6 +48,7 @@ impl ApiClient {
         self.request(Method::GET, url)
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self, url), fields(url = %url), ret, level = "trace"))]
     fn api_url<U>(&self, url: U) -> String
     where
         U: Display,
@@ -62,26 +66,31 @@ pub struct ApiClientBuilder {
 }
 
 impl ApiClientBuilder {
+    #[cfg_attr(not(coverage), tracing::instrument(skip_all, level = "trace"))]
     pub fn http_client(&mut self, client: http::Client) -> &mut Self {
         self.http_client = Some(client);
         self
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     pub fn retry_policy(&mut self, policy: ExponentialBackoff) -> &mut Self {
         self.retry_policy = Some(policy);
         self
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     pub fn api_base_url(&mut self, url: &str) -> &mut Self {
         self.api_base_url = Some(url.trim_end_matches('/').into());
         self
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     pub fn credentials(&mut self, credentials: Credentials) -> &mut Self {
         self.credentials = Some(credentials);
         self
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err, level = "trace"))]
     pub fn build(&mut self) -> Result<ApiClient> {
         let api_base_url = match self.api_base_url.clone() {
             Some(url) => url,
@@ -116,14 +125,15 @@ impl ApiClientBuilder {
     }
 }
 
-pub trait IntoQuery {
+pub trait IntoQuery: Debug {
     fn into_query(self, request: RequestBuilder) -> RequestBuilder;
 }
 
 impl<V> IntoQuery for (&str, Option<V>)
 where
-    V: AsRef<str>,
+    V: AsRef<str> + Debug,
 {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(request), level = "trace"))]
     fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         match self.1 {
             Some(param) => request.query(&[(self.0, param.as_ref())]),
@@ -134,8 +144,9 @@ where
 
 impl<V> IntoQuery for (&str, Vec<V>)
 where
-    V: AsRef<str>,
+    V: AsRef<str> + Debug,
 {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(request), level = "trace"))]
     fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         self.1
             .into_iter()
@@ -147,6 +158,7 @@ impl<Q> IntoQuery for Option<Q>
 where
     Q: IntoQuery,
 {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(request), level = "trace"))]
     fn into_query(self, request: RequestBuilder) -> RequestBuilder {
         match self {
             Some(query) => query.into_query(request),
@@ -160,6 +172,7 @@ pub trait QueryBuilder: Sized {
     where
         Q: IntoQuery;
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     fn build_query_if<Q>(self, cond: bool, query: Q) -> Self
     where
         Q: IntoQuery,
@@ -167,9 +180,10 @@ pub trait QueryBuilder: Sized {
         if cond { self.build_query(query) } else { self }
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     fn build_joined_query<V>(self, key: &str, values: Vec<V>) -> Self
     where
-        V: AsRef<str>,
+        V: AsRef<str> + Debug,
     {
         if !values.is_empty() {
             let values = values
@@ -186,6 +200,7 @@ pub trait QueryBuilder: Sized {
 }
 
 impl QueryBuilder for RequestBuilder {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     fn build_query<Q>(self, query: Q) -> Self
     where
         Q: IntoQuery,
@@ -199,6 +214,7 @@ pub struct ApiRequestBuilder {
 }
 
 impl ApiRequestBuilder {
+    #[cfg_attr(not(coverage), tracing::instrument(skip(url), fields(url = url.as_str()), level = "trace"))]
     pub fn new<U>(
         http_client: &ClientWithMiddleware,
         method: Method,
@@ -215,6 +231,7 @@ impl ApiRequestBuilder {
         Self { request }
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "debug"))]
     pub fn query<Q>(self, query: Q) -> Self
     where
         Q: IntoQuery,
@@ -222,10 +239,12 @@ impl ApiRequestBuilder {
         Self { request: query.into_query(self.request) }
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err, level = "debug"))]
     pub async fn send(self) -> Result<http::Response> {
         Ok(self.request.send().await?.error_for_status()?)
     }
 
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), err, level = "debug"))]
     pub async fn execute<R>(self) -> Result<R>
     where
         R: DeserializeOwned,
@@ -252,6 +271,7 @@ macro_rules! define_api_client {
 
                     This is the same as calling `" $api_name r"::builder().build()`.
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(err, level = "trace"))]
                 pub fn new() -> $crate::Result<Self> {
                     Self::builder().build()
                 }
@@ -260,6 +280,7 @@ macro_rules! define_api_client {
                     Returns a [`" $api_name r"Builder`] that can be used to
                     create an API client instance.
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
                 pub fn builder() -> [<$api_name Builder>] {
                     [<$api_name Builder>]::default()
                 }
@@ -286,6 +307,7 @@ macro_rules! define_api_client {
 
                     This is the same as calling [`" $api_name "::builder`].
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
                 pub fn new() -> Self {
                     Self::default()
                 }
@@ -296,6 +318,7 @@ macro_rules! define_api_client {
 
                     If not specified, a default client will be created.
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(skip_all, level = "trace"))]
                 pub fn http_client(&mut self, value: $crate::http::Client) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.http_client(value);
@@ -328,6 +351,7 @@ macro_rules! define_api_client {
                     }
                     ```
                 "#]
+                #[cfg_attr(not(coverage), tracing::instrument(skip_all, level = "trace"))]
                 pub fn build_http_client<F>(&mut self, value_f: F) -> &mut Self
                 where
                     F: ::std::ops::FnOnce($crate::http::ClientBuilder) -> $crate::http::ClientBuilder
@@ -353,6 +377,7 @@ macro_rules! define_api_client {
                     [`default_on_request_success`](crate::http::retry::default_on_request_success)
                     for details).
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
                 pub fn num_retries(&mut self, value: u32) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.retry_policy(
@@ -371,6 +396,7 @@ macro_rules! define_api_client {
                     [`default_on_request_success`](crate::http::retry::default_on_request_success)
                     for details).
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
                 pub fn retry_policy(&mut self, value: $crate::http::retry::policies::ExponentialBackoff) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.retry_policy(value);
@@ -384,6 +410,7 @@ macro_rules! define_api_client {
                     Normally, this is set to the default value ([`" $base_url r"`])
                     when the builder is created and should not be changed.
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
                 pub fn api_base_url(&mut self, value: &str) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.api_base_url(value);
@@ -397,6 +424,7 @@ macro_rules! define_api_client {
 
                     If not specified, requests will be performed anonymously.
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
                 pub fn credentials(&mut self, value: $crate::core::Credentials) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.credentials(value);
@@ -405,6 +433,7 @@ macro_rules! define_api_client {
                 }
 
                 #[doc = "Builds a new [`" $api_name "`] instance using the parameters of this builder."]
+                #[cfg_attr(not(coverage), tracing::instrument(skip(self), ret, err, level = "trace"))]
                 pub fn build(&mut self) -> $crate::Result<$api_name> {
                     match self.error.take() {
                         None => Ok($api_name {
@@ -421,6 +450,7 @@ macro_rules! define_api_client {
 
                     This is the same as calling [`" $api_name "::builder`].
                 "]
+                #[cfg_attr(not(coverage), tracing::instrument(level = "trace"))]
                 fn default() -> Self {
                     let mut api_client_builder = $crate::api::detail::ApiClient::builder();
                     api_client_builder.api_base_url($base_url);
@@ -617,10 +647,18 @@ mod tests {
             builder.build().unwrap()
         }
 
+        #[test]
+        #[test_log::test]
+        #[should_panic]
+        fn test_without_api_base_url() {
+            let _ = ApiClient::builder().build();
+        }
+
         #[rstest]
-        #[tokio::test]
         #[awt]
-        async fn test_all(
+        #[tokio::test]
+        #[test_log::test]
+        async fn for_params(
             #[values(false, true)] expected_anonymous: bool,
             #[values(false, true)] expected_test_header: bool,
             #[values(false, true)] expected_test_data_on: bool,
@@ -703,12 +741,6 @@ mod tests {
             }
         }
 
-        #[test]
-        #[should_panic]
-        fn test_without_api_base_url() {
-            let _ = ApiClient::builder().build();
-        }
-
         mod retries {
             use std::sync::Mutex;
             use std::time::Duration;
@@ -767,6 +799,7 @@ mod tests {
             )]
             #[awt]
             #[tokio::test]
+            #[test_log::test]
             async fn for_status(
                 #[case] throttling_status_code: StatusCode,
                 #[case] throttling_retry_after: Option<Duration>,
@@ -795,6 +828,7 @@ mod tests {
             }
 
             #[tokio::test]
+            #[test_log::test]
             async fn throttled_too_many_times() {
                 let mock_server = MockServer::start().await;
 
@@ -860,6 +894,7 @@ mod tests {
             use super::*;
 
             #[test]
+            #[test_log::test]
             fn test_default_base_url() {
                 let test_api_client = TestApiClient::builder()
                     .http_client(http::Client::default())
@@ -871,6 +906,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_build_http_client() {
                 let result = TestApiClient::builder()
                     .build_http_client(|builder| {
@@ -885,6 +921,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_custom_base_url() {
                 let custom_api_base_url = "https://custom.api.client/api";
                 let test_api_client = TestApiClient::builder()
@@ -896,6 +933,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_num_retries() {
                 let result = TestApiClient::builder().num_retries(2).build();
 
@@ -903,6 +941,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_retry_policy() {
                 let result = TestApiClient::builder()
                     .retry_policy(ExponentialBackoff::builder().build_with_max_retries(2))
@@ -912,6 +951,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_build_error() {
                 // This test might be a little brittle because it relies on the fact that setting
                 // a user agent with invalid characters will cause a builder error. On one hand
@@ -928,6 +968,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_new() {
                 let test_api_client = TestApiClientBuilder::new().build().unwrap();
 
@@ -935,6 +976,7 @@ mod tests {
             }
 
             #[test]
+            #[test_log::test]
             fn test_default() {
                 let test_api_client = TestApiClientBuilder::default().build().unwrap();
 
@@ -945,6 +987,7 @@ mod tests {
                 use super::*;
 
                 #[test]
+                #[test_log::test]
                 fn test_derive() {
                     // Note: this test is necessary because of a bug in cargo-tarpaulin, see
                     // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
@@ -959,6 +1002,7 @@ mod tests {
             use super::*;
 
             #[test]
+            #[test_log::test]
             fn test_new() {
                 let test_api_client = TestApiClient::new().unwrap();
 
@@ -969,6 +1013,7 @@ mod tests {
                 use super::*;
 
                 #[test]
+                #[test_log::test]
                 fn test_derive() {
                     // Note: this test is necessary because of a bug in cargo-tarpaulin, see
                     // https://github.com/xd009642/tarpaulin/issues/351#issuecomment-1722148936
