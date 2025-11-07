@@ -2777,9 +2777,9 @@ dependencies = [
 
 [[package]]
 name = "wiremock_logical_matchers"
-version = "0.6.1"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0097b3fd2048b8eee9a805156bbf2319060b807da9d1cc1c6f913dbc7ae9b23c"
+checksum = "43f34ff796ac74a93a38f0ec235314d99b9353b3933a2c6e323f2752e6e9e248"
 dependencies = [
  "wiremock",
 ]
