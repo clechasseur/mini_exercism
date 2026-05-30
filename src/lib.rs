@@ -249,7 +249,7 @@
 //!
 //! ## Minimum Rust version
 //!
-//! [mini_exercism](crate) currently builds on Rust 1.85 or newer.
+//! [mini_exercism](crate) currently builds on Rust 1.88 or newer.
 //!
 //! [`Credentials`]: core::Credentials
 

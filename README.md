@@ -56,4 +56,4 @@ For more information, see [the docs](https://docs.rs/mini_exercism).
 
 ## Minimum Rust version
 
-`mini_exercism` currently builds on Rust 1.85 or newer.
+`mini_exercism` currently builds on Rust 1.88 or newer.
