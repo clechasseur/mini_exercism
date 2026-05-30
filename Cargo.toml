@@ -22,11 +22,12 @@ include = [ "src/**/*", "tests/**/*", "LICENSE", "README.md" ]
 [package.metadata.docs.rs]
 all-features = true
 targets = [ "x86_64-unknown-linux-gnu" ]
-rustc-args = [ "--cfg", "docsrs" ]
+rustc-args = [ "--cfg", "mini_exercism_docsrs" ]
 
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = [
+    "cfg(mini_exercism_docsrs)",
     "cfg(tarpaulin)",
     "cfg(tarpaulin_include)",
     "cfg(coverage)",

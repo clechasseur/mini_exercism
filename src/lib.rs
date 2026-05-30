@@ -164,7 +164,7 @@
 //! fn get_api_client() -> anyhow::Result<api::v2::Client> {
 //!     let mut client_builder = api::v2::Client::builder();
 //!
-//!     #[cfg(feature = "cli")]
+//!     # #[cfg(feature = "cli")]
 //!     if let Ok(credentials) = mini_exercism::cli::get_cli_credentials() {
 //!         client_builder.credentials(credentials);
 //!     } else {
@@ -257,7 +257,7 @@
 #![deny(rustdoc::missing_crate_level_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(mini_exercism_docsrs, feature(doc_cfg))]
 #![cfg_attr(coverage_nightly, feature(coverage_attribute))]
 
 // Re-export `reqwest`, `reqwest-middleware` and `reqwest-retry` in a `http` module
