@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = "8.0.0"
+//! mini_exercism = "8.0.1"
 //! ```
 //!
 //! or by running:
@@ -152,7 +152,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! mini_exercism = { version = "8.0.0", features = ["cli"] }
+//! mini_exercism = { version = "8.0.1", features = ["cli"] }
 //! ```
 //!
 //! Then, you can fetch CLI credentials and use them to perform API requests. Note that it's
@@ -249,7 +249,7 @@
 //!
 //! ## Minimum Rust version
 //!
-//! [mini_exercism](crate) currently builds on Rust 1.85 or newer.
+//! [mini_exercism](crate) currently builds on Rust 1.88 or newer.
 //!
 //! [`Credentials`]: core::Credentials
 

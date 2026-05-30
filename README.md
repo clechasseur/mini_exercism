@@ -16,7 +16,7 @@ Add `mini_exercism` to your dependencies:
 
 ```toml
 [dependencies]
-mini_exercism = "8.0.0"
+mini_exercism = "8.0.1"
 ```
 
 or by running:
@@ -56,4 +56,4 @@ For more information, see [the docs](https://docs.rs/mini_exercism).
 
 ## Minimum Rust version
 
-`mini_exercism` currently builds on Rust 1.85 or newer.
+`mini_exercism` currently builds on Rust 1.88 or newer.
