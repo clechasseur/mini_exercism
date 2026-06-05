@@ -102,3 +102,60 @@ impl From<http::middleware::Error> for Error {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+mod tests {
+    use std::collections::HashMap;
+
+    use assert_matches::assert_matches;
+    use rstest::{fixture, rstest};
+
+    use super::*;
+
+    mod error {
+        use super::*;
+
+        #[derive(Debug, Error)]
+        enum MiddlewareError {
+            #[error("not found")]
+            NotFound,
+        }
+
+        #[fixture]
+        fn reqwest_builder_error() -> http::Error {
+            // There's no way to create a `reqwest::Error` outside the reqwest crate,
+            // so we'll have to trigger an actual error.
+            let map_with_non_string_keys: HashMap<_, _> = [(true, 42), (false, 23)].into();
+            http::Client::new()
+                .get("/test")
+                .json(&map_with_non_string_keys)
+                .build()
+                .unwrap_err()
+        }
+
+        mod from_reqwest_middleware_error_for_error {
+            use super::*;
+
+            #[test]
+            fn middleware() {
+                let middleware_error = MiddlewareError::NotFound;
+                let middleware_error = http::middleware::Error::middleware(middleware_error);
+                let error: Error = middleware_error.into();
+
+                assert_matches!(error, Error::ApiRetryError(err) => {
+                    assert_eq!(err.to_string(), "not found");
+                });
+            }
+
+            #[rstest]
+            fn reqwest(reqwest_builder_error: http::Error) {
+                let error: Error = reqwest_builder_error.into();
+
+                assert_matches!(error, Error::ApiError(err) => {
+                    assert!(err.is_builder());
+                });
+            }
+        }
+    }
+}

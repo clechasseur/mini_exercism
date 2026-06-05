@@ -61,20 +61,31 @@ impl ApiClient {
 pub struct ApiClientBuilder {
     http_client: Option<http::Client>,
     retry_policy: Option<ExponentialBackoff>,
+    client_with_middleware: Option<ClientWithMiddleware>,
     api_base_url: Option<String>,
     credentials: Option<Credentials>,
 }
 
 impl ApiClientBuilder {
-    #[cfg_attr(not(coverage), tracing::instrument(skip_all, level = "trace"))]
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     pub fn http_client(&mut self, client: http::Client) -> &mut Self {
         self.http_client = Some(client);
+        self.client_with_middleware = None;
         self
     }
 
     #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
     pub fn retry_policy(&mut self, policy: ExponentialBackoff) -> &mut Self {
         self.retry_policy = Some(policy);
+        self.client_with_middleware = None;
+        self
+    }
+
+    #[cfg_attr(not(coverage), tracing::instrument(skip(self), level = "trace"))]
+    pub fn client_with_middleware(&mut self, client: ClientWithMiddleware) -> &mut Self {
+        self.client_with_middleware = Some(client);
+        self.http_client = None;
+        self.retry_policy = None;
         self
     }
 
@@ -96,12 +107,17 @@ impl ApiClientBuilder {
             Some(url) => url,
             None => return Err(UninitializedFieldError::new("api_base_url").into()),
         };
-        let http_client = match self.http_client.clone() {
+        let http_client = match self.client_with_middleware.clone() {
             Some(client) => client,
-            None => Self::default_http_client()?,
+            None => {
+                let http_client = match self.http_client.clone() {
+                    Some(client) => client,
+                    None => Self::default_http_client()?,
+                };
+                let retry_policy = self.retry_policy.unwrap_or_else(Self::default_retry_policy);
+                Self::build_http_client(http_client, retry_policy)
+            },
         };
-        let retry_policy = self.retry_policy.unwrap_or_else(Self::default_retry_policy);
-        let http_client = Self::build_http_client(http_client, retry_policy);
 
         Ok(ApiClient { http_client, api_base_url, credentials: self.credentials.clone() })
     }
@@ -388,7 +404,7 @@ macro_rules! define_api_client {
                 }
 
                 #[doc = r"
-                    Sets the [retry policy](crate::http::retry::RetryPolicy] to use to perform
+                    Sets the [retry policy](crate::http::retry::RetryPolicy) to use to perform
                     requests to the API.
 
                     If not specified, the default policy is to retry requests up to five (5) times
@@ -400,6 +416,27 @@ macro_rules! define_api_client {
                 pub fn retry_policy(&mut self, value: $crate::http::retry::policies::ExponentialBackoff) -> &mut Self {
                     if self.error.is_none() {
                         self.api_client_builder.retry_policy(value);
+                    }
+                    self
+                }
+
+                #[doc = r"
+                    Sets the [HTTP client with middleware](crate::http::middleware::ClientWithMiddleware)
+                    to use to perform requests to the API.
+
+                    This provides complete control over the HTTP client and its middleware, but caller
+                    is responsible for setting all middlewares, including any retry policy.
+
+                    # Notes
+
+                    This is exclusive with setting the [HTTP client](Self::http_client) and any
+                    [retry](Self::num_retries) [policy](Self::retry_policy). Calling this will
+                    clear any previously passed HTTP client/retry policy and vice versa.
+                "]
+                #[cfg_attr(not(coverage), tracing::instrument(skip_all, level = "trace"))]
+                pub fn client_with_middleware(&mut self, value: $crate::http::middleware::ClientWithMiddleware) -> &mut Self {
+                    if self.error.is_none() {
+                        self.api_client_builder.client_with_middleware(value);
                     }
                     self
                 }
@@ -827,33 +864,67 @@ mod tests {
                 assert_matches!(result, Ok(response) if response.status() == StatusCode::OK);
             }
 
-            #[tokio::test]
-            #[test_log::test]
-            async fn throttled_too_many_times() {
-                let mock_server = MockServer::start().await;
+            mod throttled {
+                use super::*;
 
-                Mock::given(method("GET"))
-                    .and(path(ROUTE))
-                    .and(not(header_exists("authorization")))
-                    .respond_with(ThrottledResponse::new(
-                        2,
-                        StatusCode::TOO_MANY_REQUESTS,
-                        None,
-                        ResponseTemplate::new(StatusCode::OK).set_body_json(TestOutput::default()),
-                    ))
-                    .mount(&mock_server)
-                    .await;
+                async fn throttling_mock_server() -> MockServer {
+                    let mock_server = MockServer::start().await;
 
-                let client = ApiClient::builder()
-                    .api_base_url(&mock_server.uri())
-                    .retry_policy(ExponentialBackoff::builder().build_with_max_retries(1))
-                    .build()
-                    .unwrap();
+                    Mock::given(method("GET"))
+                        .and(path(ROUTE))
+                        .and(not(header_exists("authorization")))
+                        .respond_with(ThrottledResponse::new(
+                            2,
+                            StatusCode::TOO_MANY_REQUESTS,
+                            None,
+                            ResponseTemplate::new(StatusCode::OK)
+                                .set_body_json(TestOutput::default()),
+                        ))
+                        .mount(&mock_server)
+                        .await;
 
-                let result = client.get(ROUTE).send().await;
-                assert_matches!(result, Err(crate::Error::ApiError(err)) => {
-                    assert_matches!(err.status(), Some(StatusCode::TOO_MANY_REQUESTS));
-                });
+                    mock_server
+                }
+
+                fn client_using_retry_policy(api_base_url: &str) -> ApiClient {
+                    ApiClient::builder()
+                        .api_base_url(api_base_url)
+                        .retry_policy(ExponentialBackoff::builder().build_with_max_retries(1))
+                        .build()
+                        .unwrap()
+                }
+
+                fn client_using_client_with_middleware(api_base_url: &str) -> ApiClient {
+                    let retry_policy = RetryAfterPolicy::with_max_retries(1);
+                    let client_with_middleware = ClientBuilder::new(http::Client::default())
+                        .with(RetryAfterMiddleware::new_with_policy(retry_policy))
+                        .build();
+
+                    ApiClient::builder()
+                        .api_base_url(api_base_url)
+                        .client_with_middleware(client_with_middleware)
+                        .build()
+                        .unwrap()
+                }
+
+                #[rstest]
+                #[case::using_retry_policy(client_using_retry_policy)]
+                #[case::using_client_with_middleware(client_using_client_with_middleware)]
+                #[awt]
+                #[tokio::test]
+                #[test_log::test]
+                async fn too_many_times<CF>(#[case] client_f: CF)
+                where
+                    CF: FnOnce(&str) -> ApiClient,
+                {
+                    let mock_server = throttling_mock_server().await;
+                    let client = client_f(&mock_server.uri());
+
+                    let result = client.get(ROUTE).send().await;
+                    assert_matches!(result, Err(crate::Error::ApiError(err)) => {
+                        assert_matches!(err.status(), Some(StatusCode::TOO_MANY_REQUESTS));
+                    });
+                }
             }
         }
     }
@@ -863,6 +934,7 @@ mod tests {
 
         use super::*;
         use crate::http::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
+        use crate::http::retry::RetryTransientMiddleware;
 
         const TEST_API_TOKEN: &str = "some_token";
         const TEST_API_CLIENT_BASE_URL: &str = "https://test.api.client/api";
@@ -945,6 +1017,20 @@ mod tests {
             fn test_retry_policy() {
                 let result = TestApiClient::builder()
                     .retry_policy(ExponentialBackoff::builder().build_with_max_retries(2))
+                    .build();
+
+                assert!(result.is_ok());
+            }
+
+            #[test]
+            #[test_log::test]
+            fn test_client_with_middleware() {
+                let retry_policy = ExponentialBackoff::builder().build_with_max_retries(23);
+                let client_with_middleware = ClientBuilder::new(http::Client::default())
+                    .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+                    .build();
+                let result = TestApiClient::builder()
+                    .client_with_middleware(client_with_middleware)
                     .build();
 
                 assert!(result.is_ok());
