@@ -16,7 +16,7 @@ Add `mini_exercism` to your dependencies:
 
 ```toml
 [dependencies]
-mini_exercism = "8.0.1"
+mini_exercism = "8.1.0"
 ```
 
 or by running:
